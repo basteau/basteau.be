@@ -190,7 +190,9 @@
   /* solved: the mark eases from 4.5:1 to 3:1 and sinks back into the mosaic */
   .card[data-state="done"] .front { color: var(--tone); }
   .front svg { grid-area: 1 / 1; width: var(--gw); height: var(--gh); fill: currentColor; translate: var(--ox, 0px) var(--oy, 0px); }
-  .front .ghost { fill: var(--ghost); mix-blend-mode: multiply; opacity: 0; }
+  /* hairline marks are thickened with a stroke in their own colour (--sw, viewBox units) so every stem weighs alike */
+  .front svg path { stroke: currentColor; stroke-width: var(--sw, 0); stroke-linejoin: round; }
+  .front .ghost { color: var(--ghost); fill: var(--ghost); mix-blend-mode: multiply; opacity: 0; }
   .front .glyph path { filter: url(#spray); }
 
   /* ---------- copied-address toast ---------- */

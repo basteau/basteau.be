@@ -8,12 +8,13 @@ export const TECH = [
 ];
 // logo palette (see the Lab pages in Paper). A turned card becomes an even squircle plate and its mark keeps
 // the tile's hue: `up` is the glyph while the card is being compared (lightness moved to a 4.5:1 contrast),
-// `tone` once matched (3:1, so it sinks back into the mosaic). Violet is dark, so its marks are tints, the
-// other three take shades. `ghost` is the partner colour of the riso misregistration that snaps in on a match.
+// `tone` once matched (3:1, so it sinks back into the mosaic). The shades keep the tile's OKLCH hue at the most
+// chroma sRGB allows, so a mark reads as a deeper ink of its tile, not a brown or a near-black. Violet is dark, so
+// its marks are tints (lavender: the strict OKLCH hue drifts to periwinkle up there and looks off). `ghost` is the partner colour of the riso misregistration that snaps in on a match.
 export const PALETTE = {
-  magenta: { css: 'var(--magenta)', hex: '#FF0A8E', up: '#3A1426', tone: '#6B1D3F', ghost: '#009FFD' },
-  cyan:    { css: 'var(--cyan)',    hex: '#009FFD', up: '#18344D', tone: '#1B4F79', ghost: '#FF0A8E' },
-  orange:  { css: 'var(--orange)',  hex: '#FDA506', up: '#61431D', tone: '#855A1F', ghost: '#4803FE' },
+  magenta: { css: 'var(--magenta)', hex: '#FF0A8E', up: '#420121', tone: '#780540', ghost: '#009FFD' },
+  cyan:    { css: 'var(--cyan)',    hex: '#009FFD', up: '#023458', tone: '#064F81', ghost: '#FF0A8E' },
+  orange:  { css: 'var(--orange)',  hex: '#FDA506', up: '#674105', tone: '#8A5909', ghost: '#4803FE' },
   violet:  { css: 'var(--violet)',  hex: '#4803FE', up: '#CFBCFF', tone: '#AE8FFF', ghost: '#FDA506' },
 };
 export const COLORS = Object.keys(PALETTE);
@@ -132,29 +133,32 @@ export function shapeOf(c, cell) {
    a fraction of the box) and its ink coverage. Centring the box is not
    centring the mark: go's speed lines drag its box left of the heavy "GO",
    vue and vite are top-heavy, docker's whale sits low. So the glyph is
-   nudged to close most of that gap, and light outline marks (laravel) are
-   drawn a little larger than dense ones (typescript) so all weigh the same.
+   nudged to close most of that gap, and light marks are drawn a little
+   larger than dense ones so all weigh the same. Hairline marks get a stroke
+   (`bold`, in viewBox units, measured in) so every stem is about as heavy,
+   and `size` is a last optical touch where the maths still reads big.
    --------------------------------------------------------------------- */
 export const OPTICS = {
   docker: { box: [0, 3.389, 24, 17.222], cx: -0.0642, cy: 0.0783, ink: 0.5252 },
   go: { box: [0, 7.517, 24, 8.966], cx: 0.0994, cy: -0.0026, ink: 0.4806 },
-  laravel: { box: [0.344, 0, 23.312, 24], cx: -0.0405, cy: -0.0277, ink: 0.2072 },
-  php: { box: [0, 5.688, 24, 12.625], cx: 0.0003, cy: 0.0077, ink: 0.6077 },
-  react: { box: [0, 1.314, 24, 21.375], cx: -0.0004, cy: -0.0011, ink: 0.3301 },
+  laravel: { box: [0.044, -0.3, 23.912, 24.6], cx: -0.0418, cy: -0.0261, ink: 0.3423, bold: .6 },
+  php: { box: [3.652, 7.528, 16.771, 8.008], cx: -0.0071, cy: 0.0088, ink: 0.3997 },
+  react: { box: [-0.225, 1.089, 24.45, 21.825], cx: -0.0004, cy: -0.0011, ink: 0.4243, bold: .45 },
   rust: { box: [0, 0.004, 24, 23.992], cx: -0.0057, cy: -0.0031, ink: 0.5238 },
   svelte: { box: [2.015, 0, 19.97, 24], cx: -0.0007, cy: -0.001, ink: 0.4926 },
-  symfony: { box: [0, 0, 24, 24], cx: 0.0059, cy: -0.0022, ink: 0.6697 },
+  symfony: { box: [3.98, 4.437, 15.437, 16.233], cx: -0.0399, cy: -0.0211, ink: 0.2652 },
   tailwindcss: { box: [0.001, 4.8, 24, 14.4], cx: -0.0005, cy: -0.0009, ink: 0.3417 },
-  typescript: { box: [0, 0, 24, 24], cx: -0.0144, cy: -0.0304, ink: 0.8162 },
+  typescript: { box: [3.375, 9.75, 18.563, 12.187], cx: 0.0442, cy: -0.0532, ink: 0.4622, size: .9 },
   vite: { box: [0.014, 0, 23.969, 24], cx: 0.0023, cy: -0.1022, ink: 0.4454 },
   vuedotjs: { box: [0, 1.61, 24, 20.78], cx: -0.0005, cy: -0.116, ink: 0.3427 }
 };
 export function glyph(slug, cell) {
-  const { box: [bx, by, bw, bh], cx, cy, ink } = OPTICS[slug];
+  const { box: [bx, by, bw, bh], cx, cy, ink, bold = 0, size = 1 } = OPTICS[slug];
   const weight = Math.min(1.18, Math.max(.9, (.45 / ink) ** .22));
-  const a = bw / bh, S = cell * .33 * weight;
+  const a = bw / bh, S = cell * .33 * weight * size;
   let w = S * Math.sqrt(a), h = S / Math.sqrt(a);
   const k = Math.min(1, cell * .54 / w, cell * .42 / h);
   w *= k; h *= k;
-  return { vb: `${bx - .2} ${by - .2} ${bw + .4} ${bh + .4}`, w, h, ox: -cx * w * .8, oy: -cy * h * .8 };
+  return { vb: `${bx - .2} ${by - .2} ${bw + .4} ${bh + .4}`, w, h, ox: -cx * w * .8, oy: -cy * h * .8, sw: bold };
 }
+

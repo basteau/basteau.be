@@ -138,7 +138,7 @@ function size() {
     cutCard(c);
     const g = glyph(c.slug, cell);
     st.setProperty('--gw', g.w.toFixed(1) + 'px'); st.setProperty('--gh', g.h.toFixed(1) + 'px');
-    st.setProperty('--ox', g.ox.toFixed(2) + 'px'); st.setProperty('--oy', g.oy.toFixed(2) + 'px');
+    st.setProperty('--ox', g.ox.toFixed(2) + 'px'); st.setProperty('--oy', g.oy.toFixed(2) + 'px'); st.setProperty('--sw', g.sw);
   }
   // the name fills the space left of the board (capped so it never shouts louder than the board)
   const name = $('#name');

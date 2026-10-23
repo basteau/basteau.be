@@ -56,7 +56,7 @@ const tileHTML = c => {
     if (st !== 'down') {
       const g = glyph(c.slug, cell);
       const fill = st === 'up' ? P.up : P.tone;
-      glyphHTML = `<svg width="${f(g.w)}" height="${f(g.h)}" viewBox="${g.vb}" style="position:relative;left:${f(g.ox)}px;top:${f(g.oy)}px;flex-shrink:0;"><path fill="${fill}" d="${normalize(ICONS[c.slug])}"/></svg>`;
+      glyphHTML = `<svg width="${f(g.w)}" height="${f(g.h)}" viewBox="${g.vb}" style="position:relative;left:${f(g.ox)}px;top:${f(g.oy)}px;flex-shrink:0;"><path fill="${fill}"${g.sw ? ` stroke="${fill}" stroke-width="${g.sw}" stroke-linejoin="round"` : ''} d="${normalize(ICONS[c.slug])}"/></svg>`;
     }
     inner = `<div style="flex:1;border-radius:${radius};background:${P.hex};display:flex;align-items:center;justify-content:center;">${glyphHTML}</div>`;
   }
