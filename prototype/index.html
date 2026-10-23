@@ -137,7 +137,10 @@
   [data-grain] .face { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
                        background-size: 180px; background-blend-mode: soft-light; }
   /* both faces wear the tile's own colour and cut; only the glyph tells them apart */
-  .back { transition: transform 200ms var(--ease-out); }
+  /* the far face is switched off exactly at mid-flip (edge-on, 150ms into the 300ms turn), instead of trusting
+     backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
+  .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
+  .back { transition: transform 200ms var(--ease-out), opacity 0s linear 150ms; }
   @media (hover: hover) and (pointer: fine) {
     .card[data-state="down"]:hover .back { transform: scale(1.045); }
   }
@@ -146,7 +149,7 @@
                 mask: radial-gradient(circle, transparent calc(var(--cell) * .16), #000 calc(var(--cell) * .16 + .5px)); }
   /* the face is one calm plate for every card (the cut lives on the back), so the flip itself morphs the shape */
   .front { transform: rotateY(180deg); display: grid; place-items: center; clip-path: var(--shape-done); color: var(--up);
-           transition: color 320ms ease 220ms; }
+           transition: color 320ms ease 220ms, opacity 0s linear 150ms; }
   /* solved: the mark eases from 4.5:1 to 3:1 and sinks back into the mosaic */
   .card[data-state="done"] .front { color: var(--tone); }
   .front svg { grid-area: 1 / 1; width: var(--gw); height: var(--gh); fill: currentColor; translate: var(--ox, 0px) var(--oy, 0px); }
