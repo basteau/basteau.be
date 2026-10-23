@@ -28,12 +28,13 @@
 <link rel="modulepreload" href="board.js">
 <link rel="modulepreload" href="icons.js">
 <script>
-  // theme before first paint: the visitor's stored choice, else the OS preference
+  // theme before first paint: the visitor's stored choice, else the OS preference (the browser chrome follows it)
   (() => {
     let t = null;
     try { t = localStorage.getItem('basteau:theme'); } catch {}
     if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.dataset.theme = t;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = t === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
   })();
 </script>
 <style>

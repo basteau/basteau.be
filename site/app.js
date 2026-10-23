@@ -17,7 +17,8 @@ const store = {
    (click/tap <= 0.1s, toggles two notes 25ms apart, success as an arpeggio,
    layer gains summing under ~0.6). Nothing plays until the visitor acts.
    ===================================================================== */
-let soundOn = store.get('basteau:sound', 'on') === 'on';
+// on by default, but off for visitors who ask for reduced motion (they can still turn it on)
+let soundOn = store.get('basteau:sound', reduce.matches ? 'off' : 'on') === 'on';
 // C-major pentatonic ladder: every match climbs one step, so a whole game plays a little melody
 const LADDER = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093, 2349.32];
 const blip = (f, d, g, delay = 0) => ({ source: { type: 'sine', frequency: f }, envelope: { attack: 0, decay: d, sustain: 0, release: .006 }, gain: g, delay });
@@ -349,7 +350,10 @@ function paintTheme() {
 themeBtn.addEventListener('click', e => {
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
   play(next === 'dark' ? 'dusk' : 'dawn');
-  const apply = () => { root.dataset.theme = next; store.set('basteau:theme', next); paintTheme(); field.recolor(); };
+  const apply = () => {
+    root.dataset.theme = next; store.set('basteau:theme', next); paintTheme(); field.recolor();
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = next === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
+  };
   if (!document.startViewTransition || reduce.matches) { apply(); return; }
   // the new theme grows out of the button as a circle (an occasional action, so it gets a real moment)
   const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
