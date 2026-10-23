@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>optics</title>
+<script type="module">
+// dev tool: measures each glyph's ink coverage and centroid (relative to its bbox) for optical centring
+import { ICONS } from './icons.js';
+const out = {};
+const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 24 24');
+svg.style.cssText = 'position:absolute;width:24px;height:24px'; document.body.append(svg);
+for (const [slug, d] of Object.entries(ICONS)) {
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', d); svg.append(p);
+  const b = p.getBBox(), S = 40, cv = document.createElement('canvas');
+  cv.width = Math.ceil(b.width * S); cv.height = Math.ceil(b.height * S);
+  const ctx = cv.getContext('2d'); ctx.setTransform(S, 0, 0, S, -b.x * S, -b.y * S); ctx.fill(new Path2D(d));
+  const px = ctx.getImageData(0, 0, cv.width, cv.height).data;
+  let m = 0, sx = 0, sy = 0;
+  for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) { const a = px[(y * cv.width + x) * 4 + 3] / 255; m += a; sx += a * x; sy += a * y; }
+  out[slug] = { box: [b.x, b.y, b.width, b.height].map(v => +v.toFixed(3)), cx: +(sx / m / cv.width - .5).toFixed(4), cy: +(sy / m / cv.height - .5).toFixed(4), ink: +(m / (cv.width * cv.height)).toFixed(4) };
+}
+window.optics = out; document.title = 'done';
+</script>
