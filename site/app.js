@@ -407,6 +407,5 @@ function slosh() {
   setTimeout(() => { splash = 0; water(); }, 650);
 }
 $('#name').addEventListener('click', slosh);
-$('#name').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); slosh(); } });
 
 document.fonts.ready.then(() => newGame());
