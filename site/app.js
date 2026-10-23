@@ -111,7 +111,10 @@ function newGame({ animate = true } = {}) {
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
     el.setAttribute('aria-label', 'Hidden card');
     const P = PALETTE[m.color], { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
-    el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost};--bd:${-(x + y) * .45}s`;
+    // breathing: 96.2-97.8% deep, a 5.5-9.5s period and a random start, per tile
+    const bp = 5.5 + Math.random() * 4;
+    el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost};` +
+      `--bs:${(.962 + Math.random() * .016).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
     el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
       `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
     const c = { ...m, el, state: 'down' };
@@ -155,7 +158,7 @@ function cutCard(c) {
   c.el.style.setProperty('--shape', shape); c.el.style.setProperty('--shape-done', done);
 }
 
-/* now and then, while nobody is playing, one interior tile turns a quarter: only shapes where the turn shows
+/* every few seconds, while nobody is playing, one interior tile turns a quarter: only shapes where the turn shows
    (a circle or square would look unchanged), never a flip (nothing gets revealed), no sound (nothing plays
    unprompted), and off for reduced motion. The tile rotates 90deg clockwise and then settles as its next
    orientation: its radii and its gaps turn with it, swapped in the same frame the rotation is dropped */
@@ -164,8 +167,8 @@ let lastInput = 0;
 addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
 addEventListener('keydown', () => { lastInput = performance.now(); });
 function idleTurn() {
-  setTimeout(idleTurn, 7000 + Math.random() * 5000);
-  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 4000) return;
+  setTimeout(idleTurn, 3500 + Math.random() * 3000);
+  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
   const pool = cards.filter(c => c.state === 'down' && !c.turning && TURNS.has(c.kind) &&
     c.x > 0 && c.y > 0 && c.x < S.cols - 1 && c.y < S.rows - 1);
   const c = pool[Math.floor(Math.random() * pool.length)]; if (!c) return;
@@ -178,7 +181,7 @@ function idleTurn() {
     cutCard(c); spin.cancel(); c.turning = false;
   };
 }
-setTimeout(idleTurn, 6000);
+setTimeout(idleTurn, 3000);
 
 function dealIn() {
   if (reduce.matches) return;
