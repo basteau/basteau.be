@@ -174,7 +174,7 @@ function setState(c, state, instant) {
 
 function onCard(c, keyboard) {
   if (c.state !== 'down' || locked) return;
-  if (open.length === 2) settleMiss(true);              // a third card is interruptible: put the miss back at once
+  if (open.length === 2) settleMiss(true);              // a third card is interruptible: the miss turns back at once
   setState(c, 'up', keyboard); open.push(c);
   play('flip', [c.color, c.kind], { jitter: { detune: 12 } });
   if (open.length === 2) {
@@ -185,9 +185,10 @@ function onCard(c, keyboard) {
   }
 }
 
+// now: the visitor already moved on, so skip the wait (and the unflip sound) but still let the cards turn back
 function settleMiss(now) {
   clearTimeout(missTimer);
-  for (const c of open) setState(c, 'down', now);
+  for (const c of open) setState(c, 'down');
   if (!now && open.length) setTimeout(() => play('unflip'), 120);
   open = [];
 }
