@@ -106,28 +106,19 @@ function newGame({ animate = true } = {}) {
   cards = [];
   for (const m of model.cells) {
     const { x, y } = m;
-    if (m.hole) {
-      const t = document.createElement('div');
-      t.className = 'score-tile'; t.setAttribute('aria-hidden', 'true');
-      t.innerHTML = `<span class="n" data-n>00</span><span class="of">OF ${pairs}</span>`;
-      board.append(t); grid[y][x] = { hole: true, el: t, x, y };
-      continue;
-    }
     const el = document.createElement('button');
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
-    el.setAttribute('role', 'gridcell'); el.setAttribute('aria-label', 'Hidden card');
-    const P = PALETTE[m.color];
+    el.setAttribute('aria-label', 'Hidden card');
+    const P = PALETTE[m.color], { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
     el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost}`;
     el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
-      `<svg class="ghost" viewBox="${glyph(m.slug, 1).vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>` +
-      `<svg class="glyph" viewBox="${glyph(m.slug, 1).vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg></span></span>`;
+      `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
     const c = { ...m, el, state: 'down' };
     if (c.kind === 'ring') el.classList.add('ring');
     el.addEventListener('click', e => onCard(c, e.detail === 0));
     board.append(el); grid[y][x] = c; cards.push(c);
   }
   cards[0].el.tabIndex = 0;
-  root.style.setProperty('--of', pairs);
   document.querySelectorAll('[data-of]').forEach(n => { n.textContent = ` / ${pad(pairs)}`; });
   size(); score(false);
   if (animate) dealIn();
@@ -259,7 +250,7 @@ board.addEventListener('keydown', e => {
   const cur = cards.find(c => c.el === document.activeElement); if (!cur) return;
   e.preventDefault();
   let y = cur.y, x = cur.x;
-  do { y += moves[0]; x += moves[1]; } while (grid[y]?.[x]?.hole);
+  y += moves[0]; x += moves[1];
   const next = grid[y]?.[x]; if (!next) return;
   cur.el.tabIndex = -1; next.el.tabIndex = 0; next.el.focus();
 });

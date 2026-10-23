@@ -46,13 +46,11 @@
     --cell: 120px; --cols: 4; --name: 184px;
     color-scheme: light;
     --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12);
-    --score-bg: #0B0B0C; --score-fg: #FFFFFF; --score-muted: #8E8E94;
     --cta-bg: #0B0B0C; --cta-fg: #FFFFFF; --toast-bg: rgb(11 11 12 / .92); --toast-fg: #FFFFFF;
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
-    --score-bg: #18181A;
     --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
   }
 
@@ -269,7 +267,7 @@
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/><path class="disc" d="M9 2.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="board-wrap"><div class="board" id="board" role="grid" aria-label="Memory game: match the tech I work with"></div></div>
+  <div class="board-wrap"><div class="board" id="board" role="group" aria-label="Memory game: match the tech I work with. Arrow keys move between cards."></div></div>
 </main>
 
 <p class="sr" id="live" aria-live="polite"></p>
