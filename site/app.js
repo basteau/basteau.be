@@ -193,6 +193,7 @@ function settleMiss(now) {
 }
 
 function onMatch(a, b) {
+  if (!a.el.isConnected) return;                       // the board was reshuffled in the meantime
   setState(a, 'done'); setState(b, 'done');
   play('match', Math.min(matched, LADDER.length - 1));
   matched++; score(true);
@@ -211,6 +212,7 @@ function onMatch(a, b) {
 }
 
 function onWin(last) {
+  if (!last.el.isConnected) return;
   play('win');
   live.textContent = `All ${pairs} pairs in ${moves} moves.`;
   $('#shuffle').setAttribute('data-attn', '');
