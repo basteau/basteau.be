@@ -59,15 +59,17 @@ const SFX = {
   toggleOn: defineSound({ layers: [blip(2093, .012, .1), blip(3136, .012, .1, .025)] }),
   toggleOff: defineSound({ layers: [blip(3136, .012, .1), blip(2093, .012, .1, .025)] }),
   // theme: a soft filtered-noise swell under the toggle pair; dark sweeps down, light sweeps up
+  // (both stretched over the ~850ms reveal: the swell peaks a quarter in and fades with the edge, the second note
+  // lands as the wash passes mid-screen)
   dusk: defineSound({ layers: [
-      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 600, resonance: .9, envelope: { attack: .05, peak: 2600, decay: .32 } },
-        envelope: { attack: .06, decay: .34, sustain: 0, release: .08 }, gain: .07 },
-      blip(1568, .03, .06, .04), blip(1046.5, .05, .06, .09),
+      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 600, resonance: .9, envelope: { attack: .14, peak: 2400, decay: .6 } },
+        envelope: { attack: .12, decay: .62, sustain: 0, release: .16 }, gain: .06 },
+      blip(1568, .04, .055, .05), blip(1046.5, .07, .055, .24),
     ] }),
   dawn: defineSound({ layers: [
-      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 900, resonance: .9, envelope: { attack: .05, peak: 4200, decay: .3 } },
-        envelope: { attack: .06, decay: .32, sustain: 0, release: .08 }, gain: .06 },
-      blip(1046.5, .03, .06, .04), blip(1568, .05, .06, .09),
+      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 900, resonance: .9, envelope: { attack: .14, peak: 3800, decay: .58 } },
+        envelope: { attack: .12, decay: .6, sustain: 0, release: .16 }, gain: .055 },
+      blip(1046.5, .04, .055, .05), blip(1568, .07, .055, .24),
     ] }),
 };
 const play = (name, arg, opts) => {
@@ -355,13 +357,18 @@ themeBtn.addEventListener('click', e => {
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = next === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
   };
   if (!document.startViewTransition || reduce.matches) { apply(); return; }
-  // the new theme grows out of the button as a circle (an occasional action, so it gets a real moment)
+  // the new theme grows out of the button as a soft-edged circle (an occasional action, so it gets a real moment):
+  // a radial mask whose size and position animate together, so its centre stays on the button and the feathered
+  // edge (the last ~8% of the radius) washes over the page instead of cutting across it
   const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-  const end = Math.hypot(Math.max(x, vw() - x), Math.max(y, vh() - y));
+  const S = 2 * Math.hypot(Math.max(x, vw() - x), Math.max(y, vh() - y)) / .92;   // solid part covers the far corner
+  const from = { size: '0px 0px', pos: `${x}px ${y}px` }, to = { size: `${S}px ${S}px`, pos: `${x - S / 2}px ${y - S / 2}px` };
   document.startViewTransition(apply).ready.then(() => {
-    root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
-      { duration: 560, easing: 'cubic-bezier(.23, 1, .32, 1)', pseudoElement: '::view-transition-new(root)' });
-  });
+    root.animate({
+      maskSize: [from.size, to.size], maskPosition: [from.pos, to.pos],
+      webkitMaskSize: [from.size, to.size], webkitMaskPosition: [from.pos, to.pos],
+    }, { duration: 850, easing: 'cubic-bezier(.45, 0, .15, 1)', fill: 'both', pseudoElement: '::view-transition-new(root)' });
+  }, () => {});   // a transition skipped by a quick second toggle (or a hidden tab) just applies the theme
 });
 paintTheme();
 

@@ -65,6 +65,9 @@
   /* no double-tap zoom on anything you press (fast card taps would otherwise zoom on phones) */
   a, button { touch-action: manipulation; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  /* the theme reveal's soft edge: solid to 92% of the radius, then a narrow feather (sized and placed from app.js) */
+  ::view-transition-new(root) { -webkit-mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0;
+                                mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0; }
 
   #field { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
 
