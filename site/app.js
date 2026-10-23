@@ -154,16 +154,16 @@ function size() {
 
 // a tile's back cut and its face plate, from its radii and gaps at the current cell size
 function cutCard(c) {
-  const { shape, done } = shapeOf(c, S.cell, S.cols, S.rows);
+  const { shape, done } = shapeOf(c, S.cell);
   c.el.style.setProperty('--shape', shape); c.el.style.setProperty('--shape-done', done);
 }
 
 /* every few seconds, while nobody is playing, one tile turns a quarter: any shape whose corners show the swing (a
    circle or ring would look still), never a flip (nothing gets revealed), no sound (nothing plays unprompted), and
-   off for reduced motion. The tile rotates 90deg clockwise and then settles as its next orientation: its radii and
-   gaps turn with it, swapped in the same frame the rotation is dropped. An edge tile's gaps don't turn (the board's
-   outer side stays shut), so its clip slides to the new insets during the spin, written in the tile's own rotating
-   frame, where the cut itself never changes. The last few tiles sit out the draw, so the turns wander the board */
+   off for reduced motion. The tile rotates 90deg clockwise as one rigid piece and then settles as its next
+   orientation: its radii and gaps turn with it, swapped in the same frame the rotation is dropped, so nothing about
+   the shape changes on the way (edge tiles too: every side has its gap). The last few tiles sit out the draw, so
+   the turns wander the board */
 const idle = c => c.state === 'down' && !c.turning;
 const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble', 'square', 'squircle']);
 let lastInput = 0;
@@ -182,14 +182,13 @@ function idleTurn() {
   if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
   const c = draw(cards.filter(c => idle(c) && TURNS.has(c.kind)), turned, 4); if (!c) return;
   c.turning = true;
-  const [r, j] = [c.radius, c.jitter], px = v => v.toFixed(2) + 'px';
-  c.radius = [r[3], r[0], r[1], r[2]]; c.jitter = [j[3], j[0], j[1], j[2]];   // tl tr br bl, t r b l: all a step clockwise
-  const [t, rt, b, l] = shapeOf(c, S.cell, S.cols, S.rows).inset, back = c.el.querySelector('.back');
-  // the new on-screen insets as seen from the rotated tile: its top lands on the right, its left on the top
-  const local = `inset(${[rt, b, l, t].map(px).join(' ')} round ${r.map(k => px(k * S.cell)).join(' ')})`;
-  const spin = back.animate([{ rotate: '0deg', clipPath: getComputedStyle(back).clipPath }, { rotate: '90deg', clipPath: local }],
+  const spin = c.el.querySelector('.back').animate([{ rotate: '0deg' }, { rotate: '90deg' }],
     { duration: 900, easing: 'cubic-bezier(.77, 0, .175, 1)', fill: 'forwards' });
-  spin.onfinish = () => { cutCard(c); spin.cancel(); c.turning = false; };
+  spin.onfinish = () => {
+    const [r, j] = [c.radius, c.jitter];
+    c.radius = [r[3], r[0], r[1], r[2]]; c.jitter = [j[3], j[0], j[1], j[2]];   // tl tr br bl, t r b l: all a step clockwise
+    cutCard(c); spin.cancel(); c.turning = false;
+  };
 }
 setTimeout(idleTurn, 3000);
 

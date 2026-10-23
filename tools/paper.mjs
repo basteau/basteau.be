@@ -45,8 +45,7 @@ const tileHTML = c => {
       `<div style="font-family:'Geist Mono';font-size:${Math.round(cell * .2)}px;line-height:1.2;font-weight:500;color:#FFFFFF;">${String(demo).padStart(2, '0')}</div>` +
       `<div style="font-family:'Geist Mono';font-size:10px;line-height:12px;font-weight:500;letter-spacing:0.14em;color:#8E8E94;">OF ${pairs}</div></div></div>`;
   }
-  const edge = [c.y === 0, c.x === cols - 1, c.y === rows - 1, c.x === 0];
-  const [t, r, b, l] = edge.map((e, i) => e ? 0 : f(gap * c.jitter[i]));
+  const [t, r, b, l] = c.jitter.map(j => f(gap * j));
   const st = state.get(c) ?? 'down', P = PALETTE[c.color];
   const radius = (st !== 'down' ? [.32, .32, .32, .32] : c.radius).map(k => f(k * cell) + 'px').join(' ');
   let inner;

@@ -155,7 +155,10 @@
   .score .of { color: var(--muted); }
 
   /* ---------- the board ---------- */
-  .board { display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell); isolation: isolate; }
+  /* every tile keeps its gap on all four sides, the outer ones too, so the board is pulled out by one gap (the
+     same max(2px, 2.8%) as shapeOf in board.js) and its visible edge sits on the layout line */
+  .board { display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell); isolation: isolate;
+           margin: calc(-1 * max(2px, var(--cell) * .028)); }
   .card { position: relative; perspective: calc(var(--cell) * 6); outline-offset: -3px; cursor: pointer; transition: transform 160ms ease-out; }
   .card:active { transform: scale(.97); }
   .card[data-state="done"] { cursor: default; }

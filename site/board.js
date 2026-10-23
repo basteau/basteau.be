@@ -114,16 +114,15 @@ export function deal(cols, rows, holes, seed) {
   return { cells, pairs };
 }
 
-// the clip-path for a tile at a given cell size: a near-uniform gap on every side (shut at the board's outer
-// edge), then its cut. The face side is always the same even squircle plate, so every mark gets one stage.
-export function shapeOf(c, cell, cols, rows) {
+// the clip-path for a tile at a given cell size: a near-uniform gap on every side, the board's outer edge too (the
+// board is pulled out by one gap to make up for it, see .board), so a tile looks the same turned any way. Then its
+// cut. The face side is always the same even squircle plate, so every mark gets one stage.
+export function shapeOf(c, cell) {
   const gap = Math.max(2, cell * .028), px = v => v.toFixed(2) + 'px';
-  const edge = [c.y === 0, c.x === cols - 1, c.y === rows - 1, c.x === 0];
-  const [t, rt, b, l] = edge.map((e, i) => e ? 0 : gap * c.jitter[i]);
+  const [t, rt, b, l] = c.jitter.map(j => gap * j);
   return {
     shape: `inset(${px(t)} ${px(rt)} ${px(b)} ${px(l)} round ${c.radius.map(k => px(k * cell)).join(' ')})`,
     done: `inset(${px(t)} ${px(rt)} ${px(b)} ${px(l)} round ${px(cell * .32)})`,
-    inset: [t, rt, b, l],
   };
 }
 
