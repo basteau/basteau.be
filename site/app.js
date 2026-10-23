@@ -110,14 +110,14 @@ function newGame({ animate = true } = {}) {
     const el = document.createElement('button');
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
     el.setAttribute('aria-label', 'Hidden card');
-    const P = PALETTE[m.color], { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
+    const { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
     // breathing: 94.5-96.5% deep, a 3.5-6s period and a random start, per tile
     const bp = 3.5 + Math.random() * 2.5;
-    el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost};` +
-      `--bs:${(.945 + Math.random() * .02).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
+    el.style.cssText = `--bs:${(.945 + Math.random() * .02).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
     el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
       `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
     const c = { ...m, el, state: 'down' };
+    paint(c, c.color);
     if (c.kind === 'ring') el.classList.add('ring');
     el.addEventListener('click', e => onCard(c, e.detail === 0));
     board.append(el); grid[y][x] = c; cards.push(c);
@@ -158,30 +158,70 @@ function cutCard(c) {
   c.el.style.setProperty('--shape', shape); c.el.style.setProperty('--shape-done', done);
 }
 
-/* every few seconds, while nobody is playing, one interior tile turns a quarter: only shapes where the turn shows
-   (a circle or square would look unchanged), never a flip (nothing gets revealed), no sound (nothing plays
-   unprompted), and off for reduced motion. The tile rotates 90deg clockwise and then settles as its next
-   orientation: its radii and its gaps turn with it, swapped in the same frame the rotation is dropped */
-const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble']);
+/* every few seconds, while nobody is playing, one tile turns a quarter: any shape whose corners show the swing (a
+   circle or ring would look still), never a flip (nothing gets revealed), no sound (nothing plays unprompted), and
+   off for reduced motion. The tile rotates 90deg clockwise and then settles as its next orientation: its radii and
+   gaps turn with it, swapped in the same frame the rotation is dropped. An edge tile's gaps don't turn (the board's
+   outer side stays shut), so its clip slides to the new insets during the spin, written in the tile's own rotating
+   frame, where the cut itself never changes. The last few tiles sit out the draw, so the turns wander the board */
+const idle = c => c.state === 'down' && !c.turning;
+const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble', 'square', 'squircle']);
 let lastInput = 0;
 addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
 addEventListener('keydown', () => { lastInput = performance.now(); });
+// a random pick (a card or a pair) from the pool, skipping recently used cards while there's anything else to pick
+function draw(pool, recent, keep) {
+  const fresh = pool.filter(x => ![x].flat().some(c => recent.includes(c)));
+  const from = fresh.length ? fresh : pool, x = from[Math.floor(Math.random() * from.length)];
+  if (x) { recent.push(...[x].flat()); recent.splice(0, recent.length - keep); }
+  return x;
+}
+const turned = [];
 function idleTurn() {
-  setTimeout(idleTurn, 2500 + Math.random() * 2000);
+  setTimeout(idleTurn, 2000 + Math.random() * 1500);
   if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
-  const pool = cards.filter(c => c.state === 'down' && !c.turning && TURNS.has(c.kind) &&
-    c.x > 0 && c.y > 0 && c.x < S.cols - 1 && c.y < S.rows - 1);
-  const c = pool[Math.floor(Math.random() * pool.length)]; if (!c) return;
+  const c = draw(cards.filter(c => idle(c) && TURNS.has(c.kind)), turned, 4); if (!c) return;
   c.turning = true;
-  const spin = c.el.querySelector('.back').animate([{ rotate: '0deg' }, { rotate: '90deg' }],
+  const [r, j] = [c.radius, c.jitter], px = v => v.toFixed(2) + 'px';
+  c.radius = [r[3], r[0], r[1], r[2]]; c.jitter = [j[3], j[0], j[1], j[2]];   // tl tr br bl, t r b l: all a step clockwise
+  const [t, rt, b, l] = shapeOf(c, S.cell, S.cols, S.rows).inset, back = c.el.querySelector('.back');
+  // the new on-screen insets as seen from the rotated tile: its top lands on the right, its left on the top
+  const local = `inset(${[rt, b, l, t].map(px).join(' ')} round ${r.map(k => px(k * S.cell)).join(' ')})`;
+  const spin = back.animate([{ rotate: '0deg', clipPath: getComputedStyle(back).clipPath }, { rotate: '90deg', clipPath: local }],
     { duration: 900, easing: 'cubic-bezier(.77, 0, .175, 1)', fill: 'forwards' });
-  spin.onfinish = () => {
-    const [r, j] = [c.radius, c.jitter];
-    c.radius = [r[3], r[0], r[1], r[2]]; c.jitter = [j[3], j[0], j[1], j[2]];   // tl tr br bl, t r b l: all a step clockwise
-    cutCard(c); spin.cancel(); c.turning = false;
-  };
+  spin.onfinish = () => { cutCard(c); spin.cancel(); c.turning = false; };
 }
 setTimeout(idleTurn, 3000);
+
+/* and, on its own clock, two touching face-down tiles of different colours trade colours: the same quiet rules as the
+   turn. The whole palette moves with the colour (face, mark tones, flip sound, ripple), so a card flipped later
+   belongs to its new tile. The crossfade runs on the computed colours, so a theme switch never animates the board */
+const OKLAB = CSS.supports('color', 'color-mix(in oklab, red, blue)');
+function paint(c, color) {
+  const P = PALETTE[c.color = color], st = c.el.style;
+  st.setProperty('--c', P.css); st.setProperty('--up', P.up); st.setProperty('--tone', P.tone); st.setProperty('--ghost', P.ghost);
+}
+const swapped = [];
+function idleSwap() {
+  setTimeout(idleSwap, 2500 + Math.random() * 1500);
+  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
+  const near = [];   // every touching pair (right and below neighbours) of idle tiles that differ in colour
+  for (const a of cards) {
+    if (!idle(a)) continue;
+    for (const b of [grid[a.y][a.x + 1], grid[a.y + 1]?.[a.x]]) if (b && idle(b) && b.color !== a.color) near.push([a, b]);
+  }
+  const pair = draw(near, swapped, 4); if (!pair) return;
+  const colors = pair.map(c => c.color).reverse();
+  pair.forEach((c, i) => {
+    const back = c.el.querySelector('.back'), from = getComputedStyle(back).backgroundColor;
+    paint(c, colors[i]);
+    const to = getComputedStyle(back).backgroundColor;
+    // stepped through OKLab: a straight sRGB fade sags to mud halfway (orange to violet passes a dull brown)
+    const steps = OKLAB ? [0, 25, 50, 75, 100].map(p => `color-mix(in oklab, ${to} ${p}%, ${from})`) : [from, to];
+    back.animate(steps.map(backgroundColor => ({ backgroundColor })), { duration: 700, easing: 'cubic-bezier(.45, 0, .55, 1)' });
+  });
+}
+setTimeout(idleSwap, 4500);
 
 function dealIn() {
   if (reduce.matches) return;
