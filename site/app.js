@@ -276,6 +276,8 @@ const field = (() => {
     ctx.clearRect(0, 0, W, H);
     const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10;
     const [br, bg, bb, ba] = base;
+    // plain dots go into one path and one fill; only the few the lens or a ring touches are drawn on their own
+    const plain = new Path2D(), lit = [];
     for (let y = STEP / 2, gy = 0; y < H + STEP; y += STEP, gy++) {
       for (let x = STEP / 2, gx = 0; x < W + STEP; x += STEP, gx++) {
         let e = 0, dx = 0, dy = 0, tint = null, te = 0;
@@ -290,14 +292,15 @@ const field = (() => {
             if (d > 0) { dx += ddx / d * 7 * w; dy += ddy / d * 7 * w; }
             if (w > te) { te = w; tint = r.c; } }
         }
-        const amt = Math.max(e, te);
-        const rad = 1 + 3 * amt;
-        if (amt > .1) {
-          ctx.fillStyle = te > e ? tint : pal[(gx * 7 + gy * 13) % 4];
-          ctx.globalAlpha = .18 + .82 * amt;
-        } else { ctx.fillStyle = `rgb(${br} ${bg} ${bb})`; ctx.globalAlpha = ba; }
-        ctx.beginPath(); ctx.arc(x + dx, y + dy, rad, 0, 6.2832); ctx.fill();
+        const amt = Math.max(e, te), rad = 1 + 3 * amt;
+        if (amt > .1) lit.push(x + dx, y + dy, rad, te > e ? tint : pal[(gx * 7 + gy * 13) % 4], .18 + .82 * amt);
+        else { plain.moveTo(x + dx + rad, y + dy); plain.arc(x + dx, y + dy, rad, 0, 6.2832); }
       }
+    }
+    ctx.fillStyle = `rgb(${br} ${bg} ${bb})`; ctx.globalAlpha = ba; ctx.fill(plain);
+    for (let i = 0; i < lit.length; i += 5) {
+      ctx.fillStyle = lit[i + 3]; ctx.globalAlpha = lit[i + 4];
+      ctx.beginPath(); ctx.arc(lit[i], lit[i + 1], lit[i + 2], 0, 6.2832); ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
@@ -387,7 +390,7 @@ let splash = 0;
 // by game progress and by a splash when the name is tapped
 function water() {
   const name = $('#name'), size = parseFloat(getComputedStyle(name).fontSize);
-  const ctx = document.createElement('canvas').getContext('2d');
+  const ctx = water.ctx ??= document.createElement('canvas').getContext('2d');
   ctx.font = `800 ${size}px Geist`;
   const m = ctx.measureText('x'), asc = m.fontBoundingBoxAscent, desc = m.fontBoundingBoxDescent, xh = m.actualBoundingBoxAscent;
   const baseline = (size * .85 - (asc + desc)) / 2 + asc;
