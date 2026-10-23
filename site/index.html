@@ -159,10 +159,13 @@
      same max(2px, 2.8%) as shapeOf in board.js) and its visible edge sits on the layout line */
   .board { display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell); isolation: isolate;
            margin: calc(-1 * max(2px, var(--cell) * .028)); }
-  .card { position: relative; perspective: calc(var(--cell) * 6); outline-offset: -3px; cursor: pointer; transition: transform 160ms ease-out; }
+  .card { position: relative; outline-offset: -3px; cursor: pointer; transition: transform 160ms ease-out; }
   .card:active { transform: scale(.97); }
   .card[data-state="done"] { cursor: default; }
   .card[data-state="done"]:active { transform: none; }
+  /* the skin carries the breathing surface's stretch (a matrix set per frame) and the flip's perspective; its own
+     layer, so the clipped, grained, spray-filtered faces are drawn once and only moved, never repainted per frame */
+  .skin { position: absolute; inset: 0; perspective: calc(var(--cell) * 6); will-change: transform; }
   .inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 300ms var(--ease-in-out); }
   .card[data-state="up"] .inner, .card[data-state="done"] .inner { transform: rotateY(180deg); }
   .card.instant .inner, .card.instant .face { transition: none !important; }
@@ -174,11 +177,6 @@
      backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
   .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
   .back { transition: transform 160ms var(--ease-out), opacity 0s linear 150ms; }
-  /* the board breathes, each tile on its own: depth (--bs), period (--bp) and start (--bd) are random per tile, so
-     the board shimmers irregularly instead of pulsing in step. It uses the scale property, so the hover lift
-     (transform) and a quarter turn (rotate) stack on top of it */
-  .card[data-state="down"] .back { animation: breathe var(--bp, 7s) ease-in-out var(--bd, 0s) infinite; }
-  @keyframes breathe { 50% { scale: var(--bs, .97); } }
   /* hover lifts the tile within its own gap (~2px a side), never into a neighbour */
   @media (hover: hover) and (pointer: fine) { .card[data-state="down"]:hover .back { transform: scale(1.03); } }
   /* rings: a hole punched in the back only (the face is a full plate so the mark has room) */
@@ -229,7 +227,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .rise { animation-name: fade; }
-    .card[data-state="down"] .back { animation: none; }
     @keyframes fade { from { opacity: 0; } }
     .name .w { animation: none; transition: none; }
     .inner { transition: none; }

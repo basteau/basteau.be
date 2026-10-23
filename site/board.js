@@ -162,3 +162,27 @@ export function glyph(slug, cell) {
   return { vb: `${bx - .2} ${by - .2} ${bw + .4} ${bh + .4}`, w, h, ox: -cx * w * .8, oy: -cy * h * .8, sw: bold };
 }
 
+/* ---------------------------------------------------------------------
+   the breathing surface: one soft swell of pressure under the board. Each
+   tile follows a smooth displacement field u = k·g·d (d the offset from the
+   swell in cells, g a gaussian of its distance), and wears the field's
+   local stretch, J = I + k·g·(I - d·dᵀ/σ²): the tile under the swell grows,
+   its ring is pushed out and squashed towards it, the far tiles hardly move.
+   One field moves them all, so the gaps between tiles stay almost even and
+   the board reads as a single surface. Returns a CSS matrix() in px.
+   --------------------------------------------------------------------- */
+export function swell(dx, dy, k, cell, sigma = 1) {
+  const s2 = sigma * sigma, g = k * Math.exp(-(dx * dx + dy * dy) / (2 * s2));
+  const a = 1 + g * (1 - dx * dx / s2), d = 1 + g * (1 - dy * dy / s2), b = -g * dx * dy / s2;
+  return [a, b, b, d, g * dx * cell, g * dy * cell];
+}
+
+// where the swell is at time t (seconds), in cells from the board's top-left: a slow lissajous on periods that never
+// line up (13s, 17s, 31s), so it wanders the whole board and never retraces a loop. `ph` is a per-visit phase
+export function drift(t, cols, rows, ph = [0, 0, 0]) {
+  const T = 2 * Math.PI;
+  return [cols / 2 + (cols / 2 - .35) * Math.sin(T * t / 13 + ph[0]) * (.8 + .2 * Math.sin(T * t / 31 + ph[2])),
+          rows / 2 + (rows / 2 - .35) * Math.sin(T * t / 17 + ph[1])];
+}
+// and how deep it is breathing: in and out every 4.4s, never quite flat, so the swell is always somewhere
+export const breath = t => .3 + .35 * (1 - Math.cos(2 * Math.PI * t / 4.4));

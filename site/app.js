@@ -1,6 +1,6 @@
 import { defineSound } from './audio.js';
 import { ICONS } from './icons.js';
-import { TECH, PALETTE, COLORS, deal, shapeOf, glyph } from './board.js';
+import { TECH, PALETTE, COLORS, deal, shapeOf, glyph, swell, drift, breath } from './board.js';
 
 const root = document.documentElement;
 // layout viewport (unlike innerWidth it never grows with overflowing content)
@@ -111,12 +111,9 @@ function newGame({ animate = true } = {}) {
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
     el.setAttribute('aria-label', 'Hidden card');
     const { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
-    // breathing: 94.5-96.5% deep, a 3.5-6s period and a random start, per tile
-    const bp = 3.5 + Math.random() * 2.5;
-    el.style.cssText = `--bs:${(.945 + Math.random() * .02).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
-    el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
-      `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
-    const c = { ...m, el, state: 'down' };
+    el.innerHTML = `<span class="skin"><span class="inner"><span class="face back"></span><span class="face front">` +
+      `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span></span>`;
+    const c = { ...m, el, skin: el.firstChild, state: 'down' };
     paint(c, c.color);
     if (c.kind === 'ring') el.classList.add('ring');
     el.addEventListener('click', e => onCard(c, e.detail === 0));
@@ -126,6 +123,7 @@ function newGame({ animate = true } = {}) {
   document.querySelectorAll('[data-of]').forEach(n => { n.textContent = ` / ${pad(pairs)}`; });
   size(); score(false);
   if (animate) dealIn();
+  breathe();
 }
 
 // lay everything out at the current viewport without touching game state
@@ -221,6 +219,30 @@ function idleSwap() {
   });
 }
 setTimeout(idleSwap, 4500);
+
+/* the board breathes as one surface: a single swell drifts through it and every tile follows the same displacement
+   field (swell and drift in board.js), so the tiles around it give way instead of each one pulsing alone. Its clock
+   only runs while it's drawn, so it picks up where it left off; it eases to 40% while someone is playing, stops for
+   reduced motion and sleeps while the board is off-screen or the tab is hidden */
+const PH = [0, 1, 2].map(() => Math.random() * 2 * Math.PI);
+let surf = 0, surfT = 0, surfLast = 0, depth = 1, inView = true;
+function surface(now) {
+  surf = 0;
+  if (!S || reduce.matches || !inView) return;
+  const dt = Math.min(.1, (now - (surfLast || now)) / 1000); surfLast = now; surfT += dt;
+  const busy = open.length || locked || now - lastInput < 2500;
+  depth += ((busy ? .4 : 1) - depth) * (1 - Math.exp(-dt / .6));
+  // 7% deep at its centre, reaching ~1.2 cells: every tile takes part, and no gap moves by more than ~1px
+  const [fx, fy] = drift(surfT, S.cols, S.rows, PH), k = .07 * depth * breath(surfT);
+  for (const c of cards) c.skin.style.transform = `matrix(${swell(c.x + .5 - fx, c.y + .5 - fy, k, S.cell, 1.2).map(v => v.toFixed(4))})`;
+  surf = requestAnimationFrame(surface);
+}
+function breathe() {
+  if (reduce.matches) { for (const c of cards) c.skin.style.transform = ''; return; }
+  if (!surf) { surfLast = 0; surf = requestAnimationFrame(surface); }
+}
+new IntersectionObserver(([e]) => { inView = e.isIntersecting; if (inView) breathe(); }).observe(board);
+reduce.addEventListener('change', breathe);
 
 function dealIn() {
   if (reduce.matches) return;
