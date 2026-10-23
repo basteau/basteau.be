@@ -178,7 +178,7 @@ function draw(pool, recent, keep) {
 }
 const turned = [];
 function idleTurn() {
-  setTimeout(idleTurn, 2000 + Math.random() * 1500);
+  setTimeout(idleTurn, 1500 + Math.random() * 1000);
   if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
   const c = draw(cards.filter(c => idle(c) && TURNS.has(c.kind)), turned, 4); if (!c) return;
   c.turning = true;
@@ -202,7 +202,7 @@ function paint(c, color) {
 }
 const swapped = [];
 function idleSwap() {
-  setTimeout(idleSwap, 2500 + Math.random() * 1500);
+  setTimeout(idleSwap, 1800 + Math.random() * 1200);
   if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
   const near = [];   // every touching pair (right and below neighbours) of idle tiles that differ in colour
   for (const a of cards) {
