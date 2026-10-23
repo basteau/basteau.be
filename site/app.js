@@ -111,10 +111,10 @@ function newGame({ animate = true } = {}) {
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
     el.setAttribute('aria-label', 'Hidden card');
     const P = PALETTE[m.color], { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
-    // breathing: 96.2-97.8% deep, a 5.5-9.5s period and a random start, per tile
-    const bp = 5.5 + Math.random() * 4;
+    // breathing: 94.5-96.5% deep, a 3.5-6s period and a random start, per tile
+    const bp = 3.5 + Math.random() * 2.5;
     el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost};` +
-      `--bs:${(.962 + Math.random() * .016).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
+      `--bs:${(.945 + Math.random() * .02).toFixed(3)};--bp:${bp.toFixed(2)}s;--bd:${(-Math.random() * bp).toFixed(2)}s`;
     el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
       `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
     const c = { ...m, el, state: 'down' };
@@ -167,7 +167,7 @@ let lastInput = 0;
 addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
 addEventListener('keydown', () => { lastInput = performance.now(); });
 function idleTurn() {
-  setTimeout(idleTurn, 3500 + Math.random() * 3000);
+  setTimeout(idleTurn, 2500 + Math.random() * 2000);
   if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
   const pool = cards.filter(c => c.state === 'down' && !c.turning && TURNS.has(c.kind) &&
     c.x > 0 && c.y > 0 && c.x < S.cols - 1 && c.y < S.rows - 1);
