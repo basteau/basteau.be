@@ -1,6 +1,6 @@
 # Deploy
 
-The site is the `site/` folder: static files, no build. It's served from the exe.dev VM `basteau` at **https://basteau.exe.xyz** by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML revalidates every time, assets are cached for a day).
+The site is the `site/` folder: static files, no build. It's served from the exe.dev VM `basteau` at **https://basteau.exe.xyz** by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML, JS and the manifest revalidate on every load, images are cached for a day).
 
 `prototype/` is the design lab (all three variations, `?demo=`, the variation switcher). It is never deployed.
 

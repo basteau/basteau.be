@@ -1,7 +1,7 @@
 """Static server for site/: python3 tools/serve.py [port] [dir]
 
 The same stdlib server sebdev runs, plus the two things a public site needs: the site's own 404 page instead of
-Python's, and cache headers (HTML revalidates every time, everything else is cached for a day).
+Python's, and cache headers (code revalidates every time, images are cached for a day).
 """
 import sys
 from functools import partial
@@ -16,8 +16,10 @@ class Handler(SimpleHTTPRequestHandler):
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map, '.js': 'text/javascript', '.webmanifest': 'application/manifest+json'}
 
     def end_headers(self):
-        html = self.path.split('?')[0].endswith(('/', '.html'))
-        self.send_header('Cache-Control', 'no-cache' if html else 'public, max-age=86400')
+        # code revalidates on every load (cheap: unchanged files answer 304), so a deploy never pairs a new page with
+        # yesterday's modules; only images are cached outright
+        image = self.path.split('?')[0].endswith(('.png', '.ico', '.svg'))
+        self.send_header('Cache-Control', 'public, max-age=86400' if image else 'no-cache')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
         super().end_headers()
