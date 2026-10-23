@@ -111,7 +111,7 @@ function newGame({ animate = true } = {}) {
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
     el.setAttribute('aria-label', 'Hidden card');
     const P = PALETTE[m.color], { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
-    el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost}`;
+    el.style.cssText = `--c:${P.css};--up:${P.up};--tone:${P.tone};--ghost:${P.ghost};--bd:${-(x + y) * .45}s`;
     el.innerHTML = `<span class="inner"><span class="face back"></span><span class="face front">` +
       `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span>`;
     const c = { ...m, el, state: 'down' };
@@ -131,8 +131,8 @@ function size() {
   root.style.setProperty('--cell', S.cell + 'px');
   const cell = S.cell;
   for (const c of cards) {
-    const st = c.el.style, { shape, done } = shapeOf(c, cell, S.cols, S.rows);
-    st.setProperty('--shape', shape); st.setProperty('--shape-done', done);
+    const st = c.el.style;
+    cutCard(c);
     const g = glyph(c.slug, cell);
     st.setProperty('--gw', g.w.toFixed(1) + 'px'); st.setProperty('--gh', g.h.toFixed(1) + 'px');
     st.setProperty('--ox', g.ox.toFixed(2) + 'px'); st.setProperty('--oy', g.oy.toFixed(2) + 'px');
@@ -148,6 +148,37 @@ function size() {
   name.style.fontSize = '';
   water();
 }
+
+// a tile's back cut and its face plate, from its radii and gaps at the current cell size
+function cutCard(c) {
+  const { shape, done } = shapeOf(c, S.cell, S.cols, S.rows);
+  c.el.style.setProperty('--shape', shape); c.el.style.setProperty('--shape-done', done);
+}
+
+/* now and then, while nobody is playing, one interior tile turns a quarter: only shapes where the turn shows
+   (a circle or square would look unchanged), never a flip (nothing gets revealed), no sound (nothing plays
+   unprompted), and off for reduced motion. The tile rotates 90deg clockwise and then settles as its next
+   orientation: its radii and its gaps turn with it, swapped in the same frame the rotation is dropped */
+const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble']);
+let lastInput = 0;
+addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
+addEventListener('keydown', () => { lastInput = performance.now(); });
+function idleTurn() {
+  setTimeout(idleTurn, 7000 + Math.random() * 5000);
+  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 4000) return;
+  const pool = cards.filter(c => c.state === 'down' && !c.turning && TURNS.has(c.kind) &&
+    c.x > 0 && c.y > 0 && c.x < S.cols - 1 && c.y < S.rows - 1);
+  const c = pool[Math.floor(Math.random() * pool.length)]; if (!c) return;
+  c.turning = true;
+  const spin = c.el.querySelector('.back').animate([{ rotate: '0deg' }, { rotate: '90deg' }],
+    { duration: 900, easing: 'cubic-bezier(.77, 0, .175, 1)', fill: 'forwards' });
+  spin.onfinish = () => {
+    const [r, j] = [c.radius, c.jitter];
+    c.radius = [r[3], r[0], r[1], r[2]]; c.jitter = [j[3], j[0], j[1], j[2]];   // tl tr br bl, t r b l: all a step clockwise
+    cutCard(c); spin.cancel(); c.turning = false;
+  };
+}
+setTimeout(idleTurn, 6000);
 
 function dealIn() {
   if (reduce.matches) return;

@@ -171,6 +171,11 @@
      backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
   .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
   .back { transition: transform 160ms var(--ease-out), opacity 0s linear 150ms; }
+  /* the board breathes: face-down tiles ease to 98.2% and back over 7s, each diagonal step .45s behind the last
+     (--bd), so it reads as one slow swell drifting across the board. It uses the scale property, so the hover lift
+     (transform) and a quarter turn (rotate) stack on top of it */
+  .card[data-state="down"] .back { animation: breathe 7s ease-in-out var(--bd, 0s) infinite; }
+  @keyframes breathe { 50% { scale: .982; } }
   /* hover lifts the tile within its own gap (~2px a side), never into a neighbour */
   @media (hover: hover) and (pointer: fine) { .card[data-state="down"]:hover .back { transform: scale(1.03); } }
   /* rings: a hole punched in the back only (the face is a full plate so the mark has room) */
@@ -219,6 +224,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .rise { animation-name: fade; }
+    .card[data-state="down"] .back { animation: none; }
     @keyframes fade { from { opacity: 0; } }
     .name .w { animation: none; transition: none; }
     .inner { transition: none; }
