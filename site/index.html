@@ -28,11 +28,13 @@
 <link rel="modulepreload" href="board.js">
 <link rel="modulepreload" href="icons.js">
 <script>
-  // theme before first paint: the visitor's stored choice, else the OS preference (the browser chrome follows it)
+  // theme before first paint: the system preference, unless the visitor picked the other one (the browser chrome
+  // follows). A stored choice that matches the system again is dropped, so the site keeps following the system
   (() => {
+    const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     let t = null;
-    try { t = localStorage.getItem('basteau:theme'); } catch {}
-    if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    try { t = localStorage.getItem('basteau:theme'); if (t === sys) localStorage.removeItem('basteau:theme'); } catch {}
+    if (t !== 'light' && t !== 'dark') t = sys;
     document.documentElement.dataset.theme = t;
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = t === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
   })();
@@ -52,6 +54,14 @@
     color-scheme: dark;
     --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
     --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
+  }
+  /* without JavaScript there is no data-theme, so follow the system straight from CSS */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      color-scheme: dark;
+      --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
+      --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
+    }
   }
 
   * { box-sizing: border-box; margin: 0; }

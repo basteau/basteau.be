@@ -12,15 +12,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;600;800&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
 <script>
   (() => {
+    // same rule as the home page: the system preference, unless the visitor picked the other one
+    const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     let t = null;
     try { t = localStorage.getItem('basteau:theme'); } catch {}
-    if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (t !== 'light' && t !== 'dark') t = sys;
     document.documentElement.dataset.theme = t;
   })();
 </script>
 <style>
   :root { --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12); --cta-bg: #0B0B0C; --cta-fg: #FFFFFF; color-scheme: light; }
   :root[data-theme="dark"] { --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16); --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; color-scheme: dark; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) { --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16); --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; color-scheme: dark; }
+  }
   * { box-sizing: border-box; margin: 0; }
   html { -webkit-font-smoothing: antialiased; }
   body { min-height: 100svh; display: grid; place-content: center; justify-items: start; gap: 28px; padding: 24px;

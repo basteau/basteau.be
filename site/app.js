@@ -10,6 +10,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 const store = {
   get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  drop(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
 /* =====================================================================
@@ -339,6 +340,15 @@ soundBtn.addEventListener('click', () => {
 paintSound();
 
 const themeBtn = $('#theme');
+// the theme follows the system unless the visitor picks the other one; picking the system's own theme again clears
+// the choice, so a later OS switch (say, automatic dark mode at night) carries the site with it
+const systemDark = matchMedia('(prefers-color-scheme: dark)');
+const systemTheme = () => systemDark.matches ? 'dark' : 'light';
+function setTheme(t) {
+  root.dataset.theme = t; paintTheme(); field.recolor();
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = t === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
+}
+systemDark.addEventListener('change', () => { if (!store.get('basteau:theme', null)) setTheme(systemTheme()); });
 function paintTheme() {
   const dark = root.dataset.theme === 'dark';
   themeBtn.setAttribute('aria-pressed', String(dark)); themeBtn.setAttribute('aria-label', dark ? 'Light mode' : 'Dark mode');
@@ -347,8 +357,8 @@ themeBtn.addEventListener('click', e => {
   const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
   play(next === 'dark' ? 'dusk' : 'dawn');
   const apply = () => {
-    root.dataset.theme = next; store.set('basteau:theme', next); paintTheme(); field.recolor();
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = next === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
+    if (next === systemTheme()) store.drop('basteau:theme'); else store.set('basteau:theme', next);
+    setTheme(next);
   };
   if (!document.startViewTransition || reduce.matches) { apply(); return; }
   // the new theme grows out of the button as a soft-edged circle (an occasional action, so it gets a real moment):
