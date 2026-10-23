@@ -79,7 +79,7 @@ const play = (name, arg, opts) => {
    board on top on phones. Cells stay square; everything else follows them.
    ===================================================================== */
 function spec() {
-  const W = vw(), H = vh(), m = W < 760;
+  const W = vw(), H = vh(), m = W < 760 || (W < 1100 && H > W);   // same breakpoint as the CSS
   const [cols, rows] = m ? [4, 5] : [4, 6];
   const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 4, H * .56 / 5) : Math.min((Math.max(H, 560) - 48) / 6, W * .42 / 4)));
   return { cols, rows, cell, holes: [], m, key: `${cols}x${rows}` };
@@ -144,7 +144,9 @@ function size() {
   }
   // the name fills the space left of the board (capped so it never shouts louder than the board)
   const name = $('#name');
-  const avail = S.m ? W - 48 : W - 96 - 24 - 48 - S.cols * S.cell - 8, cap = S.m ? 104 : 200;
+  const avail = S.m ? W - 48 : W - 96 - 24 - 48 - S.cols * S.cell - 8;
+  // phones 104px, portrait tablets up to 150px, desktop 200px growing to 260px on tall screens beside a bigger board
+  const cap = S.m ? (W < 760 ? 104 : 150) : Math.round(Math.min(260, Math.max(200, vh() * .22)));
   name.style.fontSize = '100px';
   const w100 = name.getBoundingClientRect().width;
   root.style.setProperty('--name', Math.min(cap, Math.floor(100 * avail / w100)) + 'px');

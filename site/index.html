@@ -185,7 +185,7 @@
   @keyframes rise { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
 
   /* ---------- phones: the board on top, its score and controls on a bar attached to it ---------- */
-  @media (max-width: 759px) {
+  @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
     .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto 1fr;
             grid-template-areas: "board" "controls" "eyebrow" "name" "sub"; height: auto; min-height: 100svh; column-gap: 0;
             padding: calc(12px + env(safe-area-inset-top)) 24px calc(36px + env(safe-area-inset-bottom)); }
