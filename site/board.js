@@ -163,26 +163,39 @@ export function glyph(slug, cell) {
 }
 
 /* ---------------------------------------------------------------------
-   the breathing surface: one soft swell of pressure under the board. Each
-   tile follows a smooth displacement field u = k·g·d (d the offset from the
-   swell in cells, g a gaussian of its distance), and wears the field's
-   local stretch, J = I + k·g·(I - d·dᵀ/σ²): the tile under the swell grows,
-   its ring is pushed out and squashed towards it, the far tiles hardly move.
-   One field moves them all, so the gaps between tiles stay almost even and
-   the board reads as a single surface. Returns a CSS matrix() in px.
+   the breathing surface: one soft swell of pressure under the board, and
+   the breath running out of it in slow ripples. Every tile follows one
+   smooth radial displacement field (in cells, d the offset from the swell):
+     U(r) = k·g(r)·r                      the swell pushes its ring outward
+          + a·fade(r)·reach(r)·sin(φ - q·r)   ripples, ~5 cells long
+   and wears the field's local stretch (its jacobian, by finite differences):
+   the tile on the swell grows, its ring gives way, and every tile further
+   out breathes ~2% a little after its inner neighbour, so the breath keeps
+   travelling through the grid instead of pulsing in one place. The ripple
+   fades in over ~1.7 cells (no tear at the centre) and out with distance.
+   One field moves them all, so no gap moves by more than ~1.5px and the
+   board reads as one skin. Swept for that in the Lab 5 notes.
    --------------------------------------------------------------------- */
-export function swell(dx, dy, k, cell, sigma = 1) {
-  const s2 = sigma * sigma, g = k * Math.exp(-(dx * dx + dy * dy) / (2 * s2));
-  const a = 1 + g * (1 - dx * dx / s2), d = 1 + g * (1 - dy * dy / s2), b = -g * dx * dy / s2;
-  return [a, b, b, d, g * dx * cell, g * dy * cell];
+export const RIPPLE = 4.4;   // seconds per breath
+function lift(dx, dy, ph, k, a) {
+  const r2 = dx * dx + dy * dy, r = Math.sqrt(r2);
+  if (r < 1e-9) return [0, 0];
+  const U = k * Math.exp(-r2 / 2.88) * r + a * (1 - Math.exp(-r2 / 3)) / (1 + r2 / 12.25) * Math.sin(ph - 1.25 * r);
+  return [dx / r * U, dy / r * U];
+}
+// a tile's CSS matrix() (translation in px) at offset (dx, dy) from the swell, t seconds in, at depth k and ripple a
+export function stretch(dx, dy, t, k, a, cell) {
+  const ph = 2 * Math.PI * t / RIPPLE, e = .02, [ux, uy] = lift(dx, dy, ph, k, a);
+  const [x1, y1] = lift(dx + e, dy, ph, k, a), [x0, y0] = lift(dx - e, dy, ph, k, a);
+  const [x3, y3] = lift(dx, dy + e, ph, k, a), [x2, y2] = lift(dx, dy - e, ph, k, a);
+  return [1 + (x1 - x0) / (2 * e), (y1 - y0) / (2 * e), (x3 - x2) / (2 * e), 1 + (y3 - y2) / (2 * e), ux * cell, uy * cell];
 }
 
-// where the swell is at time t (seconds), in cells from the board's top-left: a slow lissajous on periods that never
-// line up (13s, 17s, 31s), so it wanders the whole board and never retraces a loop. `ph` is a per-visit phase
+// where the swell wanders on its own at time t (seconds), in cells from the board's top-left: a slow lissajous on
+// periods that never line up (13s, 17s, 31s), so it covers the whole board and never retraces a loop. `ph` is a
+// per-visit phase. The page pulls it towards the visitor's cursor on top of this
 export function drift(t, cols, rows, ph = [0, 0, 0]) {
   const T = 2 * Math.PI;
   return [cols / 2 + (cols / 2 - .35) * Math.sin(T * t / 13 + ph[0]) * (.8 + .2 * Math.sin(T * t / 31 + ph[2])),
           rows / 2 + (rows / 2 - .35) * Math.sin(T * t / 17 + ph[1])];
 }
-// and how deep it is breathing: in and out every 4.4s, never quite flat, so the swell is always somewhere
-export const breath = t => .3 + .35 * (1 - Math.cos(2 * Math.PI * t / 4.4));

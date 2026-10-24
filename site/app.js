@@ -1,6 +1,6 @@
 import { defineSound } from './audio.js';
 import { ICONS } from './icons.js';
-import { TECH, PALETTE, COLORS, deal, shapeOf, glyph, swell, drift, breath } from './board.js';
+import { TECH, PALETTE, COLORS, deal, shapeOf, glyph, stretch, drift } from './board.js';
 
 const root = document.documentElement;
 // layout viewport (unlike innerWidth it never grows with overflowing content)
@@ -220,21 +220,46 @@ function idleSwap() {
 }
 setTimeout(idleSwap, 4500);
 
-/* the board breathes as one surface: a single swell drifts through it and every tile follows the same displacement
-   field (swell and drift in board.js), so the tiles around it give way instead of each one pulsing alone. Its clock
-   only runs while it's drawn, so it picks up where it left off; it eases to 40% while someone is playing, stops for
-   reduced motion and sleeps while the board is off-screen or the tab is hidden */
+/* the board breathes as one surface: a single swell, and the breath running out of it in slow ripples, with every
+   tile following the same displacement field (stretch in board.js), so the breath travels through the grid instead
+   of pulsing in one place. The swell wanders on its own path (drift) and is drawn towards the visitor: a mouse or
+   pen near the board pulls it most of the way there, a tap pulls it for a moment, and it glides on a critically
+   damped spring, so it never snaps or overshoots, and drifts back home once let go. Its clock only runs while it's
+   drawn, so it picks up where it left off; it eases to 40% while someone is playing, stops for reduced motion and
+   sleeps while the board is off-screen or the tab is hidden */
 const PH = [0, 1, 2].map(() => Math.random() * 2 * Math.PI);
-let surf = 0, surfT = 0, surfLast = 0, depth = 1, inView = true;
+let surf = 0, surfT = 0, surfLast = 0, depth = 1, inView = true, focus = null, pointer = null;
+const vel = [0, 0];
+addEventListener('pointermove', e => { if (e.pointerType !== 'touch') pointer = { x: e.clientX, y: e.clientY }; }, { passive: true });
+addEventListener('pointerdown', e => { pointer = { x: e.clientX, y: e.clientY, tap: e.pointerType === 'touch' && performance.now() }; }, { passive: true });
+addEventListener('pointerout', e => { if (!e.relatedTarget && pointer && !pointer.tap) pointer = null; });   // left the window
+// keyboard players get the same answer: focus moving over the board draws the swell to the focused card, like a tap
+board.addEventListener('focusin', e => {
+  if (!e.target.matches(':focus-visible')) return;
+  const r = e.target.getBoundingClientRect();
+  pointer = { x: r.left + r.width / 2, y: r.top + r.height / 2, tap: performance.now() };
+});
 function surface(now) {
   surf = 0;
   if (!S || reduce.matches || !inView) return;
   const dt = Math.min(.1, (now - (surfLast || now)) / 1000); surfLast = now; surfT += dt;
   const busy = open.length || locked || now - lastInput < 2500;
   depth += ((busy ? .4 : 1) - depth) * (1 - Math.exp(-dt / .6));
-  // 7% deep at its centre, reaching ~1.2 cells: every tile takes part, and no gap moves by more than ~1px
-  const [fx, fy] = drift(surfT, S.cols, S.rows, PH), k = .07 * depth * breath(surfT);
-  for (const c of cards) c.skin.style.transform = `matrix(${swell(c.x + .5 - fx, c.y + .5 - fy, k, S.cell, 1.2).map(v => v.toFixed(4))})`;
+  // where the swell wants to be: its own path, pulled up to 85% of the way to the visitor, fading out over 2.5
+  // cells beyond the board's edge; a tap holds it for 1.2s (long enough for the spring to arrive), then lets go
+  const want = drift(surfT, S.cols, S.rows, PH);
+  if (pointer) {
+    const r = board.getBoundingClientRect(), px = (pointer.x - r.left) / S.cell, py = (pointer.y - r.top) / S.cell;
+    const out = Math.max(0, -px, px - S.cols, -py, py - S.rows), held = pointer.tap ? Math.min(1, Math.exp(-(now - pointer.tap - 1200) / 1500)) : 1;
+    const pull = .85 * Math.max(0, 1 - out / 2.5) * held;
+    if (pointer.tap && held < .01) pointer = null;
+    want[0] += pull * (Math.min(S.cols, Math.max(0, px)) - want[0]); want[1] += pull * (Math.min(S.rows, Math.max(0, py)) - want[1]);
+  }
+  if (!focus) focus = want;
+  for (const i of [0, 1]) { vel[i] += (9 * (want[i] - focus[i]) - 6 * vel[i]) * dt; focus[i] += vel[i] * dt; }   // ω = 3/s
+  // the swell 6% deep, slowly deepening and easing (11s), the ripples ~2%: no gap moves by more than ~1.5px
+  const k = .06 * depth * (.85 + .15 * Math.sin(2 * Math.PI * surfT / 11)), a = .03 * depth;
+  for (const c of cards) c.skin.style.transform = `matrix(${stretch(c.x + .5 - focus[0], c.y + .5 - focus[1], surfT, k, a, S.cell).map(v => v.toFixed(4))})`;
   surf = requestAnimationFrame(surface);
 }
 function breathe() {
