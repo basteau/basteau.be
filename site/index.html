@@ -85,7 +85,8 @@
           grid-template-areas: ". board" "eyebrow board" "name board" "sub board" ". board" "controls board";
           padding: 24px 24px 24px 96px; column-gap: 48px; }
   .eyebrow { grid-area: eyebrow; padding: 0 0 26px 8px; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em;
-             text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+             text-transform: uppercase; color: var(--muted); white-space: nowrap; position: relative; z-index: 1; }
+  /* (above the name: its glyphs overhang the tight .85 line box and would otherwise take the credit's clicks) */
   /* founder credit, the mirror of sebdev's "by basteau": a quiet dot (no space around it: a mono space is too wide,
      so its margins set both gaps, the left one net of the tracking), then "founder of" and the studio's mark. Hovering turns the mark a quarter, always onward (app.js counts
      the turns), gives the name sebdev's chroma fringe, and wipes the hairline underline to full ink (out to the right
