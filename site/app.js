@@ -498,6 +498,13 @@ paintTheme();
 
 $('#shuffle').addEventListener('click', shuffle);
 
+// the sebdev mark in the eyebrow keeps turning the same way on every hover or keyboard focus, like a tile on the board
+const credit = $('#credit');
+let turns = 0;
+const turn = () => credit.style.setProperty('--turn', ++turns);
+credit.addEventListener('pointerenter', e => e.pointerType === 'mouse' && turn());
+credit.addEventListener('focus', () => credit.matches(':focus-visible') && turn());
+
 // Say hello: open the mail app as usual, and also copy the address for visitors without one
 const toast = $('#toast');
 let toastTimer = 0;

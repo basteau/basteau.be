@@ -86,6 +86,26 @@
           padding: 24px 24px 24px 96px; column-gap: 48px; }
   .eyebrow { grid-area: eyebrow; padding: 0 0 26px 8px; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em;
              text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  /* founder credit, the mirror of sebdev's "by basteau": a quiet dot (no space around it: a mono space is too wide,
+     so its margins set both gaps, the left one net of the tracking), then "founder of" and the studio's mark. Hovering turns the mark a quarter, always onward (app.js counts
+     the turns), gives the name sebdev's chroma fringe, and wipes the hairline underline to full ink (out to the right
+     on leave) */
+  .sep { display: inline-block; width: .25em; height: .25em; margin-inline: .45em .6em; border-radius: 50%;
+         vertical-align: .24em; background: var(--muted); opacity: .55; }
+  .credit { position: relative; margin-inline-start: .3em; padding-bottom: 3px; color: var(--ink);
+            background: linear-gradient(currentColor, currentColor) 100% 100% / 0 1px no-repeat,
+                        linear-gradient(var(--rule), var(--rule)) 0 100% / 100% 1px no-repeat;
+            transition: background-size 350ms var(--ease-out), text-shadow 200ms ease-out; }
+  .credit::after { content: ""; position: absolute; inset: -14px -10px; }
+  .credit-name { margin-inline-end: -.14em; } /* no trailing tracking, so the underline ends at the last letter */
+  /* centred on the caps, not the line box */
+  .credit-mark { display: inline-block; width: 1.2em; height: 1.2em; margin-inline-end: .5em; vertical-align: -.25em;
+                 rotate: calc(var(--turn, 0) * 90deg); transition: rotate 450ms cubic-bezier(.34, 1.4, .64, 1); }
+  .credit:focus-visible { background-position-x: 0; background-size: 100% 1px, 100% 1px; }
+  .credit:is(:hover, :focus-visible) { text-shadow: 1px 0 rgb(255 10 142 / .55), -1px 0 rgb(0 159 253 / .55); }
+  @media (hover: hover) and (pointer: fine) {
+    .credit:hover { background-position-x: 0; background-size: 100% 1px, 100% 1px; }
+  }
   .name { grid-area: name; font-size: var(--name); line-height: .85; font-weight: 800; letter-spacing: -.055em;
           white-space: nowrap; width: fit-content; cursor: pointer; user-select: none; -webkit-user-select: none; }
   .name span { display: inline-block; }
@@ -135,7 +155,7 @@
   @media (pointer: coarse) { .icon { width: 44px; height: 44px; } }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
-  :is(.icon, .cta, .link, .card):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  :is(.icon, .cta, .link, .card, .credit):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
   /* sound: waves and the mute cross share one slot, swapped with a scale + blur crossfade */
   .icon .swap { transition: opacity 250ms cubic-bezier(.2, 0, 0, 1), scale 250ms cubic-bezier(.2, 0, 0, 1), filter 250ms cubic-bezier(.2, 0, 0, 1); transform-origin: 12px 9px; }
@@ -213,6 +233,10 @@
             grid-template-areas: "board" "controls" "eyebrow" "name" "sub"; height: auto; min-height: 100svh; column-gap: 0;
             padding: calc(12px + env(safe-area-inset-top)) 24px calc(36px + env(safe-area-inset-bottom)); }
     .eyebrow { font-size: 11px; padding: 22px 0 0 4px; }
+    /* one line would overflow a phone, so the credit takes its own line and the dot goes */
+    .eyebrow .sep { display: none; }
+    .eyebrow .by { display: block; padding-top: 8px; }
+    .credit { margin-inline-start: .5em; }
     .controls { justify-self: stretch; margin: 6px -10px 0 0; }
     .controls .score { margin-right: auto; padding-left: 4px; }
     .name { padding-top: 12px; }
@@ -234,6 +258,7 @@
     .front { transition: color 160ms linear; }
     .face { transition: opacity 160ms linear; }
     #theme .disc, #shuffle svg { transition: none; }
+    .credit-mark { rotate: none; }
     .card, .cta, .icon { transition: none; }
     .toast, .toast[data-show] { transform: none; filter: none; transition: opacity 160ms linear; }
   }
@@ -258,7 +283,7 @@
 </defs></svg>
 
 <main class="page">
-  <p class="eyebrow rise" style="--i:0">Full-stack developer</p>
+  <p class="eyebrow rise" style="--i:0">Full-stack developer<span class="sep" aria-hidden="true"></span><span class="by">founder of<a class="credit" id="credit" href="https://sebdev.be"><svg class="credit-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7.04" fill="#0B0B0C"/><circle cx="9.09375" cy="9.09375" r="6.09375" fill="#FF2BD1"/><path d="M16.8125 15.1875V3A12.1875 12.1875 0 0 1 29 15.1875Z" fill="#FF9411"/><path d="M3 22.9062a6.09375 6.09375 0 1 0 12.1875 0a6.09375 6.09375 0 1 0 -12.1875 0ZM6.65625 22.9062a2.4375 2.4375 0 1 0 4.875 0a2.4375 2.4375 0 1 0 -4.875 0Z" fill="#F3F0E8" fill-rule="evenodd"/><circle cx="22.9062" cy="22.9062" r="6.09375" fill="#14BFF2"/></svg><span class="credit-name">sebdev</span></a></span></p>
   <h1 class="name rise" id="name" style="--i:1" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
   <div class="sub rise" style="--i:2">
     <p class="tag">Turning ideas into code.</p>
