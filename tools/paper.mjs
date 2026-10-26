@@ -1,8 +1,8 @@
 // Emits a dealt board as Paper-friendly HTML (plain divs + inline SVG), using the same model as the page.
 // usage: node tools/paper.mjs <cols> <rows> <cell> <seed> <light|dark> [demo pairs] [hole y,x] > out.json
 // prints JSON: { rows: [html per board row], width, height }
-import { deal, rng, PALETTE, glyph } from '../site/board.js';
-import { ICONS } from '../site/icons.js';
+import { deal, rng, PALETTE, glyph } from '../board.js';
+import { ICONS } from '../icons.js';
 
 const [cols, rows, cell, seed] = process.argv.slice(2, 6).map(Number);
 const theme = process.argv[6] ?? 'light', demo = +(process.argv[7] ?? 0);

@@ -1,5 +1,5 @@
 # AGENTS.md
 
-- Commits use Conventional Commits with a one-line subject and no body: `type(scope): subject`, e.g. `fix(site): ...`. Scopes in use: `site`, `prototype`, `tools`, `assets`.
-- No build step. `site/` is what ships and is the source of truth; `prototype/` shares its origins but has diverged, so only port a change there on purpose.
+- Commits use Conventional Commits with a one-line subject and no body: `type(scope): subject`, e.g. `fix(site): ...`. Scopes in use: `site`, `tools`.
+- No build step. The site is the files at the repo root; `tools/serve.py` serves (and the deploy ships) only the files in its `FILES` allowlist, so a new site file must be added there.
 - Preview with `python3 tools/serve.py 4174` (ES modules don't load over `file://`).

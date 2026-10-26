@@ -1,16 +1,16 @@
 # Deploy
 
-The site is the `site/` folder: static files, no build. It's served from the exe.dev VM `basteau` at **https://basteau.exe.xyz** by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML, JS and the manifest revalidate on every load, images are cached for a day).
+The site is the static files at the repo root, no build. It's served from the exe.dev VM `basteau` at **https://basteau.exe.xyz** by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML, JS and the manifest revalidate on every load, images are cached for a day).
 
-`prototype/` is the design lab (all three variations, `?demo=`, the variation switcher). It is never deployed.
+`FILES` in `tools/serve.py` is the list of files that ship. The server serves only those and answers 404 for everything else (`.git`, `tools/`, the docs), and the deploy below copies only those.
 
 ## Ship a change
 
 ```bash
-scp -i ~/.ssh/id_exe site/* basteau.exe.xyz:site/
+scp -i ~/.ssh/id_exe $(python3 tools/serve.py --files) basteau.exe.xyz:site/
 ```
 
-That's it. No build, no restart. If `tools/serve.py` changes, copy it too and restart the service:
+That's it. No build, no restart. If you add a file to the site, add it to `FILES` in `tools/serve.py` first. If `tools/serve.py` changes, copy it too and restart the service:
 
 ```bash
 scp -i ~/.ssh/id_exe tools/serve.py basteau.exe.xyz:serve.py && ssh -i ~/.ssh/id_exe basteau.exe.xyz 'sudo systemctl restart basteau-site'
@@ -26,14 +26,14 @@ Then open http://localhost:4174. The 404 page is at any unknown path.
 
 ## Regenerate assets
 
-- OG image (`site/og.png`, 1200×630): screenshot the running site with headless Chrome at `--window-size=1200,630 --force-device-scale-factor=2`, then scale it down to 1200×630.
-- Icons: `site/favicon.svg` is the source. `favicon.ico` (32), `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (180, on white) are renders of it.
-- Glyph optics in `site/board.js` (`OPTICS`): re-measure with `prototype/measure.html` if the tech icons change.
-- `tools/paper.mjs` deals a board from `site/board.js` and prints it as editable Paper layers.
+- OG image (`og.png`, 1200×630): screenshot the running site with headless Chrome at `--window-size=1200,630 --force-device-scale-factor=2`, then scale it down to 1200×630.
+- Icons: `favicon.svg` is the source. `favicon.ico` (32), `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (180, on white) are renders of it.
+- Glyph optics in `board.js` (`OPTICS`): if the tech icons change, run `python3 -m http.server 4175` at the repo root, open http://localhost:4175/tools/measure.html and read `window.optics` from the console.
+- `tools/paper.mjs` deals a board from `board.js` and prints it as editable Paper layers.
 
 ## How it's set up (already done)
 
-On the VM, `~/site/` is served by the systemd service `basteau-site` on port 8000:
+On the VM, the systemd service `basteau-site` runs `~/serve.py` on port 8000 with `~/site/` as its directory (only the shipped files are copied there):
 
 ```bash
 ssh -i ~/.ssh/id_exe basteau.exe.xyz 'systemctl status basteau-site'
@@ -54,4 +54,4 @@ ssh -i ~/.ssh/id_exe exe.dev domain add basteau <domain>
 ssh -i ~/.ssh/id_exe exe.dev domain add basteau www.<domain>
 ```
 
-Then update the canonical and `og:` URLs in `site/index.html`.
+Then update the canonical and `og:` URLs in `index.html`.
