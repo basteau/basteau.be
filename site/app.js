@@ -387,7 +387,8 @@ const field = (() => {
   let W, H, dpr, base, running = false, last = 0;
   const p = { x: -999, y: -999, sx: -999, sy: -999, k: 0, on: false };
   const rings = [];
-  function colors() { base = root.dataset.theme === 'dark' ? [255, 255, 255, .11] : [11, 11, 12, .16]; }
+  // the same alpha gives both themes about the same dot-to-ground contrast (~1.5:1)
+  function colors() { base = root.dataset.theme === 'dark' ? [255, 255, 255, .16] : [11, 11, 12, .16]; }
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2); W = vw(); H = vh();
     cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(performance.now());
