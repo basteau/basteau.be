@@ -147,6 +147,9 @@ function size() {
   const w100 = name.getBoundingClientRect().width;
   root.style.setProperty('--name', Math.min(cap, Math.floor(100 * avail / w100)) + 'px');
   name.style.fontSize = '';
+  // the stack scale above runs exactly as wide as the name
+  root.style.setProperty('--name-w', Math.round(name.getBoundingClientRect().width) + 'px');
+  sizeMinis();
   water();
 }
 
@@ -516,6 +519,22 @@ $('#cta').addEventListener('click', () => {
     toastTimer = setTimeout(() => toast.removeAttribute('data-show'), 2600);
   }, () => {});
 });
+
+/* the stack scale's tiles: the board's marks in miniature, in the same palette, grain and spray, optically centred
+   and weighted by the same glyph() maths at their own size */
+const minis = [...document.querySelectorAll('.tiles i')];
+for (const t of minis) {
+  const P = PALETTE[t.dataset.color], slug = t.dataset.slug;
+  t.style.setProperty('--c', P.css); t.style.setProperty('--up', P.up);
+  t.innerHTML = `<svg viewBox="${glyph(slug, 1).vb}" aria-hidden="true"><path d="${ICONS[slug]}"/></svg>`;
+}
+function sizeMinis() {
+  for (const t of minis) {
+    const g = glyph(t.dataset.slug, t.offsetWidth * 1.7), st = t.style;   // a mini needs a bigger share of its tile to read
+    st.setProperty('--gw', g.w.toFixed(1) + 'px'); st.setProperty('--gh', g.h.toFixed(1) + 'px');
+    st.setProperty('--ox', g.ox.toFixed(2) + 'px'); st.setProperty('--oy', g.oy.toFixed(2) + 'px'); st.setProperty('--sw', g.sw);
+  }
+}
 
 let rz = 0;
 addEventListener('resize', () => {

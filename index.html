@@ -23,7 +23,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;500;600;800&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;500;600;800&family=Geist+Mono:wght@500;700&family=Shantell+Sans:wght@500;600&display=swap" rel="stylesheet">
 <link rel="modulepreload" href="app.js">
 <link rel="modulepreload" href="board.js">
 <link rel="modulepreload" href="icons.js">
@@ -46,14 +46,18 @@
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --cell: 120px; --cols: 4; --name: 184px;
+    /* print grain (fractal noise in soft-light, like riso on uncoated stock), worn by the board's faces and the scale's tiles */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     color-scheme: light;
     --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12);
     --cta-bg: #0B0B0C; --cta-fg: #FFFFFF; --toast-bg: rgb(11 11 12 / .92); --toast-fg: #FFFFFF;
+    --lo: #B36500; --hatch: #FFC2E2;
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
     --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
+    --lo: var(--orange); --hatch: rgb(255 10 142 / .34);
   }
   /* without JavaScript there is no data-theme, so follow the system straight from CSS */
   @media (prefers-color-scheme: dark) {
@@ -61,6 +65,7 @@
       color-scheme: dark;
       --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
       --cta-bg: #FFFFFF; --cta-fg: #0B0B0C; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
+    --lo: var(--orange); --hatch: rgb(255 10 142 / .34);
     }
   }
 
@@ -82,17 +87,107 @@
   /* ---------- the page: identity on the left, the board as a full-height column on the right ---------- */
   .page { position: relative; z-index: 1; display: grid; height: 100svh; min-height: 560px;
           grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr auto;
-          grid-template-areas: ". board" "eyebrow board" "name board" "sub board" ". board" "controls board";
+          grid-template-areas: ". board" "scale board" "name board" "sub board" ". board" "controls board";
           padding: 24px 24px 24px 96px; column-gap: 48px; }
-  .eyebrow { grid-area: eyebrow; padding: 0 0 26px 8px; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em;
-             text-transform: uppercase; color: var(--muted); white-space: nowrap; position: relative; z-index: 1; }
-  /* (above the name: its glyphs overhang the tight .85 line box and would otherwise take the credit's clicks) */
-  /* founder credit, the mirror of sebdev's "by basteau": a quiet dot (no space around it: a mono space is too wide,
-     so its margins set both gaps, the left one net of the tracking), then "founder of" and the studio's mark. Hovering turns the mark a quarter, always onward (app.js counts
-     the turns), gives the name sebdev's chroma fringe, and wipes the hairline underline to full ink (out to the right
-     on leave) */
-  .sep { display: inline-block; width: .25em; height: .25em; margin-inline: .45em .6em; border-radius: 50%;
-         vertical-align: .24em; background: var(--muted); opacity: .55; }
+  /* ---------- the stack scale: where I sit between the metal and the pixels, hand drawn ----------
+     one grid: a column per level, wider for the three I live in. The bands, axis and arrow are plain CSS lines run
+     through #rough (a slow displacement), so they wobble like a pen sketch at any width; the tiles are the board's
+     marks in miniature (palette, grain and spray, from app.js). Narrow scales drop the end words, and phones fold
+     each side into one level */
+  .scale { grid-area: scale; position: relative; z-index: 1; width: min(100%, var(--name-w, 100%)); margin: 0 0 30px 8px;
+           container-type: inline-size; }
+  .sc { display: grid; grid-template-columns: [s] 38px [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 38px [end];
+        grid-template-rows: [note] 52px [band] 30px [label] 26px [foot] 36px; }
+  .band { grid-row: band; margin: 0 4px; border: 2px dashed currentColor; border-radius: 9px; filter: url(#rough); }
+  .b-lo { grid-column: low / home; color: var(--orange); }
+  .b-hi { grid-column: high / e; color: var(--cyan); }
+  .b-home { grid-column: home / high; border: 2.4px solid var(--magenta);
+            background: repeating-linear-gradient(-45deg, var(--hatch) 0 2px, transparent 2px 9px); }
+  .axis { grid-row: band; grid-column: low / e; align-self: center; height: 16px; z-index: 1; filter: url(#rough);
+          background: linear-gradient(var(--ink), var(--ink)) 0 50% / 100% 2.25px no-repeat; }
+  .arrowhead { grid-row: band; grid-column: e; align-self: center; width: 12px; height: 18px; margin-left: -11px; z-index: 1;
+               fill: none; stroke: var(--ink); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
+  .sc-end { grid-row: band; align-self: center; font: 400 14px/18px "Shantell Sans", cursive; color: var(--muted); }
+  .sc-lo { grid-column: s; justify-self: end; padding-right: 6px; }
+  .sc-hi { grid-column: e; justify-self: end; }
+  /* each level is a label hanging off its tick */
+  .lv { grid-row: label; justify-self: center; position: relative; padding-top: 9px; white-space: nowrap; color: var(--muted);
+        font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .lv::before { content: ""; position: absolute; left: calc(50% - 1px); top: -22px; width: 2px; height: 14px; border-radius: 1px;
+                background: var(--ink); rotate: 4deg; z-index: 1; }
+  .lv.h1, .lv.h2, .lv.h3 { color: var(--ink); }
+  .lv.h2 { font-weight: 700; }
+  .l1 { grid-column: 2; } .l2 { grid-column: 3; } .l3 { grid-column: 4; }
+  .h1 { grid-column: 5; } .h2 { grid-column: 6; } .h3 { grid-column: 7; }
+  .r1 { grid-column: 8; } .r2 { grid-column: 9; }
+  .lp, .rp { display: none; }
+  .tiles { grid-row: foot; justify-self: center; align-self: end; display: flex; gap: 6px; }
+  .tiles i { --t: 30px; display: grid; place-items: center; width: var(--t); height: var(--t); border-radius: 32%; color: var(--up);
+             background: var(--c) var(--grain); background-size: 120px; background-blend-mode: soft-light; rotate: -5deg; }
+  .tiles i + i { rotate: 4deg; }
+  .tiles.h2 i { rotate: 3deg; } .tiles.h2 i + i { rotate: -4deg; }
+  .tiles svg { width: var(--gw); height: var(--gh); translate: var(--ox, 0px) var(--oy, 0px); fill: currentColor; overflow: visible; }
+  .tiles path { filter: url(#spray); stroke: currentColor; stroke-width: var(--sw, 0); stroke-linejoin: round; }
+  .note { font: 500 15px/19px "Shantell Sans", cursive; white-space: nowrap; }
+  .n-lo > span, .n-hi > span { display: inline-block; }
+  .n-lo { grid-row: foot; grid-column: low / home; justify-self: center; align-self: end; color: var(--lo); rotate: -1.5deg; }
+  .n-hi { grid-row: foot; grid-column: high / end; justify-self: center; align-self: end; color: var(--cyan); rotate: 1.5deg; }
+  /* the home note points at frontend, the middle of the middle */
+  .n-home { grid-row: note; grid-column: 6 / 8; justify-self: start; position: relative; display: flex; flex-direction: column;
+            margin-left: calc(25% - 5px); padding: 0 0 0 38px; color: var(--magenta); rotate: -2deg; transform-origin: 0 100%; }
+  .n-home b { font-weight: 600; font-size: 20px; line-height: 24px; }
+  .pointer { position: absolute; left: 0; top: 16px; width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 2.4;
+             stroke-linecap: round; stroke-linejoin: round; }
+  /* a big name on a big screen: the annotations grow a step with it */
+  @container (min-width: 900px) {
+    .sc { grid-template-rows: [note] 60px [band] 34px [label] 30px [foot] 42px; }
+    .lv { font-size: 12px; }
+    .note, .sc-end { font-size: 17px; line-height: 21px; }
+    .n-home b { font-size: 23px; line-height: 27px; }
+    .tiles i { --t: 35px; }
+    .lv::before { top: -24px; height: 16px; }
+  }
+  @container (max-width: 680px) {
+    .sc { grid-template-columns: [s] 0 [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 0 [end]; grid-template-rows: [note] 52px [band] 28px [label] 26px [foot] 40px; }
+    .sc-end { display: none; }
+    .lv { font-size: 10px; letter-spacing: .05em; }
+    .note { font-size: 14px; line-height: 17px; }
+    .n-lo, .n-hi { white-space: normal; text-align: center; }
+  }
+  /* phones: each side folds into one level, and the side notes take their own line under the scale */
+  @container (max-width: 520px) {
+    .sc { grid-template-columns: [s] 0 [low] 1fr [home] 1.25fr 1.25fr 1.25fr [high] 1fr [e] 0 [end];
+          grid-template-rows: [note] 46px [band] 26px [label] 36px [foot] 30px [legend] 30px; }
+    .l1, .l2, .l3, .r1, .r2 { display: none; }
+    .lp, .rp { display: block; text-align: center; }
+    .lp { grid-column: 2; } .rp { grid-column: 6; }
+    .h1 { grid-column: 3; } .h2 { grid-column: 4; } .h3 { grid-column: 5; }
+    .lv { font-size: 10px; letter-spacing: .04em; }
+    .tiles { gap: 4px; align-self: start; }
+    .tiles i { --t: 24px; }
+    .n-home { grid-column: home / high; justify-self: center; align-items: center; margin: 0; padding: 0; text-align: center; rotate: -1.5deg; }
+    .n-home b { font-size: 17px; line-height: 21px; }
+    .pointer { display: none; }
+    .note { font-size: 13px; line-height: 17px; }
+    .n-lo, .n-hi { grid-row: legend; white-space: nowrap; }
+    .n-lo { grid-column: low / 5; justify-self: start; }
+    .n-hi { grid-column: 4 / end; justify-self: end; }
+  }
+  @container (max-width: 330px) {
+    .tiles { gap: 3px; }
+    .tiles i { --t: 21px; }
+    .n-lo, .n-hi { white-space: normal; align-self: start; }
+    .n-lo { grid-column: low / 4; }
+    .n-hi { grid-column: 5 / end; text-align: right; }
+    .sc { grid-template-rows: [note] 46px [band] 26px [label] 36px [foot] 28px [legend] 40px; }
+  }
+
+  /* founder credit, the mirror of sebdev's "by basteau": "founder of" and the studio's mark under the tagline. Hovering
+     turns the mark a quarter, always onward (app.js counts the turns), gives the name sebdev's chroma fringe, and wipes
+     the hairline underline to full ink (out to the right on leave) */
+  .lede { display: flex; flex-direction: column; gap: 14px; }
+  .by { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase;
+        color: var(--muted); white-space: nowrap; }
   .credit { position: relative; margin-inline-start: .5em; padding-bottom: 3px; color: var(--ink);
             background: linear-gradient(currentColor, currentColor) 100% 100% / 0 1px no-repeat,
                         linear-gradient(var(--rule), var(--rule)) 0 100% / 100% 1px no-repeat;
@@ -193,7 +288,7 @@
   /* both faces wear the tile's colour and a print grain (fractal noise in soft-light, like riso on uncoated stock) */
   .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; clip-path: var(--shape);
           background-color: var(--c); background-size: 180px; background-blend-mode: soft-light;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+          background-image: var(--grain); }
   /* the far face is switched off exactly at mid-flip (edge-on, 150ms into the 300ms turn), instead of trusting
      backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
   .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
@@ -231,12 +326,10 @@
   /* ---------- phones: the board on top, its score and controls on a bar attached to it ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
     .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto 1fr;
-            grid-template-areas: "board" "controls" "eyebrow" "name" "sub"; height: auto; min-height: 100svh; column-gap: 0;
+            grid-template-areas: "board" "controls" "scale" "name" "sub"; height: auto; min-height: 100svh; column-gap: 0;
             padding: calc(12px + env(safe-area-inset-top)) 24px calc(36px + env(safe-area-inset-bottom)); }
-    .eyebrow { font-size: 11px; padding: 22px 0 0 4px; }
-    /* one line would overflow a phone, so the credit takes its own line and the dot goes */
-    .eyebrow .sep { display: none; }
-    .eyebrow .by { display: block; padding-top: 8px; }
+    .scale { margin: 26px 0 22px 4px; }
+    .by { font-size: 11px; }
     .controls { justify-self: stretch; margin: 6px -10px 0 0; }
     .controls .score { margin-right: auto; padding-left: 4px; }
     .name { padding-top: 12px; }
@@ -269,6 +362,11 @@
 <!-- spray paint for the logos (in the glyph's own 24-unit space): a roughened, slightly bled edge plus a fine overspray
      speckle around it, like a stencil sprayed onto the tile -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <!-- pen wobble for the stack scale's lines: a slow, low displacement, so straight CSS lines read as drawn by hand -->
+  <filter id="rough" x="-4%" y="-30%" width="108%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency=".028" numOctaves="2" seed="7" result="wave"/>
+    <feDisplacementMap in="SourceGraphic" in2="wave" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
   <filter id="spray" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="2" seed="4" result="grain"/>
     <feDisplacementMap in="SourceGraphic" in2="grain" scale=".55" xChannelSelector="R" yChannelSelector="G" result="rough"/>
@@ -283,10 +381,29 @@
 </defs></svg>
 
 <main class="page">
-  <p class="eyebrow rise" style="--i:0">Full-stack developer<span class="sep" aria-hidden="true"></span><span class="by">founder of<a class="credit" id="credit" href="https://sebdev.be"><svg class="credit-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7.04" fill="#0B0B0C"/><circle cx="9.09375" cy="9.09375" r="6.09375" fill="#FF2BD1"/><path d="M16.8125 15.1875V3A12.1875 12.1875 0 0 1 29 15.1875Z" fill="#FF9411"/><path d="M3 22.9062a6.09375 6.09375 0 1 0 12.1875 0a6.09375 6.09375 0 1 0 -12.1875 0ZM6.65625 22.9062a2.4375 2.4375 0 1 0 4.875 0a2.4375 2.4375 0 1 0 -4.875 0Z" fill="#F3F0E8" fill-rule="evenodd"/><circle cx="22.9062" cy="22.9062" r="6.09375" fill="#14BFF2"/></svg><span class="credit-name">sebdev</span></a></span></p>
+  <figure class="scale rise" style="--i:0" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend (PHP, TypeScript), frontend (Vue, Tailwind) and developer experience (Vite, pnpm): home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI."><div class="sc">
+      <span class="sc-end sc-lo">low</span><span class="sc-end sc-hi">high</span>
+      <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
+      <span class="axis"></span>
+      <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>
+      <span class="lv l1">hardware</span><span class="lv l2">systems</span><span class="lv l3">infra</span>
+      <span class="lv h1">backend</span><span class="lv h2">frontend</span><span class="lv h3">dx</span>
+      <span class="lv r1">ui/ux</span><span class="lv r2">design</span>
+      <span class="lv lp">low<br>level</span><span class="lv rp">ui/ux<br>design</span>
+      <span class="tiles h1"><i data-slug="php" data-color="violet"></i><i data-slug="typescript" data-color="cyan"></i></span>
+      <span class="tiles h2"><i data-slug="vuedotjs" data-color="magenta"></i><i data-slug="tailwindcss" data-color="orange"></i></span>
+      <span class="tiles h3"><i data-slug="vite" data-color="violet"></i><i data-slug="pnpm" data-color="cyan"></i></span>
+      <span class="note n-home"><b>home turf</b>good at it, by myself<svg class="pointer" viewBox="0 0 40 40" aria-hidden="true"><path d="M30 3 C 24 15, 16 26, 6 36"/><path d="M4.5 23.5 L5.5 37 L18 32"/></svg></span>
+      <span class="note n-lo"><span>curious,</span> <span>a bit afraid</span></span>
+      <span class="note n-hi"><span>excited ·</span> <span>good with AI</span></span>
+    </div>
+  </figure>
   <h1 class="name rise" id="name" style="--i:1" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
   <div class="sub rise" style="--i:2">
-    <p class="tag">Turning ideas into code.</p>
+    <div class="lede">
+      <p class="tag">Turning ideas into code.</p>
+      <p class="by">founder of<a class="credit" id="credit" href="https://sebdev.be"><svg class="credit-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7.04" fill="#0B0B0C"/><circle cx="9.09375" cy="9.09375" r="6.09375" fill="#FF2BD1"/><path d="M16.8125 15.1875V3A12.1875 12.1875 0 0 1 29 15.1875Z" fill="#FF9411"/><path d="M3 22.9062a6.09375 6.09375 0 1 0 12.1875 0a6.09375 6.09375 0 1 0 -12.1875 0ZM6.65625 22.9062a2.4375 2.4375 0 1 0 4.875 0a2.4375 2.4375 0 1 0 -4.875 0Z" fill="#F3F0E8" fill-rule="evenodd"/><circle cx="22.9062" cy="22.9062" r="6.09375" fill="#14BFF2"/></svg><span class="credit-name">sebdev</span></a></p>
+    </div>
     <div class="actions">
       <a class="cta" id="cta" href="mailto:basteau@proton.me?subject=Hello%20basteau">Say hello
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
