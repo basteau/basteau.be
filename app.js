@@ -89,7 +89,7 @@ function spec() {
   const [cols, rows] = m || low ? [5, 4] : [4, 6];
   const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 5, H * .4 / 4)
     : low ? Math.min((H - 40) / 4, W * .42 / 5)
-    : Math.min((Math.max(H, 560) - 48) / 6, W * .42 / 4)));
+    : Math.min((Math.max(H, 560) - 48) * .8 / 6, W * .34 / 4)));   // desktop: a column with air above and below
   return { cols, rows, cell, holes: [], m, low, key: `${cols}x${rows}` };
 }
 
