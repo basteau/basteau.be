@@ -183,26 +183,27 @@
      Pointing at a pill or tabbing to it opens it and folds the rest, one open at a time, and leaving the row settles
      back on the current job (app.js keeps data-open on one pill, a beat late so crossing pills never flickers home).
      On touch, the first tap on a folded pill opens it to say what it is and the second opens the site, in a new tab
-     like every pill. The label rides a 0fr -> 1fr grid column, so each pill grows to its own text, and fades in just
-     behind the width and out at once, so it's never squashed. The width only moves when motion is welcome; the fade
-     always runs. The pills run from the shortest open label to the longest, current job last: opening a pill folds
-     the one on its left, which slides it left by that much, and a pill at least as wide as the one it replaces always
-     stays under the pointer */
+     like every pill. The label rides a 0fr -> 1fr grid column, its gap and end padding as tracks beside it, so the
+     whole fold is one grid-template-columns transition and each pill grows to its own text. It eases out, quick to
+     answer the pointer and soft to land, and the label fades in just behind the width and out at once, so it's never
+     squashed. The width only moves when motion is welcome; the fade always runs. The pills run from the shortest open
+     label to the longest, current job last: opening a pill folds the one on its left, which slides it left by that
+     much, and a pill at least as wide as the one it replaces always stays under the pointer */
   .work { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0; list-style: none; }
-  .pill { position: relative; display: grid; grid-template-columns: 30px 0fr; align-items: center; block-size: 42px;
+  .pill { position: relative; display: grid; grid-template-columns: 30px 0px 0fr 0px; align-items: center; block-size: 42px;
           padding: 5px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); color: var(--muted);
           font-size: 15px; line-height: 20px; white-space: nowrap; transition: border-color 160ms ease; }
   /* a 44px target round the 40-42px pill, spilling into the gap between pills without reaching the next one */
   .pill::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
   .pill .mark { inline-size: 30px; block-size: 30px; display: block; }
-  .pill .what { display: flex; align-items: center; gap: 8px; min-inline-size: 0; overflow: clip;
-                opacity: 0; transition: opacity 100ms ease; }
+  .pill .what { grid-column: 3; display: flex; align-items: center; gap: 8px; min-inline-size: 0; overflow: clip;
+                opacity: 0; transition: opacity 120ms var(--ease-out); }
   .pill b { color: var(--ink); font-weight: 500; }
   .pill .t { font-weight: 300; }
   .pill .narrow { display: none; }
   .pill .out { flex: none; block-size: 1cap; inline-size: auto; }
-  .pill[data-open] { grid-template-columns: 30px 1fr; column-gap: 10px; padding-inline-end: 16px; }
-  .pill[data-open] .what { opacity: 1; transition: opacity 160ms ease 60ms; }
+  .pill[data-open] { grid-template-columns: 30px 10px 1fr 11px; }
+  .pill[data-open] .what { opacity: 1; transition: opacity 200ms var(--ease-out) 50ms; }
   .pill:active { scale: .97; }
   /* the sebdev mark turns a quarter every time its pill opens, always onward, like a tile on the board */
   #credit .mark { rotate: calc(var(--turn, 0) * 90deg); }
@@ -211,8 +212,7 @@
     .pill:hover .out { translate: 1px -1px; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .pill { transition: grid-template-columns 240ms var(--ease-in-out), column-gap 240ms var(--ease-in-out),
-                        padding-inline-end 240ms var(--ease-in-out), border-color 160ms ease, scale 140ms var(--ease-out); }
+    .pill { transition: grid-template-columns 280ms var(--ease-out), border-color 160ms ease, scale 140ms var(--ease-out); }
     .pill .out { transition: translate 160ms var(--ease-out); }
     #credit .mark { transition: rotate 300ms cubic-bezier(.34, 1.4, .64, 1); }
   }
@@ -334,7 +334,9 @@
   /* hairline marks are thickened with a stroke in their own colour (--sw, viewBox units) so every stem weighs alike */
   .front svg path { stroke: currentColor; stroke-width: var(--sw, 0); stroke-linejoin: round; }
   .front .ghost { color: var(--ghost); fill: var(--ghost); mix-blend-mode: multiply; opacity: 0; }
-  .front .glyph path { filter: url(#spray); }
+  /* the spray's grain is about a CSS pixel fine, so it only reads as paint on a 2x screen; below that (a 4K monitor at
+     native or "more space" scaling) it smears into blur, so those screens get the clean mark */
+  @media (min-resolution: 2dppx) { .front .glyph path { filter: url(#spray); } }
 
   /* ---------- copied-address toast ---------- */
   .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 20; translate: -50% 0;
@@ -370,8 +372,8 @@
        are a size smaller, and under 380px the arrow goes (narrower phones wrap the current job under the marks) */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
     .work { gap: 6px; }
-    .pill { grid-template-columns: 28px 0fr; block-size: 40px; font-size: 14px; }
-    .pill[data-open] { grid-template-columns: 28px 1fr; column-gap: 8px; padding-inline-end: 14px; }
+    .pill { grid-template-columns: 28px 0px 0fr 0px; block-size: 40px; font-size: 14px; }
+    .pill[data-open] { grid-template-columns: 28px 8px 1fr 9px; }
     .pill .mark { inline-size: 28px; block-size: 28px; }
     @media (max-width: 379px) { .pill .out { display: none; } }
     .cta { height: 50px; padding: 0 22px 0 24px; font-size: 16px; }
