@@ -109,7 +109,9 @@
         font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
   .lv::before { content: ""; position: absolute; left: calc(50% - 1px); top: -22px; width: 2px; height: 14px; border-radius: 1px;
                 background: var(--ink); rotate: 4deg; z-index: 1; }
+  .lv::before { background: var(--muted); }
   .lv.h1, .lv.h2, .lv.h3 { color: var(--ink); }
+  .lv.h1::before, .lv.h2::before, .lv.h3::before { background: var(--ink); }
   .lv.h2 { font-weight: 700; }
   .l1 { grid-column: 2; } .l2 { grid-column: 3; } .l3 { grid-column: 4; }
   .h1 { grid-column: 5; } .h2 { grid-column: 6; } .h3 { grid-column: 7; }
@@ -158,6 +160,22 @@
     .n-hi { grid-column: 5 / end; text-align: right; }
     .sc { grid-template-rows: [note] 50px [band] 26px [label] 36px [legend] 50px; }
   }
+
+  /* arrival: the scale is drawn, not dropped in. The axis runs left to right like a pen stroke, the bands are sketched
+     round it one after another, the levels hang off their ticks, the arrowhead lands, and the notes are written last,
+     left to right. Clip paths over generous margins, so the pen wobble and the tilted notes are never cut */
+  .axis, .band, .note { animation: draw 560ms var(--ease-out) both; }
+  .axis { animation-duration: 680ms; animation-delay: 60ms; }
+  .b-lo { animation-delay: 140ms; } .b-home { animation-delay: 230ms; } .b-hi { animation-delay: 320ms; }
+  .arrowhead { animation: tip 220ms var(--ease-out) 640ms both; transform-origin: 100% 50%; }
+  .lv { animation: hang 380ms var(--ease-out) both; }
+  .l1, .lp { animation-delay: 220ms; } .l2 { animation-delay: 250ms; } .l3 { animation-delay: 280ms; }
+  .h1 { animation-delay: 310ms; } .h2 { animation-delay: 340ms; } .h3 { animation-delay: 370ms; }
+  .r1, .rp { animation-delay: 400ms; } .r2 { animation-delay: 430ms; }
+  .n-lo { animation-delay: 480ms; } .n-home { animation-delay: 560ms; } .n-hi { animation-delay: 640ms; }
+  @keyframes draw { from { clip-path: inset(-45% 100% -45% -8%); } to { clip-path: inset(-45% -8% -45% -8%); } }
+  @keyframes tip { from { opacity: 0; scale: .5; } }
+  @keyframes hang { from { opacity: 0; translate: 0 -4px; } }
 
   /* founder credit, the mirror of sebdev's "by basteau": "founder of" and the studio's mark under the tagline. Hovering
      turns the mark a quarter, always onward (app.js counts the turns), gives the name sebdev's chroma fringe, and wipes
@@ -320,7 +338,7 @@
   .sr { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   @media (prefers-reduced-motion: reduce) {
-    .rise { animation-name: fade; }
+    .rise, .axis, .band, .note, .arrowhead, .lv { animation-name: fade; }
     @keyframes fade { from { opacity: 0; } }
     .name .w { animation: none; transition: none; }
     .inner { transition: none; }
@@ -358,7 +376,7 @@
 </defs></svg>
 
 <main class="page">
-  <figure class="scale rise" style="--i:0" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI."><div class="sc">
+  <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI."><div class="sc">
       <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
       <span class="axis"></span>
       <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>

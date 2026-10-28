@@ -501,6 +501,18 @@ paintTheme();
 
 $('#shuffle').addEventListener('click', shuffle);
 
+// the stack scale is a sketch, so while a mouse rests on it its lines boil, like hand-drawn animation redrawn a few
+// times a second: the pen wobble just changes seed. Only while hovered, never for reduced motion
+const scale = $('.scale'), wobble = $('#rough feTurbulence');
+let boil = 0;
+scale.addEventListener('pointerenter', e => {
+  if (e.pointerType !== 'mouse' || reduce.matches) return;
+  clearInterval(boil);
+  let k = 0;
+  boil = setInterval(() => wobble.setAttribute('seed', 7 + (++k % 3)), 150);
+});
+scale.addEventListener('pointerleave', () => { clearInterval(boil); wobble.setAttribute('seed', 7); });
+
 // the sebdev mark in the eyebrow keeps turning the same way on every hover or keyboard focus, like a tile on the board
 const credit = $('#credit');
 let turns = 0;
