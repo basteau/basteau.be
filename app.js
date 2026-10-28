@@ -79,14 +79,18 @@ const play = (name, arg, opts) => {
 };
 
 /* =====================================================================
-   layout: a full-height 4 x 6 column beside the name on desktop, a 4 x 5
-   board on top on phones. Cells stay square; everything else follows them.
+   layout: a full-height 4 x 6 column beside the name on desktop, a wide
+   5 x 4 board under the intro on phones. Cells stay square; everything
+   else follows them.
    ===================================================================== */
 function spec() {
-  const W = vw(), H = vh(), m = W < 760 || (W < 1100 && H > W);   // same breakpoint as the CSS
-  const [cols, rows] = m ? [4, 5] : [4, 6];
-  const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 4, H * .56 / 5) : Math.min((Math.max(H, 560) - 48) / 6, W * .42 / 4)));
-  return { cols, rows, cell, holes: [], m, key: `${cols}x${rows}` };
+  const W = vw(), H = vh(), m = W < 760 || (W < 1100 && H > W);   // same breakpoints as the CSS
+  const low = !m && H < 500;   // a phone on its side: the wide board beside the intro, sized to the height
+  const [cols, rows] = m || low ? [5, 4] : [4, 6];
+  const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 5, H * .4 / 4)
+    : low ? Math.min((H - 40) / 4, W * .42 / 5)
+    : Math.min((Math.max(H, 560) - 48) / 6, W * .42 / 4)));
+  return { cols, rows, cell, holes: [], m, low, key: `${cols}x${rows}` };
 }
 
 /* =====================================================================
@@ -140,7 +144,7 @@ function size() {
   }
   // the name fills the space left of the board (capped so it never shouts louder than the board)
   const name = $('#name');
-  const avail = S.m ? W - 48 : W - 96 - 24 - 48 - S.cols * S.cell - 8;
+  const avail = S.m ? W - 48 : W - (S.low ? 48 : 96) - 24 - (S.low ? 32 : 48) - S.cols * S.cell - 8;   // the page's padding and gap
   // phones 104px, portrait tablets up to 150px, desktop 200px growing to 260px on tall screens beside a bigger board
   const cap = S.m ? (W < 760 ? 104 : 150) : Math.round(Math.min(260, Math.max(200, vh() * .22)));
   name.style.fontSize = '100px';

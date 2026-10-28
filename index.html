@@ -320,14 +320,18 @@
   .rise { animation: rise 520ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
 
-  /* ---------- phones: the board on top, its score and controls on a bar attached to it ---------- */
+  /* ---------- phones and portrait tablets: who first, then the game. The intro leads (as it does on the left on
+     desktop), and a wide 5 x 4 board follows with its score and controls on a bar under it, so a phone shows the
+     whole site in one screen. Taller screens centre the lot ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
-    .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto 1fr;
-            grid-template-areas: "board" "controls" "scale" "name" "sub"; height: auto; min-height: 100svh; column-gap: 0;
-            padding: calc(12px + env(safe-area-inset-top)) 24px calc(36px + env(safe-area-inset-bottom)); }
-    .scale { margin: 26px 0 22px 4px; }
+    .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto auto 1fr;
+            grid-template-areas: "." "scale" "name" "sub" "board" "controls" "."; height: auto; min-height: 100svh; column-gap: 0;
+            padding: calc(12px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom)); }
+    .scale { margin: 10px 0 22px 4px; }
+    /* the board and its bar share the intro's left edge (on phones the board fills the width anyway) */
+    .board-wrap { margin-top: 34px; justify-self: start; }
     .by { font-size: 11px; }
-    .controls { justify-self: stretch; margin: 6px -10px 0 0; }
+    .controls { justify-self: start; width: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
     .controls .score { margin-right: auto; padding-left: 4px; }
     .name { padding-top: 12px; }
     .sub { gap: 26px; padding: 16px 0 0 4px; }
@@ -335,6 +339,14 @@
     .cta { height: 50px; padding: 0 22px 0 24px; font-size: 16px; }
     .link { font-size: 16px; }
     .actions { gap: 20px; }
+  }
+
+  /* ---------- a phone on its side: the desktop layout, tighter, with a wide 5 x 4 board that fits the height and a page
+     that grows to its content instead of clipping it ---------- */
+  @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
+    .page { height: auto; min-height: 100svh; padding: 20px 24px 20px 48px; column-gap: 32px; }
+    /* the board stays whole in view while the intro scrolls past it */
+    .board-wrap { align-self: start; position: sticky; top: 20px; }
   }
 
   .sr { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

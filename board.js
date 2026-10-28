@@ -1,6 +1,6 @@
 // The board model, shared by the page (app.js) and the Paper exporter (tools/paper.mjs): pure, no DOM.
 
-// the stack. Order is priority: the 10-pair board (column on phones) drops the last two
+// the stack. Order is priority: the 10-pair board (5 x 4 on phones) drops the last two
 export const TECH = [
   ['vue', 'vuedotjs'], ['typescript', 'typescript'], ['php', 'php'], ['laravel', 'laravel'], ['symfony', 'symfony'],
   ['docker', 'docker'], ['go', 'go'], ['rust', 'rust'], ['react', 'react'], ['tailwind', 'tailwindcss'],
