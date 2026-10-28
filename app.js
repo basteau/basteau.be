@@ -393,16 +393,24 @@ function score(animate) {
   });
 }
 
+/* a reshuffle is one diagonal wave: the new board deals in underneath while an inert copy of the old one fades away
+   on top, each tile shrinking away just ahead of the one taking its place (dealIn's stagger, 120ms earlier) */
+let leaving = null;
 function shuffle() {
+  if (leaving) return;   // one wave at a time
   const btn = $('#shuffle');
   btn.classList.add('spin'); setTimeout(() => btn.classList.remove('spin'), 420);
   play('deal');
-  const shown = cards.some(c => c.state !== 'down');
-  clearTimeout(missTimer); open = []; locked = true;
-  if (shown && !reduce.matches) {
-    for (const c of cards) setState(c, 'down');
-    setTimeout(() => newGame(), 320);
-  } else newGame();
+  const was = cards;
+  if (!reduce.matches) leaving = Object.assign(board.cloneNode(true), { id: '', inert: true });
+  newGame();
+  if (!leaving) return;
+  const at = board.getBoundingClientRect(), wrap = board.parentElement.getBoundingClientRect();   // to the subpixel
+  leaving.style.cssText += `position: absolute; margin: 0; pointer-events: none; left: ${at.left - wrap.left}px; top: ${at.top - wrap.top}px;`;
+  board.after(leaving);
+  const out = was.map((c, i) => leaving.children[i].animate([{ opacity: 0, scale: .6 }],
+    { duration: 180, delay: (c.x + c.y) * 34, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }));
+  out.at(-1).onfinish = () => { leaving.remove(); leaving = null; };   // the bottom-right tile leaves last
 }
 
 // arrows walk the grid (roving tabindex); Enter / Space flip through the button's own click
