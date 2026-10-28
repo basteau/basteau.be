@@ -12,7 +12,7 @@ from urllib.parse import unquote, urlsplit
 
 FILES = {
     'index.html', '404.html', 'app.js', 'audio.js', 'board.js', 'icons.js', 'site.webmanifest', 'robots.txt',
-    'favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'og.png',
+    'favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'og.png', 'sitemap.xml',
 }
 
 if sys.argv[1:] == ['--files']:

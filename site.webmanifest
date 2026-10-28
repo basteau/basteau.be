@@ -1,7 +1,9 @@
 {
+  "id": "/",
   "name": "basteau",
   "short_name": "basteau",
-  "description": "Full-stack developer. Turning ideas into code.",
+  "description": "Full-stack developer: web apps in Vue, TypeScript and PHP, with a soft spot for developer tooling.",
+  "lang": "en",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",

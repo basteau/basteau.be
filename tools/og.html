@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- The share card (og.png, 1200x630): the name with its water, what I do, and a dealt board with three marks turned
+     up, in the site's own type, palette and tile model. Render it from the repo root (see DEPLOY.md). -->
+<html lang="en" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;500;800&family=Geist+Mono:wght@500&family=Shantell+Sans:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root { --ground: oklch(15% .0021 286.1); --ink: oklch(100% 0 none); --muted: oklch(64.86% .0088 286.2);
+          --magenta: oklch(65.12% .2624 358.3); --cyan: oklch(68.12% .1755 246.1);
+          --orange: oklch(79.04% .1691 71.2); --violet: oklch(47.88% .297 276.1); --cell: 96px; }
+  * { box-sizing: border-box; margin: 0; }
+  body { inline-size: 1200px; block-size: 630px; overflow: clip; display: flex; align-items: center; justify-content: space-between;
+         padding: 0 72px 0 88px; color: var(--ink); font-family: Geist, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+         background: var(--ground) radial-gradient(circle, oklch(100% 0 none / .14) 0 1px, transparent 1.5px) 0 0 / 24px 24px; }
+  .id { display: flex; flex-direction: column; align-items: flex-start; }
+  .role { font: 500 18px/24px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+          padding-inline-start: .3em; }
+  .name { margin-block: 22px 30px; font-size: 146px; line-height: .85; font-weight: 800; letter-spacing: -.055em; white-space: nowrap; }
+  .name span { display: inline-block; }
+  .name .w { color: transparent; -webkit-background-clip: text; background-clip: text;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='600' viewBox='0 0 120 600' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C20 3 40 3 60 12 S100 21 120 12 V600 H0Z' fill='%23009FFD'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='600' viewBox='0 0 150 600' preserveAspectRatio='none'%3E%3Cpath d='M0 10 C25 18 50 18 75 10 S125 2 150 10 V600 H0Z' fill='%23006DB3'/%3E%3C/svg%3E"),
+      linear-gradient(var(--ink), var(--ink));
+    background-repeat: repeat-x, repeat-x, no-repeat; background-size: .6em 3em, .75em 3em, 100% 100%; }
+  .name .w:nth-child(5) { background-position: .1em .5em, .5em .472em, 0 0; }
+  .name .w:nth-child(6) { background-position: .35em .52em, .2em .492em, 0 0; }
+  .name .w:nth-child(7) { background-position: .2em .49em, .6em .462em, 0 0; }
+  .what { font-size: 30px; line-height: 40px; font-weight: 300; padding-inline-start: .15em; }
+  .what b { font-weight: 500; }
+  .board { position: relative; display: grid; grid-template-columns: repeat(4, var(--cell)); grid-auto-rows: var(--cell); }
+  .tile { position: relative; background: var(--c); display: grid; place-items: center; }
+  .tile svg { fill: currentColor; }
+  .nudge { position: absolute; z-index: 1; inset-inline-end: calc(100% - 22px); inset-block-end: calc(100% + 14px); rotate: -4deg;
+           font: 500 22px/26px "Shantell Sans", ui-rounded, sans-serif; white-space: nowrap; }
+  .nudge svg { position: absolute; inset-inline-start: calc(100% - 4px); inset-block-start: -14px; inline-size: 62px; block-size: 52px;
+               fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+  <div class="id">
+    <p class="role">Full-stack developer</p>
+    <h1 class="name"><span>b</span><span>a</span><span>s</span><span>t</span><span class="w">e</span><span class="w">a</span><span class="w">u</span></h1>
+    <p class="what">Web apps in <b>Vue</b>, <b>TypeScript</b> and <b>PHP</b>,<br>with a soft spot for developer tooling</p>
+  </div>
+  <div class="board" id="board">
+    <p class="nudge">let’s play<svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
+  </div>
+<script type="module">
+  import { deal, shapeOf, glyph, PALETTE } from '../board.js';
+  import { ICONS } from '../icons.js';
+  // a fixed deal, so the card only changes when the board does; the stack's lead marks are turned up
+  const SEED = Number(new URLSearchParams(location.search).get('seed') ?? 11), UP = ['vuedotjs', 'typescript', 'php'];
+  const cell = parseFloat(getComputedStyle(document.body).getPropertyValue('--cell'));
+  const { cells } = deal(4, 5, [], SEED), shown = new Set(), board = document.getElementById('board');
+  for (const c of cells) {
+    const el = document.createElement('div'), P = PALETTE[c.color], { shape, done } = shapeOf(c, cell);
+    el.className = 'tile'; el.style.setProperty('--c', P.css);
+    if (UP.includes(c.slug) && !shown.has(c.slug)) {
+      shown.add(c.slug);
+      const g = glyph(c.slug, cell);
+      el.style.clipPath = done; el.style.color = P.up;
+      el.innerHTML = `<svg viewBox="${g.vb}" width="${g.w}" height="${g.h}" style="translate:${g.ox}px ${g.oy}px">` +
+        `<path d="${ICONS[c.slug]}"${g.sw ? ` stroke="currentColor" stroke-width="${g.sw}" stroke-linejoin="round"` : ''}/></svg>`;
+    } else {
+      el.style.clipPath = shape;
+      if (c.kind === 'ring') el.style.mask = `radial-gradient(circle, transparent ${cell * .16}px, #000 ${cell * .16 + .5}px)`;
+    }
+    board.append(el);
+  }
+  document.fonts.ready.then(() => document.body.dataset.ready = '');
+</script>
+</body>
+</html>

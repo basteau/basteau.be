@@ -26,7 +26,7 @@ Then open http://localhost:4174. The 404 page is at any unknown path.
 
 ## Regenerate assets
 
-- OG image (`og.png`, 1200×630): screenshot the running site with headless Chrome at `--window-size=1200,630 --force-device-scale-factor=2`, then scale it down to 1200×630.
+- Share card (`og.png`, 1200×630): `tools/og.html` lays it out from the board model. Run `python3 -m http.server 4175` at the repo root, screenshot http://localhost:4175/tools/og.html at 1200×630 and 2x once `body[data-ready]` is set, and scale it down to 1200×630. Then bump the `?v=` on `og:image` in `index.html`, so networks fetch the new card.
 - Icons: `favicon.svg` is the source. `favicon.ico` (32), `icon-192.png`, `icon-512.png` and `apple-touch-icon.png` (180, on white) are renders of it.
 - Glyph optics in `board.js` (`OPTICS`): if the tech icons change, run `python3 -m http.server 4175` at the repo root, open http://localhost:4175/tools/measure.html and read `window.optics` from the console.
 - `tools/paper.mjs` deals a board from `board.js` and prints it as editable Paper layers.

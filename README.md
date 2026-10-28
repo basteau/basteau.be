@@ -14,8 +14,9 @@ Open http://localhost:4174. ES modules don't load over `file://`, so use the ser
 
 ## Layout
 
-- `index.html`, `app.js`, `board.js`, `audio.js`, `icons.js`, `404.html` and the icons: the site
+- `index.html`, `app.js`, `board.js`, `audio.js`, `icons.js`, `404.html`, the icons, the share card and `robots.txt`/`sitemap.xml`: the site
 - `tools/serve.py`: the static server used locally and in production; it serves only the site files
+- `tools/og.html`: lays out the share card, `og.png`
 - `tools/paper.mjs`: exports a dealt board as editable Paper layers
 - `tools/measure.html`: re-measures glyph optics if the tech icons change
 
