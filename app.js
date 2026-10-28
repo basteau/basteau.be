@@ -379,6 +379,21 @@ board.addEventListener('keydown', e => {
 });
 
 /* =====================================================================
+   the stack scale: a hand-drawn sketch above the name (index.html)
+   ===================================================================== */
+// the stack scale is a sketch, so while a mouse rests on it its lines boil, like hand-drawn animation redrawn a few
+// times a second: the pen wobble just changes seed. Only while hovered, never for reduced motion
+const scale = $('.scale'), wobble = $('#rough feTurbulence');
+let boil = 0;
+scale.addEventListener('pointerenter', e => {
+  if (e.pointerType !== 'mouse' || reduce.matches) return;
+  clearInterval(boil);
+  let k = 0;
+  boil = setInterval(() => wobble.setAttribute('seed', 7 + (++k % 3)), 150);
+});
+scale.addEventListener('pointerleave', () => { clearInterval(boil); wobble.setAttribute('seed', 7); });
+
+/* =====================================================================
    the ground: a 24px dot grid. Near the pointer the dots swell, pick up
    the logo colours and lean away; matches send a ring through the field.
    Touch screens get the same lens under the finger.
@@ -397,7 +412,7 @@ const field = (() => {
   }
   // the stack scale is fine line work, so the lens and the ripples calm down around it and leave it alone: full
   // strength from QUIET px out, fading to nothing at its edge. The plain dots stay, so the paper under it is unchanged
-  const calmEl = $('.scale'), QUIET = 56;
+  const QUIET = 56;
   function calmAt(x, y, q) {
     const d = Math.hypot(Math.max(q.left - x, 0, x - q.right), Math.max(q.top - y, 0, y - q.bottom));
     const t = Math.min(1, d / QUIET);
@@ -405,7 +420,7 @@ const field = (() => {
   }
   function draw(now) {
     ctx.clearRect(0, 0, W, H);
-    const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10, q = calmEl.getBoundingClientRect();
+    const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10, q = scale.getBoundingClientRect();
     const [br, bg, bb, ba] = base;
     // plain dots go into one path and one fill; only the few the lens or a ring touches are drawn on their own
     const plain = new Path2D(), lit = [];
@@ -510,19 +525,7 @@ paintTheme();
 
 $('#shuffle').addEventListener('click', shuffle);
 
-// the stack scale is a sketch, so while a mouse rests on it its lines boil, like hand-drawn animation redrawn a few
-// times a second: the pen wobble just changes seed. Only while hovered, never for reduced motion
-const scale = $('.scale'), wobble = $('#rough feTurbulence');
-let boil = 0;
-scale.addEventListener('pointerenter', e => {
-  if (e.pointerType !== 'mouse' || reduce.matches) return;
-  clearInterval(boil);
-  let k = 0;
-  boil = setInterval(() => wobble.setAttribute('seed', 7 + (++k % 3)), 150);
-});
-scale.addEventListener('pointerleave', () => { clearInterval(boil); wobble.setAttribute('seed', 7); });
-
-// the sebdev mark in the eyebrow keeps turning the same way on every hover or keyboard focus, like a tile on the board
+// the sebdev mark under the tagline keeps turning the same way on every hover or keyboard focus, like a tile on the board
 const credit = $('#credit');
 let turns = 0;
 const turn = () => credit.style.setProperty('--turn', ++turns);

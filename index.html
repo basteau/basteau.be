@@ -49,6 +49,7 @@
     color-scheme: light;
     --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12);
     --cta-bg: #0B0B0C; --cta-fg: #FFFFFF; --toast-bg: rgb(11 11 12 / .92); --toast-fg: #FFFFFF;
+    /* the stack scale's inks: the low side's note (orange darkened to read on white) and the home band's hatch */
     --lo: #B36500; --hatch: #FFC2E2;
   }
   :root[data-theme="dark"] {
@@ -91,6 +92,7 @@
      one grid: a column per level, wider for the three I live in. The bands, axis and arrow are plain CSS lines run
      through #rough (a slow displacement), so they wobble like a pen sketch at any width. The tech itself lives on the
      board, so the scale only names levels. Narrow scales shrink the type, and phones fold each side into one level */
+  /* (above the name: its glyphs overhang the tight .85 line box) */
   .scale { grid-area: scale; position: relative; z-index: 1; width: min(100%, var(--name-w, 100%)); margin: 0 0 30px 8px;
            container-type: inline-size; }
   .sc { display: grid; grid-template-columns: [s] 0 [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 0 [end];
@@ -108,8 +110,7 @@
   .lv { grid-row: label; justify-self: center; position: relative; padding-top: 9px; white-space: nowrap; color: var(--muted);
         font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
   .lv::before { content: ""; position: absolute; left: calc(50% - 1px); top: -22px; width: 2px; height: 14px; border-radius: 1px;
-                background: var(--ink); rotate: 4deg; z-index: 1; }
-  .lv::before { background: var(--muted); }
+                background: var(--muted); rotate: 4deg; z-index: 1; }
   .lv.h1, .lv.h2, .lv.h3 { color: var(--ink); }
   .lv.h1::before, .lv.h2::before, .lv.h3::before { background: var(--ink); }
   .lv.h2 { font-weight: 700; }
@@ -154,11 +155,12 @@
     .n-lo { grid-column: low / 5; justify-self: start; }
     .n-hi { grid-column: 4 / end; justify-self: end; }
   }
+  /* the smallest phones: the side notes wrap, each on its own half */
   @container (max-width: 330px) {
+    .sc { grid-template-rows: [note] 50px [band] 26px [label] 36px [legend] 50px; }
     .n-lo, .n-hi { white-space: normal; }
     .n-lo { grid-column: low / 4; }
     .n-hi { grid-column: 5 / end; text-align: right; }
-    .sc { grid-template-rows: [note] 50px [band] 26px [label] 36px [legend] 50px; }
   }
 
   /* arrival: the scale is drawn, not dropped in. The axis runs left to right like a pen stroke, the bands are sketched
@@ -376,7 +378,8 @@
 </defs></svg>
 
 <main class="page">
-  <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI."><div class="sc">
+  <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI.">
+    <div class="sc">
       <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
       <span class="axis"></span>
       <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>
