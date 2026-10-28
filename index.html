@@ -364,6 +364,18 @@
     .board-wrap { margin-top: 52px; justify-self: start; }
     .nudge { bottom: calc(100% + 12px); }
     @media (max-width: 339px) { .nudge { left: calc(2.5 * var(--cell) - 111.5px); } }
+    /* from 360px the links leave room on their right, so the note folds onto two lines there, level with the links,
+       instead of taking a gap of its own above the board, and its arrow drops into the top right card. The links end
+       244px into the board's column (the row's type is fixed on phones), so the note starts at least 24px past them,
+       and further right where that still lands the arrow's tip (47px in) on the last card's centre */
+    @media (min-width: 360px) {
+      .board-wrap { margin-top: 28px; }
+      .nudge { left: max(268px, 100% - .5 * var(--cell) - 47px); bottom: calc(100% + 24px); }
+      .nudge b { display: inline-block; inline-size: min-content; white-space: normal; }
+      .nudge svg { left: 8px; top: calc(100% - 12px); width: 46px; height: 39px; }
+      .dealt .nudge { animation-name: write-down; }
+      @keyframes write-down { from { clip-path: inset(-40% 100% -300% -6%); } to { clip-path: inset(-40% -80px -300% -6%); } }
+    }
     .controls { justify-self: start; width: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
     .controls .score { margin-right: auto; padding-left: 4px; }
     .name { padding-top: 12px; }
