@@ -198,15 +198,18 @@ function idleTurn() {
 setTimeout(idleTurn, 3000);
 
 /* the board is a game, and says so until it's been played: a handwritten nudge above it (index.html), and now and
-   then a face-down card that lifts on its hinge and settles back, the way a real card gets nudged. Both stop for good
-   (remembered) on the first flip. The peek keeps the turn's quiet rules: never while playing, hidden or off-screen,
-   never for reduced motion, and it only ever shows the card's back */
-let played = store.get('basteau:played', '') === '1';
-root.classList.toggle('played', played);
-root.classList.toggle('was-played', played);   // known from the start: no room is kept for a nudge that won't show
+   then a face-down card that lifts on its hinge and settles back, the way a real card gets nudged. Both stop on the
+   first flip and come back on the next visit. The peek keeps the turn's quiet rules: never while playing, hidden or
+   off-screen, never for reduced motion, and it only ever shows the card's back. It moves the card's own rotate, apart
+   from the flip's transform, so a card clicked mid-peek flips at once while the lift eases out underneath */
+let played = false, peeking = null;
 function markPlayed() {
   if (played) return;
-  played = true; root.classList.add('played'); store.set('basteau:played', '1');
+  played = true; root.classList.add('played');
+  if (peeking?.playState !== 'running') return;
+  const inner = peeking.effect.target, from = getComputedStyle(inner).rotate;
+  peeking.cancel();
+  inner.animate([{ rotate: from }, { rotate: 'y 0deg' }], { duration: 300, easing: 'cubic-bezier(.23, 1, .32, 1)' });
 }
 const peeked = [];
 function peek() {
@@ -214,8 +217,8 @@ function peek() {
   if (played || !S || reduce.matches || document.hidden || !inView || open.length || locked || performance.now() - lastInput < 2500) return;
   // the first peek is the card the nudge's arrow points at, so the note and the card say the same thing
   const c = peeked.length ? draw(cards.filter(idle), peeked, 4) : pointedAt(); if (!c) return;
-  c.el.querySelector('.inner').animate(
-    [{ transform: 'none' }, { transform: 'rotateY(-40deg)', offset: .38 }, { transform: 'rotateY(7deg)', offset: .72 }, { transform: 'none' }],
+  peeking = c.el.querySelector('.inner').animate(
+    [{ rotate: 'y 0deg' }, { rotate: 'y -40deg', offset: .38 }, { rotate: 'y 7deg', offset: .72 }, { rotate: 'y 0deg' }],
     { duration: 1150, easing: 'cubic-bezier(.45, 0, .55, 1)' });
 }
 function pointedAt() {
