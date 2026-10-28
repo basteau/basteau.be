@@ -395,23 +395,32 @@ const field = (() => {
     dpr = Math.min(devicePixelRatio || 1, 2); W = vw(); H = vh();
     cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(performance.now());
   }
+  // the stack scale is fine line work, so the lens and the ripples calm down around it and leave it alone: full
+  // strength from QUIET px out, fading to nothing at its edge. The plain dots stay, so the paper under it is unchanged
+  const calmEl = $('.scale'), QUIET = 56;
+  function calmAt(x, y, q) {
+    const d = Math.hypot(Math.max(q.left - x, 0, x - q.right), Math.max(q.top - y, 0, y - q.bottom));
+    const t = Math.min(1, d / QUIET);
+    return t * t * (3 - 2 * t);
+  }
   function draw(now) {
     ctx.clearRect(0, 0, W, H);
-    const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10;
+    const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10, q = calmEl.getBoundingClientRect();
     const [br, bg, bb, ba] = base;
     // plain dots go into one path and one fill; only the few the lens or a ring touches are drawn on their own
     const plain = new Path2D(), lit = [];
     for (let y = STEP / 2, gy = 0; y < H + STEP; y += STEP, gy++) {
       for (let x = STEP / 2, gx = 0; x < W + STEP; x += STEP, gx++) {
         let e = 0, dx = 0, dy = 0, tint = null, te = 0;
-        if (p.k > .001) {
+        const calm = (p.k > .001 || rings.length) ? calmAt(x, y, q) : 1;
+        if (p.k > .001 && calm > 0) {
           const ddx = x - p.sx, ddy = y - p.sy, d = Math.hypot(ddx, ddy);
-          if (d < R) { const t = 1 - d / R; e = t * t * (3 - 2 * t) * p.k; if (d > 0) { dx += ddx / d * push * e; dy += ddy / d * push * e; } }
+          if (d < R) { const t = 1 - d / R; e = t * t * (3 - 2 * t) * p.k * calm; if (d > 0) { dx += ddx / d * push * e; dy += ddy / d * push * e; } }
         }
         for (const r of rings) {
           const age = (now - r.t0) / 1000, rad = age * 640 * r.s, band = 70 * r.s;
           const ddx = x - r.x, ddy = y - r.y, d = Math.hypot(ddx, ddy), off = Math.abs(d - rad);
-          if (off < band) { const w = (1 - off / band) * Math.max(0, 1 - age / (1.25 * r.s));
+          if (off < band) { const w = (1 - off / band) * Math.max(0, 1 - age / (1.25 * r.s)) * calm;
             if (d > 0) { dx += ddx / d * 7 * w; dy += ddy / d * 7 * w; }
             if (w > te) { te = w; tint = r.c; } }
         }
