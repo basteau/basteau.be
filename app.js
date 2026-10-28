@@ -573,8 +573,9 @@ paintTheme();
 $('#shuffle').addEventListener('click', shuffle);
 
 // work pills: one open at a time. Pointing at a pill or tabbing to it opens it; leaving the row settles back on the
-// current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so a tap just opens
-// the site. The sebdev mark turns a quarter each time its pill opens
+// current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so there the first
+// tap on a folded pill opens it to say what it is, and a tap on an open pill follows its link. The sebdev mark turns
+// a quarter each time its pill opens
 const work = $('#work');
 const pills = [...work.querySelectorAll('.pill')];
 const home = work.querySelector('[data-home]');
@@ -587,9 +588,15 @@ const openPill = pill => {
   if (pill === credit) credit.style.setProperty('--turn', ++turns);
 };
 const rest = () => { clearTimeout(settle); settle = setTimeout(() => openPill(home), 120); };
+let preview = null;   // the folded pill a finger just came down on: its click opens it instead of following it
 pills.forEach(p => {
   p.addEventListener('pointerenter', e => e.pointerType === 'mouse' && openPill(p));
   p.addEventListener('focus', () => p.matches(':focus-visible') && openPill(p));
+  p.addEventListener('pointerdown', e => { preview = e.pointerType !== 'mouse' && !p.hasAttribute('data-open') ? p : null; });
+  p.addEventListener('click', e => {
+    if (preview !== p) return;
+    preview = null; e.preventDefault(); openPill(p);
+  });
 });
 work.addEventListener('pointerleave', e => e.pointerType === 'mouse' && !work.querySelector(':focus-visible') && rest());
 work.addEventListener('focusout', e => !work.contains(e.relatedTarget) && rest());

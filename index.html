@@ -180,34 +180,41 @@
   @keyframes hang { from { opacity: 0; translate: 0 -4px; } }
 
   /* work: one pill per place, in a row under the name. The current job rests open; the others are just their marks.
-     Hovering or tabbing to a pill opens it and folds the rest to their marks, one open at a time, and leaving the row
-     settles back on the current job (app.js keeps data-open on one pill, a beat late so crossing between pills never
-     flickers home). The label rides a 0fr -> 1fr grid column, so each pill grows to its own text; the words fade in
-     just behind the width and out at once, so they're never squashed. Every pill opens its site in a new tab.
-     The pills run from the shortest open label to the longest, current job last: opening a pill folds the one on its
-     left, which slides it left by that much, and a pill at least as wide as the one it replaces always stays under the
-     pointer (shorter ones would slide the pointer onto their neighbour) */
+     Pointing at a pill or tabbing to it opens it and folds the rest, one open at a time, and leaving the row settles
+     back on the current job (app.js keeps data-open on one pill, a beat late so crossing pills never flickers home).
+     On touch, the first tap on a folded pill opens it to say what it is and the second opens the site, in a new tab
+     like every pill. The label rides a 0fr -> 1fr grid column, so each pill grows to its own text, and fades in just
+     behind the width and out at once, so it's never squashed. The width only moves when motion is welcome; the fade
+     always runs. The pills run from the shortest open label to the longest, current job last: opening a pill folds
+     the one on its left, which slides it left by that much, and a pill at least as wide as the one it replaces always
+     stays under the pointer */
   .work { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0; list-style: none; }
-  .pill { position: relative; display: grid; grid-template-columns: 30px 0fr; align-items: center; height: 42px;
+  .pill { position: relative; display: grid; grid-template-columns: 30px 0fr; align-items: center; block-size: 42px;
           padding: 5px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); color: var(--muted);
-          font-size: 15px; line-height: 20px; white-space: nowrap;
-          transition: grid-template-columns 240ms var(--ease-in-out), column-gap 240ms var(--ease-in-out), padding-right 240ms var(--ease-in-out),
-                      border-color 160ms ease, scale 140ms var(--ease-out); }
-  .pill .mark { width: 30px; height: 30px; display: block; }
-  .pill .what { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden;
+          font-size: 15px; line-height: 20px; white-space: nowrap; transition: border-color 160ms ease; }
+  /* a 44px target round the 40-42px pill, spilling into the gap between pills without reaching the next one */
+  .pill::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
+  .pill .mark { inline-size: 30px; block-size: 30px; display: block; }
+  .pill .what { display: flex; align-items: center; gap: 8px; min-inline-size: 0; overflow: clip;
                 opacity: 0; transition: opacity 100ms ease; }
   .pill b { color: var(--ink); font-weight: 500; }
   .pill .t { font-weight: 300; }
   .pill .narrow { display: none; }
-  .pill .out { flex-shrink: 0; transition: translate 160ms var(--ease-out); }
-  .pill[data-open] { grid-template-columns: 30px 1fr; column-gap: 10px; padding-right: 16px; }
+  .pill .out { flex: none; block-size: 1cap; inline-size: auto; }
+  .pill[data-open] { grid-template-columns: 30px 1fr; column-gap: 10px; padding-inline-end: 16px; }
   .pill[data-open] .what { opacity: 1; transition: opacity 160ms ease 60ms; }
   .pill:active { scale: .97; }
   /* the sebdev mark turns a quarter every time its pill opens, always onward, like a tile on the board */
-  #credit .mark { rotate: calc(var(--turn, 0) * 90deg); transition: rotate 450ms cubic-bezier(.34, 1.4, .64, 1); }
+  #credit .mark { rotate: calc(var(--turn, 0) * 90deg); }
   @media (hover: hover) and (pointer: fine) {
-    .pill:hover { border-color: color-mix(in srgb, var(--ink) 28%, transparent); }
+    .pill:hover { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
     .pill:hover .out { translate: 1px -1px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pill { transition: grid-template-columns 240ms var(--ease-in-out), column-gap 240ms var(--ease-in-out),
+                        padding-inline-end 240ms var(--ease-in-out), border-color 160ms ease, scale 140ms var(--ease-out); }
+    .pill .out { transition: translate 160ms var(--ease-out); }
+    #credit .mark { transition: rotate 300ms cubic-bezier(.34, 1.4, .64, 1); }
   }
   .name { grid-area: name; font-size: var(--name); line-height: .85; font-weight: 800; letter-spacing: -.055em;
           white-space: nowrap; width: fit-content; cursor: pointer; user-select: none; -webkit-user-select: none; }
@@ -268,7 +275,7 @@
   .icon { position: relative; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px;
           transition: transform 160ms ease-out, background-color 160ms ease; }
   .icon:active { transform: scale(.96); }
-  @media (pointer: coarse) { .icon { width: 44px; height: 44px; } .pill::after { content: ""; position: absolute; inset: -3px -2px; } }
+  @media (pointer: coarse) { .icon { width: 44px; height: 44px; } }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
   :is(.icon, .cta, .link, .card, .pill):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -363,9 +370,9 @@
        are a size smaller, and under 380px the arrow goes (narrower phones wrap the current job under the marks) */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
     .work { gap: 6px; }
-    .pill { grid-template-columns: 28px 0fr; height: 40px; font-size: 14px; }
-    .pill[data-open] { grid-template-columns: 28px 1fr; column-gap: 8px; padding-right: 14px; }
-    .pill .mark { width: 28px; height: 28px; }
+    .pill { grid-template-columns: 28px 0fr; block-size: 40px; font-size: 14px; }
+    .pill[data-open] { grid-template-columns: 28px 1fr; column-gap: 8px; padding-inline-end: 14px; }
+    .pill .mark { inline-size: 28px; block-size: 28px; }
     @media (max-width: 379px) { .pill .out { display: none; } }
     .cta { height: 50px; padding: 0 22px 0 24px; font-size: 16px; }
     .link { font-size: 16px; }
@@ -392,9 +399,7 @@
     .front { transition: color 160ms linear; }
     .face { transition: opacity 160ms linear; }
     #theme .disc, #shuffle svg { transition: none; }
-    .pill, .pill .out { transition: border-color 160ms ease; }
     #credit .mark { rotate: none; }
-    .pill .what, .pill[data-open] .what { transition: opacity 120ms ease; }
     .card, .cta, .icon { transition: none; }
     .toast, .toast[data-show] { transform: none; filter: none; transition: opacity 160ms linear; }
   }
