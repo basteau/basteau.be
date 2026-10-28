@@ -230,15 +230,14 @@
   .board-wrap { grid-area: board; display: grid; place-items: center; align-self: center; position: relative; }
   /* the nudge: a pencil note in the scale's hand, in the air above the board, written in after the deal and wiped
      away once the board has been played (app.js sets .played, and remembers it) */
-  .nudge { position: absolute; left: 2px; bottom: calc(100% + 16px); display: flex; flex-direction: column; rotate: -2deg;
-           transform-origin: 0 100%; pointer-events: none; white-space: nowrap; color: var(--muted); visibility: hidden;
-           font: 400 14px/18px "Shantell Sans", ui-rounded, system-ui, sans-serif;
+  .nudge { position: absolute; left: 2px; bottom: calc(100% + 16px); rotate: -3deg;
+           transform-origin: 0 100%; pointer-events: none; white-space: nowrap; visibility: hidden;
            transition: opacity 400ms ease, translate 400ms var(--ease-out); }
   .dealt .nudge { visibility: visible; animation: write 680ms var(--ease-out) 900ms both; }
   /* written left to right like the scale's notes, with room on the right for the arrow that hangs off it */
   @keyframes write { from { clip-path: inset(-40% 100% -70% -6%); } to { clip-path: inset(-40% -80px -70% -6%); } }
-  .nudge b { font-weight: 500; font-size: 16px; line-height: 20px; color: var(--ink); }
-  .nudge svg { position: absolute; left: calc(100% - 26px); top: 4px; width: 60px; height: 50px; fill: none; stroke: var(--ink);
+  .nudge b { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
+  .nudge svg { position: absolute; left: calc(100% - 6px); top: -12px; width: 52px; height: 44px; fill: none; stroke: var(--ink);
                stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
   .played .nudge { opacity: 0; translate: 0 6px; }
 
@@ -342,7 +341,7 @@
             padding: calc(12px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom)); }
     .scale { margin: 10px 0 22px 4px; }
     /* the board and its bar share the intro's left edge (on phones the board fills the width anyway) */
-    .board-wrap { margin-top: 66px; justify-self: start; }
+    .board-wrap { margin-top: 52px; justify-self: start; }
     .was-played .board-wrap { margin-top: 34px; }
     .nudge { bottom: calc(100% + 12px); }
     .by { font-size: 11px; }
@@ -450,7 +449,7 @@
     </button>
   </div>
   <div class="board-wrap">
-    <p class="nudge" aria-hidden="true"><b>psst… it's a memory game</b><span>flip two that match</span><svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
+    <p class="nudge" aria-hidden="true"><b>play me</b><svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
     <div class="board" id="board" role="group" aria-label="Memory game: match the tech I work with. Arrow keys move between cards."></div>
   </div>
 </main>
