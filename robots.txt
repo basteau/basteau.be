@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://basteau.exe.xyz/sitemap.xml
+Sitemap: https://basteau.be/sitemap.xml

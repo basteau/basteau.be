@@ -1,6 +1,6 @@
 # Deploy
 
-The site is the static files at the repo root, no build. It's served from the exe.dev VM `basteau` at **https://basteau.exe.xyz** by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML, JS and the manifest revalidate on every load, images are cached for a day).
+The site is the static files at the repo root, no build. It's served at **https://basteau.be** (and still at https://basteau.exe.xyz) from the exe.dev VM `basteau` by `tools/serve.py`, a stdlib Python server that adds the site's own 404 page and cache headers (HTML, JS and the manifest revalidate on every load, images are cached for a day).
 
 `FILES` in `tools/serve.py` is the list of files that ship. The server serves only those and answers 404 for everything else (`.git`, `tools/`, the docs), and the deploy below copies only those.
 
@@ -45,13 +45,13 @@ exe.dev proxies HTTPS to that port. To take the site down, make it private again
 ssh -i ~/.ssh/id_exe exe.dev share set-private basteau
 ```
 
-## Custom domain (later)
+## Custom domain: basteau.be
 
-Same recipe as sebdev.be: point an A record for the apex at the VM's IP (`dig +short basteau.exe.xyz`) and a CNAME for `www` at `basteau.exe.xyz`. Then register both:
+The site's own URLs (canonical, Open Graph, JSON-LD, `sitemap.xml`, `robots.txt`) already say https://basteau.be. Same recipe as sebdev.be: at the registrar, point an A record for the apex at the VM's IP (`dig +short basteau.exe.xyz`) and a CNAME for `www` at `basteau.exe.xyz`. Then register both:
 
 ```bash
-ssh -i ~/.ssh/id_exe exe.dev domain add basteau <domain>
-ssh -i ~/.ssh/id_exe exe.dev domain add basteau www.<domain>
+ssh -i ~/.ssh/id_exe exe.dev domain add basteau basteau.be
+ssh -i ~/.ssh/id_exe exe.dev domain add basteau www.basteau.be
 ```
 
-Then update the canonical and `og:` URLs in `index.html`.
+Once https://basteau.be loads, deploy as above (the URLs only make sense live once the domain answers).

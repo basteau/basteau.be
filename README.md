@@ -2,7 +2,7 @@
 
 Full-stack developer working in Vue, TypeScript and PHP, with a soft spot for developer tooling. Founder of [sebdev](https://sebdev.be).
 
-This repo is my landing page, [basteau.exe.xyz](https://basteau.exe.xyz): a playable memo board of the tools I work with. Static HTML, CSS and ES modules at the repo root, no build.
+This repo is my landing page, [basteau.be](https://basteau.be): a playable memo board of the tools I work with. Static HTML, CSS and ES modules at the repo root, no build.
 
 ## Run it
 
