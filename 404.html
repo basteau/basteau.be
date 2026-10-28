@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Not found · basteau</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -21,30 +22,44 @@
   })();
 </script>
 <style>
-  :root { --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12); --cta-bg: #0072C6; --cta-fg: #FFFFFF; color-scheme: light; }
-  :root[data-theme="dark"] { --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16); --cta-bg: #0A78CC; --cta-fg: #FFFFFF; color-scheme: dark; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) { --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16); --cta-bg: #0A78CC; --cta-fg: #FFFFFF; color-scheme: dark; }
+  /* the home page's tokens, trimmed to what this page uses: light-dark() pairs, side picked by color-scheme */
+  :root {
+    color-scheme: light dark;
+    --white: oklch(100% 0 none); --black: oklch(15% .0021 286.1);
+    --ground: light-dark(var(--white), var(--black));
+    --ink: light-dark(var(--black), var(--white));
+    --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
+    --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
+    --cta-bg: light-dark(oklch(54.47% .1557 250.4), oklch(56.33% .1557 249.9)); --cta-fg: var(--white);
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
   }
-  * { box-sizing: border-box; margin: 0; }
-  html { -webkit-font-smoothing: antialiased; }
-  body { min-height: 100svh; display: grid; place-content: center; justify-items: start; gap: 28px; padding: 24px;
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  @view-transition { navigation: auto; }
+
+  *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
+  :root { text-wrap: pretty; -webkit-font-smoothing: antialiased; overscroll-behavior-y: none; }
+  @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
+  body { min-block-size: 100svh; display: grid; place-content: safe center; justify-items: start; gap: 28px; padding: 24px;
          background: var(--ground) radial-gradient(circle at center, var(--rule) 0, var(--rule) 1px, transparent 1.5px) 0 0 / 24px 24px;
-         color: var(--ink); font-family: Geist, system-ui, sans-serif; }
-  p { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding-left: .6em; }
+         color: var(--ink); font-family: Geist, system-ui, sans-serif; font-synthesis: none; }
+  p { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+      padding-inline-start: .6em; }
   /* the page ran dry: the same water as the name, drained to a puddle */
   @property --x1 { syntax: "<length>"; inherits: false; initial-value: 0px; }
   h1 { font-size: clamp(120px, 26vw, 280px); line-height: .85; font-weight: 800; letter-spacing: -.055em; color: transparent;
        -webkit-background-clip: text; background-clip: text;
        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='600' viewBox='0 0 120 600' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C20 3 40 3 60 12 S100 21 120 12 V600 H0Z' fill='%23009FFD'/%3E%3C/svg%3E"), linear-gradient(var(--ink), var(--ink));
-       background-repeat: repeat-x, no-repeat; background-size: .6em 3em, 100% 100%; background-position: var(--x1) .66em, 0 0;
-       animation: wave 5s linear infinite; }
+       background-repeat: repeat-x, no-repeat; background-size: .6em 3em, 100% 100%; background-position: var(--x1) .66em, 0 0; }
   @keyframes wave { to { --x1: .6em; } }
-  a { display: inline-flex; align-items: center; gap: 12px; height: 54px; padding: 0 26px 0 28px; border-radius: 999px; text-decoration: none;
-      background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600; transition: transform 160ms ease-out; }
-  a:active { transform: scale(.97); }
-  a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) { h1 { animation: none; } a { transition: none; } }
+  a { display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px; border-radius: 999px;
+      background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600; text-decoration: none; touch-action: manipulation; }
+  a:active { scale: .97; }
+  a:focus-visible { outline: max(2px, .08em) solid var(--ink); outline-offset: .25em; }
+  @media (prefers-reduced-motion: no-preference) {
+    h1 { animation: wave 5s linear infinite; }
+    a { transition: scale 160ms var(--ease-out); }
+  }
 </style>
 </head>
 <body>

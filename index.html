@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>basteau · full-stack developer</title>
 <meta name="description" content="basteau is a full-stack developer building web apps at KU Leuven, working in Vue, TypeScript and PHP, with a soft spot for developer tooling. Turning ideas into code.">
 <link rel="canonical" href="https://basteau.exe.xyz/">
@@ -40,77 +41,93 @@
   })();
 </script>
 <style>
+  /* ---------- tokens: one set for light and dark. Every colour token is a light-dark() pair and color-scheme picks the
+     side: the system's, unless app.js has set data-theme to the visitor's pick ---------- */
   :root {
+    color-scheme: light dark;
     /* logo palette, sampled from the basteau logo */
-    --magenta: #FF0A8E; --cyan: #009FFD; --orange: #FDA506; --violet: #4803FE;
+    --magenta: oklch(65.12% .2624 358.3); --cyan: oklch(68.12% .1755 246.1);
+    --orange: oklch(79.04% .1691 71.2); --violet: oklch(47.88% .297 276.1);
+    --white: oklch(100% 0 none); --black: oklch(15% .0021 286.1);
+    --ground: light-dark(var(--white), var(--black));
+    --ink: light-dark(var(--black), var(--white));
+    --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
+    --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
+    --toast-bg: light-dark(oklch(15% .0021 286.1 / .92), oklch(100% 0 none / .94));
+    --toast-fg: var(--ground);
+    /* contact drops: Say hello in deep water, GitHub and X in its shallows */
+    --cta-bg: light-dark(oklch(54.47% .1557 250.4), oklch(56.33% .1557 249.9)); --cta-fg: var(--white);
+    --drop: light-dark(oklch(94.09% .03 246.6), oklch(30.41% .0616 247.1));
+    --drop-fg: light-dark(oklch(48.85% .138 249.9), oklch(82.52% .0964 241.5));
+    /* the stack scale's inks: the side notes (orange and cyan darkened to read on white) and the home band's hatch */
+    --lo: light-dark(oklch(54.53% .1259 61.6), var(--orange));
+    --hi: light-dark(oklch(54.47% .1557 250.4), var(--cyan));
+    --hatch: light-dark(oklch(87.8% .0804 346.1), oklch(65.12% .2624 358.3 / .34));
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
     --cell: 120px; --cols: 4; --name: 184px;
-    color-scheme: light;
-    --ground: #FFFFFF; --ink: #0B0B0C; --muted: #6B6B70; --rule: rgb(11 11 12 / .12);
-    --cta-bg: #0072C6; --cta-fg: #FFFFFF; --drop: #DCEEFF; --drop-fg: #0062AA; --toast-bg: rgb(11 11 12 / .92); --toast-fg: #FFFFFF;
-    /* the stack scale's inks: the side notes (orange and cyan darkened to read on white) and the home band's hatch */
-    --lo: #A35C00; --hi: #0072C6; --hatch: #FFC2E2;
   }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
-    --cta-bg: #0A78CC; --cta-fg: #FFFFFF; --drop: #11314C; --drop-fg: #8CCEFF; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
-    --lo: var(--orange); --hi: var(--cyan); --hatch: rgb(255 10 142 / .34);
-  }
-  /* without JavaScript there is no data-theme, so follow the system straight from CSS */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) {
-      color-scheme: dark;
-      --ground: #0B0B0C; --ink: #FFFFFF; --muted: #8E8E94; --rule: rgb(255 255 255 / .16);
-      --cta-bg: #0A78CC; --cta-fg: #FFFFFF; --drop: #11314C; --drop-fg: #8CCEFF; --toast-bg: rgb(255 255 255 / .94); --toast-fg: #0B0B0C;
-    --lo: var(--orange); --hi: var(--cyan); --hatch: rgb(255 10 142 / .34);
-    }
-  }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
 
-  * { box-sizing: border-box; margin: 0; }
-  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-size-adjust: 100%; overscroll-behavior-y: none; }
-  body { min-height: 100svh; background: var(--ground); color: var(--ink); font-family: Geist, system-ui, sans-serif;
-         font-synthesis: none; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+  /* ---------- reset ---------- */
+  *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
+  :root { text-wrap: pretty; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-size-adjust: 100%;
+          overscroll-behavior-y: none; }
+  @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
+  body { min-block-size: 100svh; background: var(--ground); color: var(--ink); font-family: Geist, system-ui, sans-serif;
+         font-synthesis: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
   a { color: inherit; text-decoration: none; }
   /* no double-tap zoom on anything you press (fast card taps would otherwise zoom on phones) */
   a, button { touch-action: manipulation; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-  /* the theme reveal's soft edge: solid to 92% of the radius, then a narrow feather (sized and placed from app.js) */
-  ::view-transition-new(root) { -webkit-mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0;
-                                mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0; }
+  :focus-visible { outline: max(2px, .08em) solid currentColor; outline-offset: .25em; }
+  .sr { position: fixed; inline-size: 1px; block-size: 1px; overflow: clip; clip-path: inset(50%); white-space: nowrap; }
 
-  #field { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; }
+  /* ---------- view transitions: pages cross-fade. The theme switch is its own reveal (app.js marks the root .theming
+     for it): no cross-fade, the new theme grows out of the button through a mask that is solid to 92% of its radius,
+     then a narrow feather (sized and placed from app.js) ---------- */
+  @view-transition { navigation: auto; }
+  .theming::view-transition-old(root), .theming::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  .theming::view-transition-new(root) { -webkit-mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0;
+                                        mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0; }
+
+  /* movement is opt-in: everything that travels, turns or draws itself in does it inside a no-preference query, and
+     reduced motion gets this fade in its place, with the same timing */
+  @keyframes fade { from { opacity: 0; } }
+
+  #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
 
   /* ---------- the page: identity on the left, the board as a full-height column on the right ---------- */
-  .page { position: relative; z-index: 1; display: grid; height: 100svh; min-height: 560px;
+  .page { position: relative; z-index: 1; display: grid; block-size: 100svh; min-block-size: 560px;
           grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr auto;
           grid-template-areas: ". board" "scale board" "name board" "sub board" ". board" "controls board";
           padding: 24px 24px 24px 96px; column-gap: 48px; }
+
   /* ---------- the stack scale: where I sit between the metal and the pixels, hand drawn ----------
      one grid: a column per level, wider for the three I live in. The bands, axis and arrow are plain CSS lines run
      through #rough (a slow displacement), so they wobble like a pen sketch at any width. The tech itself lives on the
      board, so the scale only names levels. Narrow scales shrink the type, and phones fold each side into one level */
   /* (above the name: its glyphs overhang the tight .85 line box) */
-  .scale { grid-area: scale; position: relative; z-index: 1; width: min(100%, var(--name-w, 100%)); margin: 0 0 30px 8px;
+  .scale { grid-area: scale; position: relative; z-index: 1; inline-size: min(100%, var(--name-w, 100%)); margin: 0 0 30px 8px;
            container-type: inline-size; }
   .sc { display: grid; grid-template-columns: [s] 0 [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 0 [end];
         grid-template-rows: [note] 54px [band] 30px [label] 24px; }
-  .band { grid-row: band; margin: 0 4px; border: 2px dashed currentColor; border-radius: 9px; filter: url(#rough); }
+  .band { grid-row: band; margin-inline: 4px; border: 2px dashed currentColor; border-radius: 9px; filter: url(#rough); }
   .b-lo { grid-column: low / home; color: var(--orange); }
   .b-hi { grid-column: high / e; color: var(--cyan); }
   .b-home { grid-column: home / high; border: 2.4px solid var(--magenta);
             background: repeating-linear-gradient(-45deg, var(--hatch) 0 2px, transparent 2px 9px); }
-  .axis { grid-row: band; grid-column: low / e; align-self: center; height: 16px; z-index: 1; filter: url(#rough);
+  .axis { grid-row: band; grid-column: low / e; align-self: center; block-size: 16px; z-index: 1; filter: url(#rough);
           background: linear-gradient(var(--ink), var(--ink)) 0 50% / 100% 2.25px no-repeat; }
-  .arrowhead { grid-row: band; grid-column: e; align-self: center; width: 12px; height: 18px; margin-left: -11px; z-index: 1;
+  .arrowhead { grid-row: band; grid-column: e; align-self: center; inline-size: 12px; block-size: 18px; margin-inline-start: -11px; z-index: 1;
                fill: none; stroke: var(--ink); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
   /* each level is a label hanging off its tick */
-  .lv { grid-row: label; justify-self: center; position: relative; padding-top: 9px; white-space: nowrap; color: var(--muted);
+  .lv { grid-row: label; justify-self: center; position: relative; padding-block-start: 9px; white-space: nowrap; color: var(--muted);
         font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
-  .lv::before { content: ""; position: absolute; left: calc(50% - 1px); top: -22px; width: 2px; height: 14px; border-radius: 1px;
-                background: var(--muted); rotate: 4deg; z-index: 1; }
+  .lv::before { content: ""; position: absolute; inset-inline-start: calc(50% - 1px); inset-block-start: -22px; inline-size: 2px; block-size: 14px;
+                border-radius: 1px; background: var(--muted); rotate: 4deg; z-index: 1; }
   .lv.h1, .lv.h2, .lv.h3 { color: var(--ink); }
   .lv.h1::before, .lv.h2::before, .lv.h3::before { background: var(--ink); }
   .lv.h2 { font-weight: 700; }
@@ -120,10 +137,10 @@
   .lp, .rp { display: none; }
   .note { font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap; }
   .n-lo > span, .n-hi > span { display: inline-block; }
-  .n-lo { grid-row: note; grid-column: low / home; justify-self: center; align-self: end; margin-bottom: 7px; color: var(--lo); rotate: -1.5deg; }
-  .n-hi { grid-row: note; grid-column: high / end; justify-self: center; align-self: end; margin-bottom: 7px; color: var(--hi); rotate: 1.5deg; }
+  .n-lo { grid-row: note; grid-column: low / home; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--lo); rotate: -1.5deg; }
+  .n-hi { grid-row: note; grid-column: high / end; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--hi); rotate: 1.5deg; }
   /* home turf sits over the middle of the middle: frontend */
-  .n-home { grid-row: note; grid-column: home / high; justify-self: center; align-self: end; margin-bottom: 5px; display: flex;
+  .n-home { grid-row: note; grid-column: home / high; justify-self: center; align-self: end; margin-block-end: 5px; display: flex;
             flex-direction: column; align-items: center; text-align: center; color: var(--magenta); rotate: -1.5deg; }
   .n-home b { font-weight: 600; font-size: 20px; line-height: 24px; }
   /* a big name on a big screen: the annotations grow a step with it */
@@ -132,7 +149,7 @@
     .lv { font-size: 12px; }
     .note { font-size: 17px; line-height: 21px; }
     .n-home b { font-size: 23px; line-height: 27px; }
-    .lv::before { top: -24px; height: 16px; }
+    .lv::before { inset-block-start: -24px; block-size: 16px; }
   }
   @container (max-width: 680px) {
     .sc { grid-template-rows: [note] 54px [band] 28px [label] 24px; }
@@ -155,36 +172,42 @@
     .note { font-size: 13px; line-height: 16px; }
     .n-lo, .n-hi { grid-row: legend; align-self: start; margin: 7px 0 0; white-space: normal; inline-size: min-content; }
     .n-lo > span, .n-hi > span { white-space: nowrap; }
-    .n-lo { grid-column: low / 4; justify-self: start; margin-left: 8px; text-align: left; transform-origin: 0 0; }
-    .n-hi { grid-column: 5 / e; justify-self: end; margin-right: 8px; text-align: right; transform-origin: 100% 0; }
+    .n-lo { grid-column: low / 4; justify-self: start; margin-inline-start: 8px; text-align: start; transform-origin: 0 0; }
+    .n-hi { grid-column: 5 / e; justify-self: end; margin-inline-end: 8px; text-align: end; transform-origin: 100% 0; }
   }
 
   /* arrival: the scale is drawn, not dropped in. The axis runs left to right like a pen stroke, the bands are sketched
      round it one after another, the levels hang off their ticks, the arrowhead lands, and the notes are written last,
      left to right. Clip paths over generous margins, so the pen wobble and the tilted notes are never cut */
-  .axis, .band, .note { animation: draw 560ms var(--ease-out) both; }
+  .axis, .band, .note { animation: fade 560ms var(--ease-out) both; }
   .axis { animation-duration: 680ms; animation-delay: 60ms; }
   .b-lo { animation-delay: 140ms; } .b-home { animation-delay: 230ms; } .b-hi { animation-delay: 320ms; }
-  .arrowhead { animation: tip 220ms var(--ease-out) 640ms both; transform-origin: 100% 50%; }
-  .lv { animation: hang 380ms var(--ease-out) both; }
+  .arrowhead { animation: fade 220ms var(--ease-out) 640ms both; transform-origin: 100% 50%; }
+  .lv { animation: fade 380ms var(--ease-out) both; }
   .l1, .lp { animation-delay: 220ms; } .l2 { animation-delay: 250ms; } .l3 { animation-delay: 280ms; }
   .h1 { animation-delay: 310ms; } .h2 { animation-delay: 340ms; } .h3 { animation-delay: 370ms; }
   .r1, .rp { animation-delay: 400ms; } .r2 { animation-delay: 430ms; }
   .n-lo { animation-delay: 480ms; } .n-home { animation-delay: 560ms; } .n-hi { animation-delay: 640ms; }
+  @media (prefers-reduced-motion: no-preference) {
+    .axis, .band, .note { animation-name: draw; }
+    .arrowhead { animation-name: tip; }
+    .lv { animation-name: hang; }
+  }
   @keyframes draw { from { clip-path: inset(-45% 100% -45% -8%); } to { clip-path: inset(-45% -8% -45% -8%); } }
   @keyframes tip { from { opacity: 0; scale: .5; } }
   @keyframes hang { from { opacity: 0; translate: 0 -4px; } }
 
-  /* work: one pill per place, in a row under the name. The current job rests open; the others are just their marks.
-     Pointing at a pill or tabbing to it opens it and folds the rest, one open at a time, and leaving the row settles
-     back on the current job (app.js keeps data-open on one pill, a beat late so crossing pills never flickers home).
-     On touch, the first tap on a folded pill opens it to say what it is and the second opens the site, in a new tab
-     like every pill. The label rides a 0fr -> 1fr grid column, its gap and end padding as tracks beside it, so the
-     whole fold is one grid-template-columns transition and each pill grows to its own text. It eases out, quick to
-     answer the pointer and soft to land, and the label fades in just behind the width and out at once, so it's never
-     squashed. The width only moves when motion is welcome; the fade always runs. The pills run from the shortest open
-     label to the longest, current job last: opening a pill folds the one on its left, which slides it left by that
-     much, and a pill at least as wide as the one it replaces always stays under the pointer */
+  /* ---------- work: one pill per place, in a row under the name ----------
+     The current job rests open; the others are just their marks. Pointing at a pill or tabbing to it opens it and
+     folds the rest, one open at a time, and leaving the row settles back on the current job (app.js keeps data-open
+     on one pill, a beat late so crossing pills never flickers home). On touch, the first tap on a folded pill opens it
+     to say what it is and the second opens the site, in a new tab like every pill. The label rides a 0fr -> 1fr grid
+     column, its gap and end padding as tracks beside it, so the whole fold is one grid-template-columns transition and
+     each pill grows to its own text. It eases out, quick to answer the pointer and soft to land, and the label fades in
+     just behind the width and out at once, so it's never squashed. The width only moves when motion is welcome; the
+     fade always runs. The pills run from the shortest open label to the longest, current job last: opening a pill
+     folds the one on its left, which slides it left by that much, and a pill at least as wide as the one it replaces
+     always stays under the pointer */
   .work { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0; list-style: none; }
   .pill { position: relative; display: grid; grid-template-columns: 30px 0px 0fr 0px; align-items: center; block-size: 42px;
           padding: 5px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); color: var(--muted);
@@ -192,7 +215,7 @@
   /* a 44px target round the 40-42px pill, spilling into the gap between pills without reaching the next one */
   .pill::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
   .pill .mark { inline-size: 30px; block-size: 30px; display: block; }
-  .pill .what { grid-column: 3; display: flex; align-items: center; gap: 8px; min-inline-size: 0; overflow: clip;
+  .pill .what { grid-column: 3; display: flex; align-items: center; gap: 8px; overflow: clip;
                 opacity: 0; transition: opacity 120ms var(--ease-out); }
   .pill b { color: var(--ink); font-weight: 500; }
   .pill .t { font-weight: 300; }
@@ -201,19 +224,20 @@
   .pill[data-open] { grid-template-columns: 30px 10px 1fr 11px; }
   .pill[data-open] .what { opacity: 1; transition: opacity 240ms var(--ease-out) 60ms; }
   .pill:active { scale: .97; }
-  /* the sebdev mark turns a quarter every time its pill opens, always onward, like a tile on the board */
-  #credit .mark { rotate: calc(var(--turn, 0) * 90deg); }
   @media (hover: hover) and (pointer: fine) {
     .pill:hover { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
     .pill:hover .out { translate: 1px -1px; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .pill { transition: grid-template-columns 340ms var(--ease-out), border-color 160ms ease, scale 140ms var(--ease-out); }
+    .pill { transition: grid-template-columns 300ms var(--ease-out), border-color 160ms ease, scale 140ms var(--ease-out); }
     .pill .out { transition: translate 160ms var(--ease-out); }
-    #credit .mark { transition: rotate 300ms cubic-bezier(.34, 1.4, .64, 1); }
+    /* the sebdev mark turns a quarter every time its pill opens, always onward, like a tile on the board */
+    #credit .mark { rotate: calc(var(--turn, 0) * 90deg); transition: rotate 300ms cubic-bezier(.34, 1.4, .64, 1); }
   }
+
+  /* ---------- the name ---------- */
   .name { grid-area: name; font-size: var(--name); line-height: .85; font-weight: 800; letter-spacing: -.055em;
-          white-space: nowrap; width: fit-content; cursor: pointer; user-select: none; -webkit-user-select: none; }
+          white-space: nowrap; inline-size: fit-content; cursor: pointer; user-select: none; -webkit-user-select: none; }
   .name span { display: inline-block; }
   /* eau is water: each of the last three letters holds water at its own level, two waves drifting opposite ways.
      --top (set from the font metrics in app.js) is where the surface sits; it rises a little with every match */
@@ -227,12 +251,13 @@
       linear-gradient(var(--ink), var(--ink));
     background-repeat: repeat-x, repeat-x, no-repeat;
     background-size: .6em 3em, .75em 3em, 100% 100%;
-    background-position: var(--x1) var(--top), var(--x2) calc(var(--top) - .028em), 0 0;
-    animation: wave-a var(--d1, 4.6s) linear infinite, wave-b var(--d2, 7.2s) linear infinite;
-    transition: --top 1100ms var(--ease-in-out); }
-  .name .w:nth-child(5) { --d1: 4.6s; --d2: 7.2s; }
-  .name .w:nth-child(6) { --d1: 5.3s; --d2: 6.4s; animation-delay: -.21s, -.21s; }
-  .name .w:nth-child(7) { --d1: 4.1s; --d2: 8.1s; animation-delay: -.37s, -.37s; }
+    background-position: var(--x1) var(--top), var(--x2) calc(var(--top) - .028em), 0 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .name .w { animation: wave-a var(--d1) linear infinite, wave-b var(--d2) linear infinite; transition: --top 1100ms var(--ease-in-out); }
+    .name .w:nth-child(5) { --d1: 4.6s; --d2: 7.2s; }
+    .name .w:nth-child(6) { --d1: 5.3s; --d2: 6.4s; animation-delay: -.21s, -.21s; }
+    .name .w:nth-child(7) { --d1: 4.1s; --d2: 8.1s; animation-delay: -.37s, -.37s; }
+  }
   @keyframes wave-a { from { --x1: 0em; } to { --x1: .6em; } }
   @keyframes wave-b { from { --x2: .75em; } to { --x2: 0em; } }
 
@@ -242,54 +267,68 @@
      The words wrap onto two lines rather than reach the t, growing up into the free space under the scale */
   .grad { grid-area: name; align-self: end; justify-self: start; position: relative; z-index: 1; inline-size: 0; block-size: 0;
           font-size: var(--name); pointer-events: none; }
-  .grad .cap { --cw: max(28px, .27em); position: absolute; left: calc(.13em - var(--cw) / 2); bottom: calc(.78em - var(--cw) * .2);
+  .grad .cap { --cw: max(28px, .27em); position: absolute; inset-inline-start: calc(.13em - var(--cw) / 2); inset-block-end: calc(.78em - var(--cw) * .2);
                inline-size: var(--cw); block-size: calc(var(--cw) * .75); overflow: visible; rotate: -10deg;
                fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough);
-               animation: tip 260ms var(--ease-out) 900ms both; transform-origin: 50% 100%; }
+               animation: fade 260ms var(--ease-out) 900ms both; transform-origin: 50% 100%; }
   .grad .cap .top { fill: var(--ground); }
   .grad .cap .tassel { stroke: var(--magenta); stroke-width: 1.8; }
   .grad .cap .knot { stroke: var(--magenta); stroke-width: 3.6; }
-  .grad span { position: absolute; left: calc(var(--name) * .62); bottom: calc(var(--name) * .61 + 4px); inline-size: max-content; max-inline-size: calc(var(--name) - 12px);
+  .grad span { position: absolute; inset-inline-start: calc(var(--name) * .62); inset-block-end: calc(var(--name) * .61 + 4px);
+               inline-size: max-content; max-inline-size: calc(var(--name) - 12px);
                font: 500 clamp(13px, .075em, 17px)/1.2 "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink);
-               rotate: -3deg; transform-origin: 0 100%; animation: draw 560ms var(--ease-out) 1000ms both; }
+               rotate: -3deg; transform-origin: 0 100%; animation: fade 560ms var(--ease-out) 1000ms both; }
+  @media (prefers-reduced-motion: no-preference) {
+    .grad .cap { animation-name: tip; }
+    .grad span { animation-name: draw; }
+  }
+
   .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding: 30px 0 0 8px; }
-  .actions { display: flex; align-items: center; gap: 9px; }
   .controls { grid-area: controls; display: flex; align-items: center; gap: 2px; margin: 0 0 4px -4px; }
-  .board-wrap { grid-area: board; display: grid; place-items: center; align-self: center; position: relative; }
-  /* the nudge: a pencil note in the scale's hand, in the air above the board, written in after the deal and wiped
-     away once the board has been played (app.js sets .played; it's back on the next visit). The arrow's tip sits
-     108.5px from the note's left edge, so the note slides to land it on the second card's centre (the third on the
-     narrowest phones, where the second is under the words) */
-  .nudge { position: absolute; left: max(2px, calc(1.5 * var(--cell) - 111.5px)); bottom: calc(100% + 16px); rotate: -3deg;
-           transform-origin: 0 100%; pointer-events: none; white-space: nowrap; visibility: hidden;
-           transition: opacity 400ms ease, translate 400ms var(--ease-out); }
-  .dealt .nudge { visibility: visible; animation: write 760ms cubic-bezier(.4, .4, .3, 1) 900ms both; }
+  /* (never narrower than the board: on phones it bleeds its outer gap past the column, so it may not shrink to fit) */
+  .board-wrap { grid-area: board; display: grid; place-items: safe center; align-self: center; position: relative;
+                min-inline-size: max-content; }
+
+  /* ---------- the nudge: a pencil note in the scale's hand, in the air above the board ----------
+     written in after the deal and wiped away once the board has been played (app.js sets .played; it's back on the
+     next visit). The arrow's tip sits 108.5px from the note's left edge, so the note slides to land it on the second
+     card's centre (the third on the narrowest phones, where the second is under the words) */
+  .nudge { position: absolute; inset-inline-start: max(2px, calc(1.5 * var(--cell) - 111.5px)); inset-block-end: calc(100% + 16px);
+           rotate: -3deg; transform-origin: 0 100%; pointer-events: none; white-space: nowrap; visibility: hidden;
+           transition: opacity 300ms ease; }
+  .dealt .nudge { visibility: visible; animation: fade 760ms cubic-bezier(.4, .4, .3, 1) 900ms both; }
+  .nudge b { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
+  .nudge svg { position: absolute; inset-inline-start: calc(100% - 6px); inset-block-start: -12px; inline-size: 52px; block-size: 44px;
+               fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
+  .played .nudge { opacity: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .nudge { transition: opacity 300ms ease, translate 300ms var(--ease-out); }
+    .dealt .nudge { animation-name: write; }
+    .played .nudge { translate: 0 6px; }
+  }
   /* written left to right at a steady hand, slowing only as the arrowhead lands, with room on the right for the arrow */
   @keyframes write { from { clip-path: inset(-40% 100% -70% -6%); } to { clip-path: inset(-40% -80px -70% -6%); } }
-  .nudge b { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
-  .nudge svg { position: absolute; left: calc(100% - 6px); top: -12px; width: 52px; height: 44px; fill: none; stroke: var(--ink);
-               stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
-  .played .nudge { opacity: 0; translate: 0 6px; }
 
-  /* ---------- buttons ---------- */
-  /* contact: eau is water, so Say hello and the GitHub and X marks are drops of it. The row runs through #goo (blur,
-     then a hard alpha cut, filled in the small drops' colour), so drops that come close grow a liquid neck between
-     them, while each button is drawn crisp on top. At rest the drops sit just apart; they bud out of the big one on
-     arrival, and swell into their neighbours under the pointer, on keyboard focus and under a finger */
-  .actions { --bud: -112px; --bud-x: -168px; filter: url(#goo); padding: 10px; margin: -10px; }
-  /* (Safari cuts a filter to the element's box whatever its region says, so the row carries 10px of room for a swollen
-     drop and the focus ring, given back with a negative margin) */
+  /* ---------- contact: eau is water, so Say hello and the GitHub and X marks are drops of it ----------
+     The row runs through #goo (blur, then a hard alpha cut, filled in the small drops' colour), so drops that come
+     close grow a liquid neck between them, while each button is drawn crisp on top. At rest the drops sit just apart;
+     they bud out of the big one on arrival, and swell into their neighbours under the pointer, on keyboard focus and
+     under a finger. Safari cuts a filter to the element's box whatever its region says, so the row carries 12px of
+     room for a swollen drop and its focus ring, given back with a negative margin */
+  .actions { --bud: -112px; --bud-x: -168px; display: flex; align-items: center; gap: 9px; padding: 12px; margin: -12px;
+             filter: url(#goo); }
   #goo .neck { flood-color: var(--drop); }
-  .cta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; height: 54px; padding: 0 26px 0 28px;
+  .cta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px;
          border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600;
-         box-shadow: inset 0 1.5px 0 rgb(255 255 255 / .22), inset 0 -2px 6px rgb(0 0 0 / .12); }
+         box-shadow: inset 0 1.5px 0 oklch(100% 0 none / .22), inset 0 -2px 6px oklch(0% 0 none / .12); }
+  .cta:focus-visible { outline-color: var(--ink); }
   .cta .mail { display: none; }
+  .cta:active { scale: .95; }
   .drop { position: relative; display: grid; place-items: center; inline-size: 48px; block-size: 48px; border-radius: 999px;
           background: var(--drop); color: var(--drop-fg); }
   .drop svg { inline-size: 20px; block-size: 20px; fill: currentColor; }
   /* the X glyph is wider than it is heavy: a touch smaller so it weighs like the GitHub mark */
   .drop.x svg { inline-size: 17px; block-size: 17px; }
-  .cta:active { scale: .95; }
   .drop:focus-visible { scale: 1.16; }
   @media (hover: hover) and (pointer: fine) {
     .cta:hover .go { translate: 2px 0; }
@@ -299,31 +338,37 @@
   @media (pointer: coarse) { .drop:active { scale: 1.16; } }
   @media (prefers-reduced-motion: no-preference) {
     .cta .go { transition: translate 160ms var(--ease-out); }
+    .cta { transition: scale 120ms var(--ease-out); }
     /* a spring, so a swelling drop overshoots a hair and its neck wobbles before it settles */
-    .cta, .drop { transition: scale 420ms cubic-bezier(.34, 1.56, .64, 1); }
-    .cta:active { transition-duration: 120ms; transition-timing-function: var(--ease-out); }
-    .drop { animation: bud 820ms cubic-bezier(.34, 1.4, .64, 1) 560ms both; }
+    .drop { transition: scale 300ms var(--spring); animation: bud 820ms cubic-bezier(.34, 1.4, .64, 1) 560ms both; }
     .drop.x { animation-delay: 650ms; --bud: var(--bud-x); }
-    @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
   }
-  .icon { position: relative; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 999px;
-          transition: transform 160ms ease-out, background-color 160ms ease; }
-  .icon:active { transform: scale(.96); }
-  @media (pointer: coarse) { .icon { width: 44px; height: 44px; } }
+  @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
+
+  /* ---------- the board's controls ---------- */
+  .icon { position: relative; inline-size: 40px; block-size: 40px; display: grid; place-items: center; border-radius: 999px;
+          transition: background-color 160ms ease; }
+  .icon:active { scale: .96; }
+  @media (pointer: coarse) { .icon { inline-size: 44px; block-size: 44px; } }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
-  :is(.icon, .cta, .drop, .card, .pill):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
   /* sound: waves and the mute cross share one slot, swapped with a scale + blur crossfade */
-  .icon .swap { transition: opacity 250ms cubic-bezier(.2, 0, 0, 1), scale 250ms cubic-bezier(.2, 0, 0, 1), filter 250ms cubic-bezier(.2, 0, 0, 1); transform-origin: 12px 9px; }
+  .icon .swap { transition: opacity 250ms cubic-bezier(.2, 0, 0, 1); transform-origin: 12px 9px; }
   #sound[aria-pressed="false"] .waves, #sound[aria-pressed="true"] .cross { opacity: 0; scale: .25; filter: blur(4px); }
   /* theme: the half-moon disc turns over */
-  #theme .disc { transition: rotate 400ms var(--ease-in-out); transform-origin: 9px 9px; }
+  #theme .disc { transform-origin: 9px 9px; }
   :root[data-theme="dark"] #theme .disc { rotate: 180deg; }
-  #shuffle svg { transition: rotate 300ms var(--ease-in-out); transform-origin: 9px 9px; }
+  #shuffle svg { transform-origin: 9px 9px; }
   #shuffle.spin svg { rotate: -360deg; }
-  #shuffle[data-attn]::after { content: ""; position: absolute; inset: 9px; border-radius: 999px; box-shadow: 0 0 0 2px var(--magenta);
-                               animation: attn 1.6s var(--ease-out) infinite; }
+  /* after a win, a ring calls for the next game */
+  #shuffle[data-attn]::after { content: ""; position: absolute; inset: 9px; border-radius: 999px; box-shadow: 0 0 0 2px var(--magenta); }
+  @media (prefers-reduced-motion: no-preference) {
+    .icon { transition: background-color 160ms ease, scale 160ms var(--ease-out); }
+    .icon .swap { transition-property: opacity, scale, filter; }
+    #theme .disc { transition: rotate 300ms var(--ease-in-out); }
+    #shuffle svg { transition: rotate 300ms var(--ease-in-out); }
+    #shuffle[data-attn]::after { animation: attn 1.6s var(--ease-out) infinite; }
+  }
   @keyframes attn { from { opacity: 1; scale: .8; } to { opacity: 0; scale: 1.6; } }
 
   .score { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; font-variant-numeric: tabular-nums;
@@ -336,78 +381,89 @@
      same max(2px, 2.8%) as shapeOf in board.js) and its visible edge sits on the layout line */
   .board { display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell); isolation: isolate;
            margin: calc(-1 * max(2px, var(--cell) * .028)); }
-  .card { position: relative; outline-offset: -3px; cursor: pointer; transition: transform 160ms ease-out; }
-  .card:active { transform: scale(.97); }
+  .card { position: relative; cursor: pointer; }
+  .card:focus-visible { outline-offset: -3px; }
+  .card:active { scale: .97; }
   .card[data-state="done"] { cursor: default; }
-  .card[data-state="done"]:active { transform: none; }
+  .card[data-state="done"]:active { scale: none; }
   /* the skin carries the breathing surface's stretch (a matrix set per frame) and the flip's perspective; its own
      layer, so the clipped, grained, spray-filtered faces are drawn once and only moved, never repainted per frame */
   .skin { position: absolute; inset: 0; perspective: calc(var(--cell) * 6); will-change: transform; }
-  .inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 300ms var(--ease-in-out); }
+  .inner { position: absolute; inset: 0; transform-style: preserve-3d; }
   .card[data-state="up"] .inner, .card[data-state="done"] .inner { transform: rotateY(180deg); }
-  .card.instant .inner, .card.instant .face { transition: none !important; }
-  /* both faces wear the tile's colour and a print grain (fractal noise in soft-light, like riso on uncoated stock) */
+  /* both faces wear the tile's colour and a print grain (fractal noise in soft-light, like riso on uncoated stock).
+     Without motion the card doesn't turn: its faces cross-fade */
   .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; clip-path: var(--shape);
           background-color: var(--c); background-size: 180px; background-blend-mode: soft-light;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-  /* the far face is switched off exactly at mid-flip (edge-on, 150ms into the 300ms turn), instead of trusting
-     backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          transition: opacity 160ms linear; }
   .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
-  .back { transition: transform 160ms var(--ease-out), opacity 0s linear 150ms; }
   /* hover lifts the tile within its own gap (~2px a side), never into a neighbour */
-  @media (hover: hover) and (pointer: fine) { .card[data-state="down"]:hover .back { transform: scale(1.03); } }
+  @media (hover: hover) and (pointer: fine) { .card[data-state="down"]:hover .back { scale: 1.03; } }
   /* rings: a hole punched in the back only (the face is a full plate so the mark has room) */
   .ring .back { -webkit-mask: radial-gradient(circle, transparent calc(var(--cell) * .16), #000 calc(var(--cell) * .16 + .5px));
                 mask: radial-gradient(circle, transparent calc(var(--cell) * .16), #000 calc(var(--cell) * .16 + .5px)); }
   /* the face is one calm plate for every card (the cut lives on the back), so the flip itself morphs the shape */
-  .front { transform: rotateY(180deg); display: grid; place-items: center; clip-path: var(--shape-done); color: var(--up);
-           transition: color 320ms ease 220ms, opacity 0s linear 150ms; }
+  .front { transform: rotateY(180deg); display: grid; place-items: center; clip-path: var(--shape-done); color: var(--up); }
   /* solved: the mark eases from 4.5:1 to 3:1 and sinks back into the mosaic */
   .card[data-state="done"] .front { color: var(--tone); }
-  .front svg { grid-area: 1 / 1; width: var(--gw); height: var(--gh); fill: currentColor; translate: var(--ox, 0px) var(--oy, 0px); }
+  .front svg { grid-area: 1 / 1; inline-size: var(--gw); block-size: var(--gh); fill: currentColor; translate: var(--ox, 0px) var(--oy, 0px); }
   /* hairline marks are thickened with a stroke in their own colour (--sw, viewBox units) so every stem weighs alike */
   .front svg path { stroke: currentColor; stroke-width: var(--sw, 0); stroke-linejoin: round; }
   .front .ghost { color: var(--ghost); fill: var(--ghost); mix-blend-mode: multiply; opacity: 0; }
   /* the spray's grain is about a CSS pixel fine, so it only reads as paint on a 2x screen; below that (a 4K monitor at
      native or "more space" scaling) it smears into blur, so those screens get the clean mark */
   @media (min-resolution: 2dppx) { .front .glyph path { filter: url(#spray); } }
+  @media (prefers-reduced-motion: no-preference) {
+    .card { transition: scale 160ms var(--ease-out); }
+    .inner { transition: transform 300ms var(--ease-in-out); }
+    /* the far face is switched off exactly at mid-flip (edge-on, 150ms into the 300ms turn), instead of trusting
+       backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
+    .back { transition: scale 160ms var(--ease-out), opacity 0s linear 150ms; }
+    .front { transition: color 300ms ease 220ms, opacity 0s linear 150ms; }
+  }
+  .card.instant .inner, .card.instant .face { transition: none !important; }
 
   /* ---------- copied-address toast ---------- */
-  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 20; translate: -50% 0;
-           display: flex; align-items: center; gap: 10px; padding: 12px 18px 12px 14px; border-radius: 999px; white-space: nowrap;
-           background: var(--toast-bg); color: var(--toast-fg); font-size: 15px; font-weight: 500;
-           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 28px rgb(0 0 0 / .18);
-           opacity: 0; transform: translateY(8px); filter: blur(2px); pointer-events: none;
-           transition: opacity 150ms ease-out, transform 150ms ease-out, filter 150ms ease-out; }
-  .toast[data-show] { opacity: 1; transform: none; filter: none; transition-duration: 260ms; transition-timing-function: var(--ease-out); }
-  .toast i { width: 8px; height: 8px; border-radius: 999px; background: var(--cyan); flex-shrink: 0; }
+  .toast { position: fixed; inset-inline: 0; inset-block-end: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+           inline-size: fit-content; margin-inline: auto; display: flex; align-items: center; gap: 10px; padding: 12px 18px 12px 14px;
+           border-radius: 999px; white-space: nowrap; background: var(--toast-bg); color: var(--toast-fg); font-size: 15px; font-weight: 500;
+           backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 28px oklch(0% 0 none / .18);
+           opacity: 0; pointer-events: none; transition: opacity 150ms var(--ease-out); }
+  .toast[data-show] { opacity: 1; transition-duration: 260ms; }
+  .toast i { inline-size: 8px; block-size: 8px; border-radius: 999px; background: var(--cyan); flex: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .toast { translate: 0 8px; filter: blur(2px); transition-property: opacity, translate, filter; }
+    .toast[data-show] { translate: none; filter: none; }
+  }
 
   /* ---------- entrance: chunks rise in with a short stagger ---------- */
-  .rise { animation: rise 520ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
-  @keyframes rise { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
+  .rise { animation: fade 520ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
+  @media (prefers-reduced-motion: no-preference) { .rise { animation-name: rise; } }
+  @keyframes rise { from { opacity: 0; translate: 0 10px; filter: blur(4px); } }
 
   /* ---------- phones and portrait tablets: who first, then the game. The intro leads (as it does on the left on
      desktop), and a wide 5 x 4 board follows with its score and controls on a bar under it, so a phone shows the
      whole site in one screen. Taller screens centre the lot ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
     .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto auto 1fr;
-            grid-template-areas: "." "scale" "name" "sub" "board" "controls" "."; height: auto; min-height: 100svh; column-gap: 0;
-            padding: calc(12px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom)); }
+            grid-template-areas: "." "scale" "name" "sub" "board" "controls" "."; block-size: auto; min-block-size: 100svh; column-gap: 0;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)); }
     .scale { margin: 10px 0 22px 4px; }
     /* the board and its bar share the intro's left edge (on phones the board fills the width anyway) */
-    .board-wrap { margin-top: 28px; justify-self: start; }
+    .board-wrap { margin-block-start: 28px; justify-self: start; }
     /* the nudge folds onto two lines level with the links, instead of taking a gap of its own above the board, and its
        arrow drops into the top right card. On phones the links end 160px into the board's column (the row's type is
        fixed there), so the note starts at least 24px past them, and further right where that lands the arrow's tip (47px
        in) on the last card's centre */
-    .nudge { left: max(184px, 100% - .5 * var(--cell) - 47px); bottom: calc(100% + 24px); }
+    .nudge { inset-inline-start: max(184px, 100% - .5 * var(--cell) - 47px); inset-block-end: calc(100% + 24px); }
     .nudge b { display: inline-block; inline-size: min-content; white-space: normal; }
-    .nudge svg { left: 8px; top: calc(100% - 12px); width: 46px; height: 39px; }
-    .dealt .nudge { animation-name: write-down; }
+    .nudge svg { inset-inline-start: 8px; inset-block-start: calc(100% - 12px); inline-size: 46px; block-size: 39px; }
+    @media (prefers-reduced-motion: no-preference) { .dealt .nudge { animation-name: write-down; } }
     @keyframes write-down { from { clip-path: inset(-40% 100% -300% -6%); } to { clip-path: inset(-40% -80px -300% -6%); } }
-    .controls { justify-self: start; width: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
-    .controls .score { margin-right: auto; padding-left: 4px; }
-    .name { padding-top: 12px; }
+    .controls { justify-self: start; inline-size: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
+    .controls .score { margin-inline-end: auto; padding-inline-start: 4px; }
+    .name { padding-block-start: 12px; }
     .sub { gap: 26px; padding: 16px 0 0 4px; }
     /* the open pill and the two marks share one line from a 360px phone up: the current job says it shorter, the pills
        are a size smaller, and under 380px the arrow goes (narrower phones wrap the current job under the marks) */
@@ -417,42 +473,26 @@
     .pill[data-open] { grid-template-columns: 28px 8px 1fr 9px; }
     .pill .mark { inline-size: 28px; block-size: 28px; }
     @media (max-width: 379px) { .pill .out { display: none; } }
-    .cta { height: 50px; padding: 0 22px 0 24px; font-size: 16px; }
+    .cta { block-size: 50px; padding-inline: 24px 22px; font-size: 16px; }
+    .drop { inline-size: 44px; block-size: 44px; }
+    .drop svg { inline-size: 19px; block-size: 19px; } .drop.x svg { inline-size: 16px; block-size: 16px; }
     /* on phones Say hello is just its envelope, a round 50px button (the words stay for screen readers), which leaves
        the rest of the row to the links and the board's nudge. Portrait tablets have the room to say it */
     @media (max-width: 759px) {
       .cta { inline-size: 50px; padding: 0; justify-content: center; }
-      .cta .say { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      .cta .say { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; clip-path: inset(50%); white-space: nowrap; }
       .cta .go { display: none; } .cta .mail { display: block; }
       .actions { --bud: -56px; --bud-x: -109px; }
     }
-    .drop { inline-size: 44px; block-size: 44px; }
-    .drop svg { inline-size: 19px; block-size: 19px; } .drop.x svg { inline-size: 16px; block-size: 16px; }
   }
 
   /* ---------- a phone on its side: the desktop layout, tighter, with a wide 5 x 4 board that fits the height and a page
      that grows to its content instead of clipping it ---------- */
   @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
-    .page { height: auto; min-height: 100svh; padding: 20px 24px 20px 48px; column-gap: 32px; }
+    .page { block-size: auto; min-block-size: 100svh; padding: 20px 24px 20px 48px; column-gap: 32px; }
     /* the board stays whole in view while the intro scrolls past it */
-    .board-wrap { align-self: start; position: sticky; top: 20px; }
+    .board-wrap { align-self: start; position: sticky; inset-block-start: 20px; }
     .nudge { display: none; }
-  }
-
-  .sr { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .rise, .axis, .band, .note, .arrowhead, .lv, .dealt .nudge, .grad .cap, .grad span { animation-name: fade; }
-    @keyframes fade { from { opacity: 0; } }
-    .name .w { animation: none; transition: none; }
-    .inner { transition: none; }
-    .card[data-state="up"] .back, .card[data-state="done"] .back { opacity: 0; }
-    .front { transition: color 160ms linear; }
-    .face { transition: opacity 160ms linear; }
-    #theme .disc, #shuffle svg { transition: none; }
-    #credit .mark { rotate: none; }
-    .card, .cta, .drop, .icon { transition: none; }
-    .toast, .toast[data-show] { transform: none; filter: none; transition: opacity 160ms linear; }
   }
 </style>
 </head>

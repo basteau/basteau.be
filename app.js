@@ -561,7 +561,10 @@ themeBtn.addEventListener('click', e => {
   const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
   const S = 2 * Math.hypot(Math.max(x, vw() - x), Math.max(y, vh() - y)) / .92;   // solid part covers the far corner
   const from = { size: '0px 0px', pos: `${x}px ${y}px` }, to = { size: `${S}px ${S}px`, pos: `${x - S / 2}px ${y - S / 2}px` };
-  document.startViewTransition(apply).ready.then(() => {
+  root.classList.add('theming');   // scopes the reveal's styles in index.html to this transition, not page navigations
+  const vt = document.startViewTransition(apply);
+  vt.finished.finally(() => root.classList.remove('theming'));
+  vt.ready.then(() => {
     root.animate({
       maskSize: [from.size, to.size], maskPosition: [from.pos, to.pos],
       webkitMaskSize: [from.size, to.size], webkitMaskPosition: [from.pos, to.pos],
