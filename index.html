@@ -90,10 +90,10 @@
   /* ---------- the stack scale: where I sit between the metal and the pixels, hand drawn ----------
      one grid: a column per level, wider for the three I live in. The bands, axis and arrow are plain CSS lines run
      through #rough (a slow displacement), so they wobble like a pen sketch at any width. The tech itself lives on the
-     board, so the scale only names levels. Narrow scales drop the end words, and phones fold each side into one level */
+     board, so the scale only names levels. Narrow scales shrink the type, and phones fold each side into one level */
   .scale { grid-area: scale; position: relative; z-index: 1; width: min(100%, var(--name-w, 100%)); margin: 0 0 30px 8px;
            container-type: inline-size; }
-  .sc { display: grid; grid-template-columns: [s] 38px [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 38px [end];
+  .sc { display: grid; grid-template-columns: [s] 0 [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 0 [end];
         grid-template-rows: [note] 54px [band] 30px [label] 24px; }
   .band { grid-row: band; margin: 0 4px; border: 2px dashed currentColor; border-radius: 9px; filter: url(#rough); }
   .b-lo { grid-column: low / home; color: var(--orange); }
@@ -104,9 +104,6 @@
           background: linear-gradient(var(--ink), var(--ink)) 0 50% / 100% 2.25px no-repeat; }
   .arrowhead { grid-row: band; grid-column: e; align-self: center; width: 12px; height: 18px; margin-left: -11px; z-index: 1;
                fill: none; stroke: var(--ink); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
-  .sc-end { grid-row: band; align-self: center; font: 400 14px/18px "Shantell Sans", cursive; color: var(--muted); }
-  .sc-lo { grid-column: s; justify-self: end; padding-right: 6px; }
-  .sc-hi { grid-column: e; justify-self: end; }
   /* each level is a label hanging off its tick */
   .lv { grid-row: label; justify-self: center; position: relative; padding-top: 9px; white-space: nowrap; color: var(--muted);
         font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
@@ -130,13 +127,12 @@
   @container (min-width: 900px) {
     .sc { grid-template-rows: [note] 62px [band] 34px [label] 28px; }
     .lv { font-size: 12px; }
-    .note, .sc-end { font-size: 17px; line-height: 21px; }
+    .note { font-size: 17px; line-height: 21px; }
     .n-home b { font-size: 23px; line-height: 27px; }
     .lv::before { top: -24px; height: 16px; }
   }
   @container (max-width: 680px) {
-    .sc { grid-template-columns: [s] 0 [low] 1fr 1fr 1fr [home] 1.3fr 1.3fr 1.3fr [high] 1fr 1fr [e] 0 [end]; grid-template-rows: [note] 54px [band] 28px [label] 24px; }
-    .sc-end { display: none; }
+    .sc { grid-template-rows: [note] 54px [band] 28px [label] 24px; }
     .lv { font-size: 10px; letter-spacing: .05em; }
     .note { font-size: 14px; line-height: 17px; }
     .n-lo, .n-hi { white-space: normal; text-align: center; }
@@ -363,7 +359,6 @@
 
 <main class="page">
   <figure class="scale rise" style="--i:0" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited, good with AI."><div class="sc">
-      <span class="sc-end sc-lo">low</span><span class="sc-end sc-hi">high</span>
       <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
       <span class="axis"></span>
       <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>
