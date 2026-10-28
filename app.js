@@ -572,12 +572,27 @@ paintTheme();
 
 $('#shuffle').addEventListener('click', shuffle);
 
-// the sebdev mark under the tagline keeps turning the same way on every hover or keyboard focus, like a tile on the board
+// work pills: one open at a time. Pointing at a pill or tabbing to it opens it; leaving the row settles back on the
+// current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so a tap just opens
+// the site. The sebdev mark turns a quarter each time its pill opens
+const work = $('#work');
+const pills = [...work.querySelectorAll('.pill')];
+const home = work.querySelector('[data-home]');
 const credit = $('#credit');
-let turns = 0;
-const turn = () => credit.style.setProperty('--turn', ++turns);
-credit.addEventListener('pointerenter', e => e.pointerType === 'mouse' && turn());
-credit.addEventListener('focus', () => credit.matches(':focus-visible') && turn());
+let turns = 0, settle = 0;
+const openPill = pill => {
+  clearTimeout(settle);
+  if (pill.hasAttribute('data-open')) return;
+  pills.forEach(p => p.toggleAttribute('data-open', p === pill));
+  if (pill === credit) credit.style.setProperty('--turn', ++turns);
+};
+const rest = () => { clearTimeout(settle); settle = setTimeout(() => openPill(home), 120); };
+pills.forEach(p => {
+  p.addEventListener('pointerenter', e => e.pointerType === 'mouse' && openPill(p));
+  p.addEventListener('focus', () => p.matches(':focus-visible') && openPill(p));
+});
+work.addEventListener('pointerleave', e => e.pointerType === 'mouse' && !work.querySelector(':focus-visible') && rest());
+work.addEventListener('focusout', e => !work.contains(e.relatedTarget) && rest());
 
 // Say hello: open the mail app as usual, and also copy the address for visitors without one
 const toast = $('#toast');
