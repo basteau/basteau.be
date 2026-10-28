@@ -589,8 +589,14 @@ const openPill = pill => {
 };
 const rest = () => { clearTimeout(settle); settle = setTimeout(() => openPill(home), 120); };
 let preview = null;   // the folded pill a finger just came down on: its click opens it instead of following it
+let seen = {};        // where the mouse last was, so a pill only opens for a pointer that actually moved
 pills.forEach(p => {
-  p.addEventListener('pointerenter', e => e.pointerType === 'mouse' && openPill(p));
+  // never on the hover update a reflow sends when a pill slides under a still pointer
+  p.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || (e.clientX === seen.x && e.clientY === seen.y)) return;
+    seen = { x: e.clientX, y: e.clientY };
+    openPill(p);
+  });
   p.addEventListener('focus', () => p.matches(':focus-visible') && openPill(p));
   p.addEventListener('pointerdown', e => { preview = e.pointerType !== 'mouse' && !p.hasAttribute('data-open') ? p : null; });
   p.addEventListener('click', e => {
