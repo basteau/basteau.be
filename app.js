@@ -127,6 +127,7 @@ function newGame({ animate = true } = {}) {
   document.querySelectorAll('[data-of]').forEach(n => { n.textContent = ` / ${pad(pairs)}`; });
   size(); score(false);
   if (animate) dealIn();
+  board.parentElement.classList.add('dealt');   // the nudge waits for a board to point at
   breathe();
 }
 
@@ -195,6 +196,36 @@ function idleTurn() {
   };
 }
 setTimeout(idleTurn, 3000);
+
+/* the board is a game, and says so until it's been played: a handwritten nudge above it (index.html), and now and
+   then a face-down card that lifts on its hinge and settles back, the way a real card gets nudged. Both stop for good
+   (remembered) on the first flip. The peek keeps the turn's quiet rules: never while playing, hidden or off-screen,
+   never for reduced motion, and it only ever shows the card's back */
+let played = store.get('basteau:played', '') === '1';
+root.classList.toggle('played', played);
+root.classList.toggle('was-played', played);   // known from the start: no room is kept for a nudge that won't show
+function markPlayed() {
+  if (played) return;
+  played = true; root.classList.add('played'); store.set('basteau:played', '1');
+}
+const peeked = [];
+function peek() {
+  setTimeout(peek, 6000 + Math.random() * 3000);
+  if (played || !S || reduce.matches || document.hidden || !inView || open.length || locked || performance.now() - lastInput < 2500) return;
+  // the first peek is the card the nudge's arrow points at, so the note and the card say the same thing
+  const c = peeked.length ? draw(cards.filter(idle), peeked, 4) : pointedAt(); if (!c) return;
+  c.el.querySelector('.inner').animate(
+    [{ transform: 'none' }, { transform: 'rotateY(-40deg)', offset: .38 }, { transform: 'rotateY(7deg)', offset: .72 }, { transform: 'none' }],
+    { duration: 1150, easing: 'cubic-bezier(.45, 0, .55, 1)' });
+}
+function pointedAt() {
+  const a = $('.nudge svg').getBoundingClientRect(), tip = a.left + a.width * .85;
+  const x = c => { const r = c.el.getBoundingClientRect(); return r.left + r.width / 2; };
+  const c = cards.filter(c => c.y === 0 && idle(c)).sort((p, q) => Math.abs(x(p) - tip) - Math.abs(x(q) - tip))[0];
+  if (c) peeked.push(c);
+  return c;
+}
+setTimeout(peek, 2700);   // just before the first idle turn, so the two never share the moment
 
 /* and, on its own clock, two touching face-down tiles of different colours trade colours: the same quiet rules as the
    turn. The whole palette moves with the colour (face, mark tones, flip sound, ripple), so a card flipped later
@@ -292,6 +323,7 @@ function setState(c, state, instant) {
 
 function onCard(c, keyboard) {
   if (c.state !== 'down' || locked) return;
+  markPlayed();
   if (open.length === 2) settleMiss(true);              // a third card is interruptible: the miss turns back at once
   setState(c, 'up', keyboard); open.push(c);
   play('flip', [c.color, c.kind], { jitter: { detune: 12 } });
