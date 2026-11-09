@@ -1,28 +1,18 @@
 import { defineSound } from './audio.js';
 import { ICONS } from './icons.js';
 import { TECH, PALETTE, COLORS, deal, shapeOf, glyph, stretch, drift } from './board.js';
+import { root, vw, vh, reduce, blip, player, wireSound, wireTheme } from './chrome.js';
+import { createField } from './field.js';
 
-const root = document.documentElement;
-// layout viewport (unlike innerWidth it never grows with overflowing content)
-const vw = () => root.clientWidth, vh = () => root.clientHeight;
 const $ = s => document.querySelector(s);
-const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-const store = {
-  get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
-  drop(k) { try { localStorage.removeItem(k); } catch {} },
-};
 
 /* =====================================================================
    sound: @web-kits/audio definitions, following the create-sound recipe
    (click/tap <= 0.1s, toggles two notes 25ms apart, success as an arpeggio,
    layer gains summing under ~0.6). Nothing plays until the visitor acts.
    ===================================================================== */
-// on by default, but off for visitors who ask for reduced motion (they can still turn it on)
-let soundOn = store.get('basteau:sound', reduce.matches ? 'off' : 'on') === 'on';
 // C-major pentatonic ladder: every match climbs one step, so a whole game plays a little melody
 const LADDER = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093, 2349.32];
-const blip = (f, d, g, delay = 0) => ({ source: { type: 'sine', frequency: f }, envelope: { attack: 0, decay: d, sustain: 0, release: .006 }, gain: g, delay });
 const SFX = {
   // a tile sounds like it looks: its colour picks the note (pentatonic, so any run of flips stays consonant),
   // its shape picks the timbre (round = soft sine pop, square = woody, squircle = softer wood, pebble = rounded knock,
@@ -56,27 +46,11 @@ const SFX = {
   // tapping the name: a soft water drop (a sine that bends up, a touch of reverb)
   bloop: defineSound({ layers: [{ source: { type: 'sine', frequency: { start: 240, end: 620 } }, envelope: { attack: .002, decay: .14, sustain: 0, release: .05 }, gain: .14 }],
                        effects: [{ type: 'reverb', decay: .4, damping: .5, mix: .12 }] }),
+  // the talks link: four tapes pulled out one after another
+  shelf: defineSound({ layers: [659.25, 783.99, 587.33, 880].map((f, i) => blip(f, .03, .05, i * .045)) }),
   deal: defineSound({ layers: Array.from({ length: 6 }, (_, i) => blip(1700 + i * 140, .01, .035, i * .028)) }),
-  toggleOn: defineSound({ layers: [blip(2093, .012, .1), blip(3136, .012, .1, .025)] }),
-  toggleOff: defineSound({ layers: [blip(3136, .012, .1), blip(2093, .012, .1, .025)] }),
-  // theme: a soft filtered-noise swell under the toggle pair; dark sweeps down, light sweeps up
-  // (both stretched over the ~850ms reveal: the swell peaks a quarter in and fades with the edge, the second note
-  // lands as the wash passes mid-screen)
-  dusk: defineSound({ layers: [
-      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 600, resonance: .9, envelope: { attack: .14, peak: 2400, decay: .6 } },
-        envelope: { attack: .12, decay: .62, sustain: 0, release: .16 }, gain: .06 },
-      blip(1568, .04, .055, .05), blip(1046.5, .07, .055, .24),
-    ] }),
-  dawn: defineSound({ layers: [
-      { source: { type: 'noise', color: 'pink' }, filter: { type: 'bandpass', frequency: 900, resonance: .9, envelope: { attack: .14, peak: 3800, decay: .58 } },
-        envelope: { attack: .12, decay: .6, sustain: 0, release: .16 }, gain: .055 },
-      blip(1046.5, .04, .055, .05), blip(1568, .07, .055, .24),
-    ] }),
 };
-const play = (name, arg, opts) => {
-  if (!soundOn) return;
-  try { (arg === undefined ? SFX[name] : SFX[name](arg))(opts); } catch {}
-};
+const play = player(SFX);
 
 /* =====================================================================
    layout: a full-height 4 x 6 column beside the name on desktop, a wide
@@ -440,140 +414,17 @@ scale.addEventListener('pointerenter', e => {
 });
 scale.addEventListener('pointerleave', () => { clearInterval(boil); wobble.setAttribute('seed', 7); });
 
-/* =====================================================================
-   the ground: a 24px dot grid. Near the pointer the dots swell, pick up
-   the logo colours and lean away; matches send a ring through the field.
-   Touch screens get the same lens under the finger.
-   ===================================================================== */
-const field = (() => {
-  const cv = $('#field'), ctx = cv.getContext('2d');
-  const STEP = 24, pal = COLORS.map(c => PALETTE[c].hex);
-  let W, H, dpr, base, running = false, last = 0;
-  const p = { x: -999, y: -999, sx: -999, sy: -999, k: 0, on: false };
-  const rings = [];
-  // the same alpha gives both themes about the same dot-to-ground contrast (~1.5:1)
-  function colors() { base = root.dataset.theme === 'dark' ? [255, 255, 255, .16] : [11, 11, 12, .16]; }
-  function resize() {
-    dpr = Math.min(devicePixelRatio || 1, 2); W = vw(); H = vh();
-    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(performance.now());
-  }
-  // the stack scale is fine line work, so the lens and the ripples calm down around it and leave it alone: full
-  // strength from QUIET px out, fading to nothing at its edge. The plain dots stay, so the paper under it is unchanged
-  const QUIET = 56;
-  function calmAt(x, y, q) {
-    const d = Math.hypot(Math.max(q.left - x, 0, x - q.right), Math.max(q.top - y, 0, y - q.bottom));
-    const t = Math.min(1, d / QUIET);
-    return t * t * (3 - 2 * t);
-  }
-  function draw(now) {
-    ctx.clearRect(0, 0, W, H);
-    const R = W < 760 ? 96 : 124, push = reduce.matches ? 0 : 10, q = scale.getBoundingClientRect();
-    const [br, bg, bb, ba] = base;
-    // plain dots go into one path and one fill; only the few the lens or a ring touches are drawn on their own
-    const plain = new Path2D(), lit = [];
-    for (let y = STEP / 2, gy = 0; y < H + STEP; y += STEP, gy++) {
-      for (let x = STEP / 2, gx = 0; x < W + STEP; x += STEP, gx++) {
-        let e = 0, dx = 0, dy = 0, tint = null, te = 0;
-        const calm = (p.k > .001 || rings.length) ? calmAt(x, y, q) : 1;
-        if (p.k > .001 && calm > 0) {
-          const ddx = x - p.sx, ddy = y - p.sy, d = Math.hypot(ddx, ddy);
-          if (d < R) { const t = 1 - d / R; e = t * t * (3 - 2 * t) * p.k * calm; if (d > 0) { dx += ddx / d * push * e; dy += ddy / d * push * e; } }
-        }
-        for (const r of rings) {
-          const age = (now - r.t0) / 1000, rad = age * 640 * r.s, band = 70 * r.s;
-          const ddx = x - r.x, ddy = y - r.y, d = Math.hypot(ddx, ddy), off = Math.abs(d - rad);
-          if (off < band) { const w = (1 - off / band) * Math.max(0, 1 - age / (1.25 * r.s)) * calm;
-            if (d > 0) { dx += ddx / d * 7 * w; dy += ddy / d * 7 * w; }
-            if (w > te) { te = w; tint = r.c; } }
-        }
-        const amt = Math.max(e, te), rad = 1 + 3 * amt;
-        if (amt > .1) lit.push(x + dx, y + dy, rad, te > e ? tint : pal[(gx * 7 + gy * 13) % 4], .18 + .82 * amt);
-        else { plain.moveTo(x + dx + rad, y + dy); plain.arc(x + dx, y + dy, rad, 0, 6.2832); }
-      }
-    }
-    ctx.fillStyle = `rgb(${br} ${bg} ${bb})`; ctx.globalAlpha = ba; ctx.fill(plain);
-    for (let i = 0; i < lit.length; i += 5) {
-      ctx.fillStyle = lit[i + 3]; ctx.globalAlpha = lit[i + 4];
-      ctx.beginPath(); ctx.arc(lit[i], lit[i + 1], lit[i + 2], 0, 6.2832); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-  function tick(now) {
-    const dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
-    const a = 1 - Math.exp(-dt * 14), b = 1 - Math.exp(-dt * (p.on ? 9 : 5));
-    if (p.sx < -900) { p.sx = p.x; p.sy = p.y; }
-    p.sx += (p.x - p.sx) * a; p.sy += (p.y - p.sy) * a; p.k += ((p.on ? 1 : 0) - p.k) * b;
-    for (let i = rings.length - 1; i >= 0; i--) if ((now - rings[i].t0) / 1000 > 1.25 * rings[i].s) rings.splice(i, 1);
-    draw(now);
-    const settled = Math.abs(p.x - p.sx) < .2 && Math.abs(p.y - p.sy) < .2 && (p.on ? p.k > .999 : p.k < .002);
-    if (settled && !rings.length) { running = false; return; }
-    requestAnimationFrame(tick);
-  }
-  function wake() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(tick); } }
-  addEventListener('pointermove', e => { p.x = e.clientX; p.y = e.clientY; p.on = true; wake(); }, { passive: true });
-  addEventListener('pointerdown', e => { p.x = e.clientX; p.y = e.clientY; if (p.sx < -900 || e.pointerType !== 'mouse') { p.sx = p.x; p.sy = p.y; } p.on = true; wake(); }, { passive: true });
-  addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') { p.on = false; wake(); } }, { passive: true });
-  document.addEventListener('pointerleave', () => { p.on = false; wake(); });
-  addEventListener('blur', () => { p.on = false; wake(); });
-  colors(); resize();
-  return {
-    resize, recolor() { colors(); draw(performance.now()); },
-    ripple(x, y, c, s = 1) { if (reduce.matches) return; rings.push({ x, y, c, s, t0: performance.now() }); wake(); },
-  };
-})();
+// the dotted ground (field.js); the stack scale's line work is its calm spot
+const field = createField($('#field'), () => scale.getBoundingClientRect());
 
 /* =====================================================================
    chrome: sound, theme, contact
    ===================================================================== */
-const soundBtn = $('#sound');
-function paintSound() { soundBtn.setAttribute('aria-pressed', String(soundOn)); soundBtn.setAttribute('aria-label', soundOn ? 'Mute sound' : 'Turn sound on'); }
-soundBtn.addEventListener('click', () => {
-  if (soundOn) { play('toggleOff'); soundOn = false; } else { soundOn = true; play('toggleOn'); }
-  store.set('basteau:sound', soundOn ? 'on' : 'off'); paintSound();
-});
-paintSound();
-
-const themeBtn = $('#theme');
-// the theme follows the system unless the visitor picks the other one; picking the system's own theme again clears
-// the choice, so a later OS switch (say, automatic dark mode at night) carries the site with it
-const systemDark = matchMedia('(prefers-color-scheme: dark)');
-const systemTheme = () => systemDark.matches ? 'dark' : 'light';
-function setTheme(t) {
-  root.dataset.theme = t; paintTheme(); field.recolor();
-  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = t === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
-}
-systemDark.addEventListener('change', () => { if (!store.get('basteau:theme', null)) setTheme(systemTheme()); });
-function paintTheme() {
-  const dark = root.dataset.theme === 'dark';
-  themeBtn.setAttribute('aria-pressed', String(dark)); themeBtn.setAttribute('aria-label', dark ? 'Light mode' : 'Dark mode');
-}
-themeBtn.addEventListener('click', e => {
-  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  play(next === 'dark' ? 'dusk' : 'dawn');
-  const apply = () => {
-    if (next === systemTheme()) store.drop('basteau:theme'); else store.set('basteau:theme', next);
-    setTheme(next);
-  };
-  if (!document.startViewTransition || reduce.matches) { apply(); return; }
-  // the new theme grows out of the button as a soft-edged circle (an occasional action, so it gets a real moment):
-  // a radial mask whose size and position animate together, so its centre stays on the button and the feathered
-  // edge (the last ~8% of the radius) washes over the page instead of cutting across it
-  const r = themeBtn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-  const S = 2 * Math.hypot(Math.max(x, vw() - x), Math.max(y, vh() - y)) / .92;   // solid part covers the far corner
-  const from = { size: '0px 0px', pos: `${x}px ${y}px` }, to = { size: `${S}px ${S}px`, pos: `${x - S / 2}px ${y - S / 2}px` };
-  root.classList.add('theming');   // scopes the reveal's styles in index.html to this transition, not page navigations
-  const vt = document.startViewTransition(apply);
-  vt.finished.finally(() => root.classList.remove('theming'));
-  vt.ready.then(() => {
-    root.animate({
-      maskSize: [from.size, to.size], maskPosition: [from.pos, to.pos],
-      webkitMaskSize: [from.size, to.size], webkitMaskPosition: [from.pos, to.pos],
-    }, { duration: 850, easing: 'cubic-bezier(.45, 0, .15, 1)', fill: 'both', pseudoElement: '::view-transition-new(root)' });
-  }, () => {});   // a transition skipped by a quick second toggle (or a hidden tab) just applies the theme
-});
-paintTheme();
+wireSound($('#sound'));
+wireTheme($('#theme'), () => field.recolor());
 
 $('#shuffle').addEventListener('click', shuffle);
+$('#talks').addEventListener('pointerenter', e => e.pointerType === 'mouse' && play('shelf'));
 
 // work pills: one open at a time. Pointing at a pill or tabbing to it opens it; leaving the row settles back on the
 // current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so there the first

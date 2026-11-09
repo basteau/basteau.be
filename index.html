@@ -49,6 +49,8 @@
 <link rel="modulepreload" href="app.js">
 <link rel="modulepreload" href="board.js">
 <link rel="modulepreload" href="icons.js">
+<link rel="modulepreload" href="chrome.js">
+<link rel="modulepreload" href="field.js">
 <script>
   // theme before first paint: the system preference, unless the visitor picked the other one (the browser chrome
   // follows). A stored choice that matches the system again is dropped, so the site keeps following the system
@@ -397,6 +399,33 @@
   .score .n { display: inline-block; color: var(--ink); }
   .score .of { color: var(--muted); }
 
+  /* ---------- the way to the talks page: a little shelf of four tapes and a pencil note. Under the pointer, on focus
+     and under a finger the tapes are pulled out one after another, each to its own height, and the arrow steps in.
+     Following it, the little shelf grows into the real one (a shared view-transition name with talks.html) ---------- */
+  .talks { display: inline-flex; align-items: flex-end; gap: 12px; block-size: 44px; padding: 0 10px 6px 8px; margin-inline-start: 12px;
+           border-radius: 12px; white-space: nowrap; }
+  .talks .mini { display: flex; align-items: flex-end; gap: 3px; }
+  .talks .mini i { inline-size: var(--w); block-size: 30px; border-radius: 2px; background: var(--c); }
+  .talks .mini i:nth-child(1) { --w: 9px; --c: var(--magenta); --lift: -5px; border-start-start-radius: 5px; }
+  .talks .mini i:nth-child(2) { --w: 12px; --c: var(--cyan); --lift: -13px; }
+  .talks .mini i:nth-child(3) { --w: 8px; --c: var(--orange); --lift: -3px; border-start-start-radius: 4px; border-start-end-radius: 4px; }
+  .talks .mini i:nth-child(4) { --w: 13px; --c: var(--violet); --lift: -9px; border-start-end-radius: 7px; }
+  .talks .hand { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; rotate: -2deg; transform-origin: 0 100%; padding-block-end: 3px; }
+  .talks .go { align-self: center; margin-inline-start: -4px; opacity: 0; translate: -6px 3px; }
+  .talks:focus-visible .mini i, .talks:active .mini i { translate: 0 var(--lift); }
+  .talks:focus-visible .go, .talks:active .go { opacity: 1; translate: 0 3px; }
+  @media (hover: hover) and (pointer: fine) {
+    .talks:hover .mini i { translate: 0 var(--lift); }
+    .talks:hover .go { opacity: 1; translate: 0 3px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .talks .mini { view-transition-name: shelf; }
+    .talks .mini i { transition: translate 320ms var(--spring); }
+    .talks .mini i:nth-child(2) { transition-delay: 45ms; } .talks .mini i:nth-child(3) { transition-delay: 90ms; }
+    .talks .mini i:nth-child(4) { transition-delay: 135ms; }
+    .talks .go { transition: opacity 160ms var(--ease-out), translate 200ms var(--ease-out); }
+  }
+
   /* ---------- the board ---------- */
   /* every tile keeps its gap on all four sides, the outer ones too, so the board is pulled out by one gap (the
      same max(2px, 2.8%) as shapeOf in board.js) and its visible edge sits on the layout line */
@@ -484,6 +513,9 @@
     @keyframes write-down { from { clip-path: inset(-40% 100% -300% -6%); } to { clip-path: inset(-40% -80px -300% -6%); } }
     .controls { justify-self: start; inline-size: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
     .controls .score { margin-inline-end: auto; padding-inline-start: 4px; }
+    /* the talks link takes its own line under the bar */
+    .controls { flex-wrap: wrap; }
+    .talks { flex: 0 0 100%; margin: 6px 0 0 -4px; }
     .name { padding-block-start: 12px; }
     .sub { gap: 26px; padding: 16px 0 0 4px; }
     /* the open pill and the two marks share one line from a 360px phone up: the current job says it shorter, the pills
@@ -595,6 +627,8 @@
     <button class="icon" id="theme" type="button" aria-label="Dark mode" aria-pressed="false">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/><path class="disc" d="M9 2.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg>
     </button>
+    <a class="talks" id="talks" href="talks.html"><span class="mini" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="hand">talks I code by</span>
+      <svg class="go" width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
   <div class="board-wrap">
     <p class="nudge" aria-hidden="true"><b>let’s play</b><svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>

@@ -14,7 +14,10 @@ Open http://localhost:4174. ES modules don't load over `file://`, so use the ser
 
 ## Layout
 
-- `index.html`, `app.js`, `board.js`, `audio.js`, `icons.js`, `404.html`, the icons, the share card and `robots.txt`/`sitemap.xml`: the site
+- `index.html` with `app.js`, `board.js`, `icons.js`: the home page and its memory board
+- `talks.html` with `talks.js`: the talks I code by, as a shelf of tapes
+- `chrome.js` (theme, sound, stored choices), `field.js` (the dotted ground), `audio.js`: shared by both pages
+- `404.html`, the icons, the share card and `robots.txt`/`sitemap.xml`: the rest of the site
 - `tools/serve.py`: the static server used locally and in production; it serves only the site files
 - `tools/og.html`: lays out the share card, `og.png`
 - `tools/paper.mjs`: exports a dealt board as editable Paper layers

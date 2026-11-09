@@ -10,3 +10,6 @@ captures/
 
 # local-only agent config
 .claude/settings.local.json
+
+# design skill working files (layout sketches, review captures)
+.impeccable/
