@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Talks · basteau</title>
-<meta name="description" content="The talks I code by: ten conference talks on simplicity, the event loop, reactivity, abstraction and data modelling, each linked to its original upload.">
+<meta name="description" content="My brain, on tape: the ten conference talks that shaped how I write code, on simplicity, the event loop, reactivity, abstraction and data modelling, each linked to its original upload.">
 <link rel="canonical" href="https://basteau.be/talks.html">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B0B0C" media="(prefers-color-scheme: dark)">
@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="basteau">
 <meta property="og:url" content="https://basteau.be/talks.html">
 <meta property="og:title" content="Talks · basteau">
-<meta property="og:description" content="The talks I code by: ten conference talks, each linked to its original upload.">
+<meta property="og:description" content="My brain, on tape: the ten conference talks that shaped how I write code.">
 <meta property="og:image" content="https://basteau.be/og.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -56,8 +56,9 @@
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --spring: cubic-bezier(.34, 1.56, .64, 1);
-    /* the shelf: a pulled-out tape's width, and the small and large corner of a tape's cut */
-    --open: clamp(300px, 31vw, 440px); --r: 14px; --R: 60px;
+    --snap: cubic-bezier(.2, 0, 0, 1);
+    /* the shelf: how much wider a pulled-out tape gets, and the small and large corner of a tape's cut */
+    --extra: clamp(260px, 27vw, 380px); --r: 14px; --R: 60px;
   }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"] { color-scheme: dark; }
@@ -80,20 +81,25 @@
   .theming::view-transition-old(root), .theming::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
   .theming::view-transition-new(root) { -webkit-mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0;
                                         mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0; }
+  /* arriving from the home page the real shelf grows out of the little one on the favourites pill; the little one's
+     snapshot is left out, because stretched to this size it is only a blur */
   @media (prefers-reduced-motion: no-preference) { .shelf { view-transition-name: shelf; } }
+  ::view-transition-group(shelf) { animation-duration: 420ms; animation-timing-function: var(--snap); }
+  ::view-transition-old(shelf) { display: none; }
 
   @keyframes fade { from { opacity: 0; } }
   #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
   #rough-defs { position: absolute; }
 
   /* ---------- the page: a bar, the title, and a shelf that takes the rest of the screen ---------- */
-  .page { position: relative; z-index: 1; display: flex; flex-direction: column; block-size: 100svh; min-block-size: 660px;
-          padding: calc(24px + env(safe-area-inset-top, 0px)) clamp(32px, 6.6vw, 96px) calc(40px + env(safe-area-inset-bottom, 0px)); }
+  .page { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; block-size: 100svh; min-block-size: 620px;
+          max-inline-size: 1760px; margin-inline: auto;
+          padding: calc(24px + env(safe-area-inset-top, 0px)) clamp(32px, 6.6vw, 96px) calc(clamp(24px, 4.4svh, 40px) + env(safe-area-inset-bottom, 0px)); }
   .bar { display: flex; align-items: center; justify-content: space-between; margin-inline: -8px -11px; }
   .home { display: inline-flex; align-items: center; gap: 10px; block-size: 44px; padding-inline: 8px; border-radius: 999px;
           font-size: 26px; line-height: 1; font-weight: 800; letter-spacing: -.05em; }
   .home i { font-style: normal; color: var(--cyan); }
-  .home:active { scale: .97; }
+  .home:active { scale: .96; }
   .tools { display: flex; align-items: center; gap: 2px; }
 
   /* the sound and theme switches, as on the home page */
@@ -115,34 +121,38 @@
   }
 
   /* ---------- the title, with a pencil note in the home page's hand pointing down at the shelf ---------- */
-  .head { display: flex; align-items: flex-end; gap: 36px; padding-block: 16px 36px; }
-  h1 { font-size: clamp(96px, 9.2vw, 132px); line-height: .85; font-weight: 800; letter-spacing: -.055em; }
+  .head { display: flex; align-items: flex-end; gap: 36px; padding-block: 16px clamp(20px, 4svh, 36px); }
+  h1 { font-size: clamp(88px, min(9.2vw, 16svh), 132px); line-height: .85; font-weight: 800; letter-spacing: -.055em; white-space: nowrap; }
+  h1 span { display: inline-block; animation: fade 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 55ms); }
   .note { display: flex; align-items: flex-end; gap: 12px; padding-block-end: 8px; rotate: -3deg; transform-origin: 0 100%;
           font: 500 22px/28px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
-          animation: fade 560ms var(--ease-out) 420ms both; }
+          animation: fade 560ms var(--ease-out) 520ms both; }
   .note svg { inline-size: 56px; block-size: 48px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;
               stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
-  .count { margin-inline-start: auto; padding-block-end: 12px; font: 500 12px/16px "Geist Mono", ui-monospace, monospace;
-           letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-  .count b { font-weight: 500; color: var(--ink); }
-  @media (prefers-reduced-motion: no-preference) { .note { animation-name: write; } }
+  @media (prefers-reduced-motion: no-preference) { h1 span { animation-name: letter; } .note { animation-name: write; } }
+  @keyframes letter { from { opacity: 0; translate: 0 .14em; filter: blur(4px); } }
   @keyframes write { from { clip-path: inset(-40% 100% -70% -6%); } to { clip-path: inset(-40% -6% -70% -6%); } }
 
   /* ---------- the shelf: ten tapes, each as wide as its talk is long, cut and printed like the board's tiles. One is
      always pulled out: its spine gives way to the sleeve (what the talk argues, who gave it, and the way out to the
      original). Pointing at a spine, tabbing to it or tapping it pulls that tape out and slides the last one back
-     (talks.js keeps data-open on one tape). The sleeve is laid out at the open width from the start, so only the
-     tape's width moves and the type never reflows on the way ---------- */
-  .shelf { flex: 1; min-block-size: 0; display: flex; gap: 6px; padding: 0; list-style: none; container-type: size; }
-  .tape { position: relative; flex: var(--min) 1 0px; overflow: clip; border-radius: var(--r); color: var(--on);
+     (talks.js keeps data-open on one tape).
+     A tape's width is its share of the shelf (--min of --total minutes) and a pulled one is --extra wider, so pulling
+     one out and sliding one back always add up: only those two change width, on one transition, and the rest just
+     ride along without a wobble. The sleeve is laid out at the open width from the start, so its type never reflows
+     on the way ---------- */
+  .shelf { flex: 1; min-block-size: 0; max-block-size: 820px; display: flex; gap: 6px; padding: 0; list-style: none; container-type: size; }
+  .tape { --base: calc((100cqw - (var(--tapes) - 1) * 6px - var(--extra)) * var(--min) / var(--total));
+          position: relative; flex: none; inline-size: var(--base); overflow: clip; border-radius: var(--r); color: var(--on);
           background-color: var(--c); background-size: 180px; background-blend-mode: soft-light;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          animation: fade 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 45ms + 160ms); }
-  .tape[data-open] { flex: 0 0 var(--open); border-radius: var(--r) calc(var(--R) * 1.6) var(--r) var(--r); }
-  .tape[data-c="magenta"] { --c: var(--magenta); --on: #420121; --on-fg: #FFFFFF; }
-  .tape[data-c="cyan"] { --c: var(--cyan); --on: #023458; --on-fg: #FFFFFF; }
-  .tape[data-c="orange"] { --c: var(--orange); --on: #674105; --on-fg: #FFFFFF; }
-  .tape[data-c="violet"] { --c: var(--violet); --on: #CFBCFF; --on-fg: #2A0596; }
+          animation: fade 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 40ms + 220ms); }
+  .tape[data-open] { inline-size: calc(var(--base) + var(--extra)); border-radius: var(--r) calc(var(--R) * 1.6) var(--r) var(--r); }
+  /* ink on the tapes: the site's black on magenta, cyan and orange, its white on violet (and the reverse on the way out) */
+  .tape[data-c="magenta"] { --c: var(--magenta); --on: var(--black); --on-fg: var(--white); }
+  .tape[data-c="cyan"] { --c: var(--cyan); --on: var(--black); --on-fg: var(--white); }
+  .tape[data-c="orange"] { --c: var(--orange); --on: var(--black); --on-fg: var(--white); }
+  .tape[data-c="violet"] { --c: var(--violet); --on: var(--white); --on-fg: var(--black); }
   /* the cuts, after the board's tiles: one big corner, a dome, a leaf, a pebble */
   .cut-a { border-start-start-radius: var(--R); }
   .cut-b { border-start-start-radius: var(--R); border-start-end-radius: var(--R); }
@@ -151,102 +161,93 @@
   .cut-e { border-start-end-radius: var(--R); border-end-start-radius: var(--R); }
   .cut-f { border-end-end-radius: var(--R); }
 
+  /* the whole tape is the link to its talk: the title on the spine is the link's text, and the link covers the tape
+     whether it is shelved or pulled out. The ring for keyboard focus is drawn on the tape */
   .tape h2 { display: contents; font: inherit; }
-  .spine { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-           padding-block: 22px 18px; transition: opacity 160ms var(--ease-out) 120ms, visibility 0s; }
-  .spine:focus-visible { outline-offset: -6px; }
-  /* the title runs up the spine, sized so the longest one still fits a short shelf */
+  .spine { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+           padding-block: 22px 18px; }
+  .spine::after { content: ""; position: absolute; inset: 0; }
+  .spine:focus-visible { outline: none; }
+  .tape:has(.spine:focus-visible) { outline: max(2px, .08em) solid var(--ink); outline-offset: 3px; }
+  .tape:has(.spine:active) { scale: .985; }
+  /* the title runs up the spine, sized so the longest one still fits a short shelf (set sideways where the browser
+     can, turned round where it can't) */
   .st { writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; font-weight: 800; letter-spacing: -.03em;
         font-size: min(26px, (100cqh - 76px) / 19.6); line-height: 28px; }
-  .mins { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; }
-  .tape[data-open] .spine { opacity: 0; visibility: hidden; transition: opacity 100ms linear, visibility 0s 100ms; }
+  @supports (writing-mode: sideways-lr) { .st { writing-mode: sideways-lr; rotate: none; } }
+  .mins { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .st, .mins { transition: opacity 200ms var(--ease-out) 160ms; }
+  .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 90ms linear; }
 
-  .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: var(--open); opacity: 0; visibility: hidden;
-            transition: opacity 100ms linear, visibility 0s 100ms; }
-  .tape[data-open] .sleeve { opacity: 1; visibility: visible; transition: opacity 240ms var(--ease-out) 140ms, visibility 0s; }
-  .in { block-size: 100%; display: flex; flex-direction: column; padding: min(34px, 6cqh) clamp(24px, var(--open) * .082, 36px) min(32px, 5.5cqh); }
-  .big { font-size: min(var(--open) * .132, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em; text-wrap: balance; }
-  .about { max-inline-size: 34ch; padding-block-start: min(20px, 3.2cqh); font-size: clamp(16px, 3.4cqh, 19px); line-height: 1.42; font-weight: 500; }
-  .meta { margin-block-start: auto; padding-block-start: 16px; font: 500 12px/19px "Geist Mono", ui-monospace, monospace;
-          letter-spacing: .08em; text-transform: uppercase; }
-  .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block-start: 18px; }
-  .watch { display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px; border-radius: 999px;
-           background: var(--on); color: var(--on-fg); font-size: 17px; font-weight: 600; white-space: nowrap; }
-  .watch svg { inline-size: 12px; block-size: 12px; flex: none; }
-  .watch:focus-visible { outline-color: var(--on); }
-  .watch:active { scale: .96; }
-  /* the reels: two windows through the tape onto the paper. They turn while the tape is out, and wind on fast while
-     the pointer is on the way to the talk (talks.js speeds them up) */
-  .reels { display: flex; gap: 12px; }
-  .reels svg { inline-size: 54px; block-size: 54px; flex: none; fill: var(--ground); color: light-dark(var(--on), var(--c)); }
-  @media (hover: hover) and (pointer: fine) {
-    .watch:hover svg { translate: 2px -2px; }
-    .tape:not([data-open]):hover .st { translate: 0 -4px; }
-  }
+  /* the sleeve leaves at once and arrives line by line behind the widening tape: transitions, so a pointer that
+     moves on mid-way just turns them round */
+  .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--base) + var(--extra)); visibility: hidden;
+            transition: visibility 0s 120ms; }
+  .tape[data-open] .sleeve { visibility: visible; transition: visibility 0s; }
+  .in { block-size: 100%; display: flex; flex-direction: column; padding: min(34px, 6cqh) clamp(24px, var(--extra) * .095, 36px) min(32px, 5.5cqh); }
+  .in > * { opacity: 0; transition: opacity 120ms linear; }
+  .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms); }
+  .in > .about { --step: 1; } .in > .foot { --step: 2; }
+  .big { font-size: min(var(--extra) * .145, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em; text-wrap: balance; }
+  .about { max-inline-size: 34ch; padding-block-start: min(24px, 3.8cqh); font-size: clamp(16px, 3.4cqh, 19px); line-height: 1.42; font-weight: 500; }
+  /* the sleeve's foot: who and where on one side, and where the tape leads on the other */
+  .foot { margin-block-start: auto; padding-block-start: 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+          font: 500 12px/19px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+          font-variant-numeric: tabular-nums; }
+  .where { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .where svg { inline-size: 11px; block-size: 11px; flex: none; }
+  @media (hover: hover) and (pointer: fine) { .tape[data-open]:hover .where svg { translate: 2px -2px; } }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* the tapes are shelved one after another, and a pulled one slides out on a soft ease */
-    .tape { animation-name: shelve; animation-duration: 640ms; animation-timing-function: var(--spring);
-            transition: flex-grow 460ms var(--ease-out), flex-basis 460ms var(--ease-out), border-radius 460ms var(--ease-out); }
-    .st { transition: translate 200ms var(--ease-out); }
-    .watch { transition: scale 120ms var(--ease-out); } .watch svg { transition: translate 160ms var(--ease-out); }
-    /* the sleeve's lines arrive a beat apart, behind the widening tape */
-    .tape[data-open] .in > * { animation: line 460ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 55ms + 150ms); }
-    .in > .about { --n: 1; } .in > .meta { --n: 2; } .in > .foot { --n: 3; }
-    .tape[data-open] .reels svg { animation: spin 5.2s linear infinite; }
-    .tape[data-open] .reels svg + svg { animation-duration: 3.9s; animation-delay: -1.3s; }
+    /* the tapes are shelved one after another, and a pulled one slides out on a quick start and a long soft landing */
+    .tape { animation-name: shelve; animation-duration: 620ms; animation-timing-function: var(--snap);
+            transition: inline-size 520ms var(--snap), border-radius 520ms var(--snap), scale 150ms ease-out; }
+    .in > * { translate: 0 10px; transition: opacity 120ms linear, translate 0s 120ms; }
+    .tape[data-open] .in > * { translate: none; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms),
+                                                             translate 520ms var(--snap) calc(var(--step, 0) * 60ms + 140ms); }
+    .where svg { transition: translate 160ms var(--ease-out); }
   }
-  @keyframes shelve { from { opacity: 0; translate: 0 56px; } }
-  @keyframes line { from { opacity: 0; translate: 0 10px; filter: blur(3px); } }
-  @keyframes spin { to { rotate: 360deg; } }
+  @keyframes shelve { from { opacity: 0; translate: 0 28px; } }
 
   /* ---------- phones, portrait tablets and phones on their side: the tapes lie flat in a stack, thicker for a longer
      talk, and the page scrolls. A row per state (spine, sleeve) on 1fr / 0fr tracks, so opening is one
      grid-template-rows transition and each tape grows to its own text ---------- */
-  @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px) {
-    :root { --r: 12px; --R: 30px; --open: 100%; }
+  @media (max-width: 899px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px) {
+    :root { --r: 12px; --R: 30px; }
     .page { block-size: auto; min-block-size: 100svh; padding: calc(12px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px)); }
     .home { font-size: 24px; gap: 8px; }
     .head { flex-wrap: wrap; gap: 0 16px; padding-block: 10px 22px; }
     h1 { font-size: 96px; }
     .note { order: 3; flex-basis: 100%; padding: 16px 0 0 4px; rotate: -2deg; font-size: 18px; line-height: 24px; }
     .note svg { display: none; }
-    .count { padding-block-end: 8px; }
-    .shelf { flex: none; flex-direction: column; gap: 5px; container-type: normal; }
-    .tape { flex: none; display: grid; grid-template-rows: 1fr 0fr; }
-    .tape[data-open] { flex: none; grid-template-rows: 0fr 1fr; border-radius: var(--r) calc(var(--R) * 2.1) var(--r) var(--r); }
+    .page { justify-content: flex-start; }
+    .shelf { flex: none; max-block-size: none; flex-direction: column; gap: 5px; container-type: normal; }
+    .tape { inline-size: auto; display: grid; grid-template-rows: 1fr 0fr; }
+    .tape[data-open] { inline-size: auto; grid-template-rows: 0fr 1fr; border-radius: var(--r) calc(var(--R) * 2.1) var(--r) var(--r); }
     .cut-d { border-radius: var(--R); }
     .spine { position: static; flex-direction: row; gap: 16px; min-block-size: 0; overflow: clip; padding: 0 18px 0 20px; }
+    .tape:has(.spine:focus-visible) { outline-offset: 2px; }
     .st { writing-mode: horizontal-tb; rotate: none; white-space: normal; display: flex; align-items: center;
           min-block-size: calc(18px + var(--min) * 1.2px); padding-block: 10px; font-size: 19px; line-height: 21px; }
     .sleeve { position: static; inline-size: auto; min-block-size: 0; overflow: clip; }
     .in { block-size: auto; padding: 24px 22px 22px; }
-    .big { font-size: 46px; max-inline-size: 7.5em; }
+    .big { font-size: min(46px, 11.8vw); max-inline-size: 7.5em; }
     .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
-    .meta { padding-block-start: 22px; }
-    .foot { padding-block-start: 16px; }
-    .watch { block-size: 50px; padding-inline: 24px 22px; font-size: 16px; }
-    .reels { gap: 8px; } .reels svg { inline-size: 44px; block-size: 44px; }
-    @media (hover: hover) and (pointer: fine) { .tape:not([data-open]):hover .st { translate: 4px 0; } }
+    .foot { padding-block-start: 22px; }
     @media (prefers-reduced-motion: no-preference) {
-      .tape { transition: grid-template-rows 420ms var(--ease-out), border-radius 420ms var(--ease-out); }
+      .tape { transition: grid-template-rows 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms ease-out; }
     }
-    @media (max-width: 359px) { .reels { display: none; } }
   }
   /* a little more side room on roomy stacks (portrait tablets) */
   @media (min-width: 600px) and (max-width: 1099px) and (orientation: portrait) { .page { padding-inline: 48px; } }
-  /* a narrow shelf pulls its tapes out less far, so the way out and the reels tighten up to share the sleeve's foot */
-  @media (min-width: 760px) and (max-width: 1239px) and (min-height: 500px) and (orientation: landscape) {
-    .watch { block-size: 48px; gap: 10px; padding-inline: 20px 18px; font-size: 16px; }
-    .reels { gap: 6px; } .reels svg { inline-size: 36px; block-size: 36px; }
-  }
-  @media (min-width: 760px) and (max-width: 919px) and (min-height: 500px) and (orientation: landscape) { .reels { display: none; } }
 </style>
 <!-- without scripts nothing can pull a tape out, so every tape lies open in a stack -->
 <noscript><style>
   .page { block-size: auto; } .shelf { flex: none; flex-direction: column; container-type: normal; }
-  .tape, .tape[data-open] { flex: none; display: block; } .spine, .tools { display: none; }
-  .sleeve { position: static; inline-size: auto; opacity: 1; visibility: visible; } .big { font-size: 46px; }
+  .tools { display: none; }
+  .tape, .tape[data-open] { inline-size: auto; display: block; } .spine { position: static; flex-direction: row; padding: 20px 22px 0; }
+  .st { writing-mode: horizontal-tb; rotate: none; white-space: normal; opacity: 1 !important; font-size: 32px; line-height: 1; } .mins, .big { display: none; }
+  .sleeve { position: static; inline-size: auto; visibility: visible; } .in { padding-block-start: 0; } .in > * { opacity: 1; translate: none; }
 </style></noscript>
 </head>
 <body>
@@ -257,9 +258,7 @@
     <feTurbulence type="fractalNoise" baseFrequency=".028" numOctaves="2" seed="7" result="wave"/>
     <feDisplacementMap in="SourceGraphic" in2="wave" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
-  <!-- a reel: its window, hub and three teeth -->
-  <symbol id="reel" viewBox="0 0 54 54"><circle cx="27" cy="27" r="27"/><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="27" cy="27" r="9"/><path d="M27 12v6M14 34.5l5.2-3M40 34.5l-5.2-3"/></g></symbol>
-  <symbol id="out" viewBox="0 0 10 10"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="out" viewBox="0 0 10 10"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
 
 <main class="page">
@@ -282,111 +281,91 @@
   </div>
 
   <header class="head">
-    <h1>talks</h1>
-    <p class="note">the talks I code by<svg viewBox="0 0 64 54" aria-hidden="true"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
-    <p class="count"><b>10</b> talks</p>
+    <h1 aria-label="talks"><span aria-hidden="true" style="--i:0">t</span><span aria-hidden="true" style="--i:1">a</span><span aria-hidden="true" style="--i:2">l</span><span aria-hidden="true" style="--i:3">k</span><span aria-hidden="true" style="--i:4">s</span></h1>
+    <p class="note">my brain, on tape<svg viewBox="0 0 64 54" aria-hidden="true"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
   </header>
 
-  <!-- --min is the running time in minutes (a tape's width, or its thickness in the stack); the ids are deep links -->
-  <ol class="shelf" id="shelf" aria-label="Talks">
+  <!-- --min is a talk's running time in minutes (its tape's width, or thickness in the stack), --tapes and --total the
+       number of tapes and the sum of their minutes; the ids are deep links -->
+  <ol class="shelf" id="shelf" aria-label="Talks" style="--tapes:10;--total:353">
     <li class="tape" id="simple-made-easy" data-c="magenta" data-open style="--min:61;--i:0">
-      <h2><button class="spine" type="button" aria-expanded="true" aria-controls="simple-made-easy-sleeve"><span class="st">Simple Made Easy</span><span class="mins" aria-hidden="true">61</span></button></h2>
-      <div class="sleeve" id="simple-made-easy-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=SxdOUGdseq4" target="_blank" rel="noopener" aria-describedby="simple-made-easy-about"><span class="st">Simple Made Easy</span><span class="mins" aria-hidden="true">61</span><span class="sr">, Rich Hickey, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Simple Made Easy</p>
-        <p class="about">Simple and easy are not the same thing, and reaching for easy is how software gets complex.</p>
-        <p class="meta">Rich Hickey<br>Strange Loop 2011 · 1:01:38</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=SxdOUGdseq4" target="_blank" rel="noopener" aria-label="Watch Simple Made Easy on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="simple-made-easy-about">Simple and easy are not the same thing, and reaching for easy is how software gets complex.</p>
+        <div class="foot"><p class="meta">Rich Hickey<br>Strange Loop 2011 · 1:01:38</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-a" id="event-loop" data-c="cyan" style="--min:27;--i:1">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="event-loop-sleeve"><span class="st">What the heck is the event loop anyway?</span><span class="mins" aria-hidden="true">26</span></button></h2>
-      <div class="sleeve" id="event-loop-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=8aGhZQkoFbQ" target="_blank" rel="noopener" aria-describedby="event-loop-about"><span class="st">What the heck is the event loop anyway?</span><span class="mins" aria-hidden="true">26</span><span class="sr">, Philip Roberts, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">What the heck is the event loop anyway?</p>
-        <p class="about">How the call stack, the task queue and the event loop let single-threaded JavaScript do several things at once.</p>
-        <p class="meta">Philip Roberts<br>JSConf EU 2014 · 26:52</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=8aGhZQkoFbQ" target="_blank" rel="noopener" aria-label="Watch What the heck is the event loop anyway? on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="event-loop-about">How the call stack, the task queue and the event loop let single-threaded JavaScript do several things at once.</p>
+        <div class="foot"><p class="meta">Philip Roberts<br>JSConf EU 2014 · 26:52</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape" id="in-the-loop" data-c="orange" style="--min:35;--i:2">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="in-the-loop-sleeve"><span class="st">In the Loop</span><span class="mins" aria-hidden="true">35</span></button></h2>
-      <div class="sleeve" id="in-the-loop-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=cCOL7MC4Pl0" target="_blank" rel="noopener" aria-describedby="in-the-loop-about"><span class="st">In the Loop</span><span class="mins" aria-hidden="true">35</span><span class="sr">, Jake Archibald, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">In the Loop</p>
-        <p class="about">What the browser does on every turn of the event loop: tasks, microtasks, rendering and requestAnimationFrame, in order.</p>
-        <p class="meta">Jake Archibald<br>JSConf.Asia 2018 · 35:12</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=cCOL7MC4Pl0" target="_blank" rel="noopener" aria-label="Watch In the Loop on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="in-the-loop-about">What the browser does on every turn of the event loop: tasks, microtasks, rendering and requestAnimationFrame, in order.</p>
+        <div class="foot"><p class="meta">Jake Archibald<br>JSConf.Asia 2018 · 35:12</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-b" id="rethinking-reactivity" data-c="violet" style="--min:37;--i:3">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="rethinking-reactivity-sleeve"><span class="st">Rethinking Reactivity</span><span class="mins" aria-hidden="true">36</span></button></h2>
-      <div class="sleeve" id="rethinking-reactivity-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=AdNJ3fydeao" target="_blank" rel="noopener" aria-describedby="rethinking-reactivity-about"><span class="st">Rethinking Reactivity</span><span class="mins" aria-hidden="true">36</span><span class="sr">, Rich Harris, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Rethinking Reactivity</p>
-        <p class="about">A framework can be a compiler: move reactivity out of the runtime and into the build step.</p>
-        <p class="meta">Rich Harris<br>You Gotta Love Frontend 2019 · 36:45</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=AdNJ3fydeao" target="_blank" rel="noopener" aria-label="Watch Rethinking Reactivity on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="rethinking-reactivity-about">A framework can be a compiler: move reactivity out of the runtime and into the build step.</p>
+        <div class="foot"><p class="meta">Rich Harris<br>You Gotta Love Frontend 2019 · 36:45</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-c" id="wet-codebase" data-c="cyan" style="--min:25;--i:4">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="wet-codebase-sleeve"><span class="st">The Wet Codebase</span><span class="mins" aria-hidden="true">25</span></button></h2>
-      <div class="sleeve" id="wet-codebase-sleeve"><div class="in">
+      <h2><a class="spine" href="https://vimeo.com/394022229" target="_blank" rel="noopener" aria-describedby="wet-codebase-about"><span class="st">The Wet Codebase</span><span class="mins" aria-hidden="true">25</span><span class="sr">, Dan Abramov, on Vimeo (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The Wet Codebase</p>
-        <p class="about">The wrong abstraction costs more than duplication, and taking one apart again should be a normal thing to do.</p>
-        <p class="meta">Dan Abramov<br>Deconstruct 2019 · 25:01</p>
-        <div class="foot"><a class="watch" href="https://vimeo.com/394022229" target="_blank" rel="noopener" aria-label="Watch The Wet Codebase on Vimeo (opens in a new tab)">Watch on Vimeo<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="wet-codebase-about">The wrong abstraction costs more than duplication, and taking one apart again should be a normal thing to do.</p>
+        <div class="foot"><p class="meta">Dan Abramov<br>Deconstruct 2019 · 25:01</p><p class="where" aria-hidden="true">Vimeo<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-d" id="beyond-components" data-c="orange" style="--min:31;--i:5">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="beyond-components-sleeve"><span class="st">The World Beyond Components</span><span class="mins" aria-hidden="true">30</span></button></h2>
-      <div class="sleeve" id="beyond-components-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=O6xtMrDEhcE" target="_blank" rel="noopener" aria-describedby="beyond-components-about"><span class="st">The World Beyond Components</span><span class="mins" aria-hidden="true">30</span><span class="sr">, Ryan Carniato, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The World Beyond Components</p>
-        <p class="about">Components organise code; they do not have to decide what re-renders. Fine-grained reactivity can do that part.</p>
-        <p class="meta">Ryan Carniato<br>React Finland 2022 · 30:40</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=O6xtMrDEhcE" target="_blank" rel="noopener" aria-label="Watch The World Beyond Components on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="beyond-components-about">Components organise code; they do not have to decide what re-renders. Fine-grained reactivity can do that part.</p>
+        <div class="foot"><p class="meta">Ryan Carniato<br>React Finland 2022 · 30:40</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-e" id="little-things" data-c="magenta" style="--min:39;--i:6">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="little-things-sleeve"><span class="st">All the Little Things</span><span class="mins" aria-hidden="true">38</span></button></h2>
-      <div class="sleeve" id="little-things-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=8bZh5LMaSmE" target="_blank" rel="noopener" aria-describedby="little-things-about"><span class="st">All the Little Things</span><span class="mins" aria-hidden="true">38</span><span class="sr">, Sandi Metz, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">All the Little Things</p>
-        <p class="about">A tangle of conditionals refactored into small objects, one safe step at a time.</p>
-        <p class="meta">Sandi Metz<br>RailsConf 2014 · 38:47</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=8bZh5LMaSmE" target="_blank" rel="noopener" aria-label="Watch All the Little Things on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="little-things-about">A tangle of conditionals refactored into small objects, one safe step at a time.</p>
+        <div class="foot"><p class="meta">Sandi Metz<br>RailsConf 2014 · 38:47</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape" id="future-of-programming" data-c="violet" style="--min:33;--i:7">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="future-of-programming-sleeve"><span class="st">The Future of Programming</span><span class="mins" aria-hidden="true">32</span></button></h2>
-      <div class="sleeve" id="future-of-programming-sleeve"><div class="in">
+      <h2><a class="spine" href="https://vimeo.com/71278954" target="_blank" rel="noopener" aria-describedby="future-of-programming-about"><span class="st">The Future of Programming</span><span class="mins" aria-hidden="true">32</span><span class="sr">, Bret Victor, on Vimeo (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The Future of Programming</p>
-        <p class="about">Given as if it were 1973: the bold ideas programming already had, and a warning against believing we know what programming is.</p>
-        <p class="meta">Bret Victor<br>DBX 2013 · 32:55</p>
-        <div class="foot"><a class="watch" href="https://vimeo.com/71278954" target="_blank" rel="noopener" aria-label="Watch The Future of Programming on Vimeo (opens in a new tab)">Watch on Vimeo<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="future-of-programming-about">Given as if it were 1973: the bold ideas programming already had, and a warning against believing we know what programming is.</p>
+        <div class="foot"><p class="meta">Bret Victor<br>DBX 2013 · 32:55</p><p class="where" aria-hidden="true">Vimeo<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-c" id="cruddy-by-design" data-c="cyan" style="--min:40;--i:8">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="cruddy-by-design-sleeve"><span class="st">Cruddy by Design</span><span class="mins" aria-hidden="true">40</span></button></h2>
-      <div class="sleeve" id="cruddy-by-design-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=MF0jFKvS4SI" target="_blank" rel="noopener" aria-describedby="cruddy-by-design-about"><span class="st">Cruddy by Design</span><span class="mins" aria-hidden="true">40</span><span class="sr">, Adam Wathan, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Cruddy by Design</p>
-        <p class="about">When a controller wants a custom action, there is usually a new resource waiting to be named. Keep to the seven standard ones.</p>
-        <p class="meta">Adam Wathan<br>Laracon US 2017 · 40:30</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=MF0jFKvS4SI" target="_blank" rel="noopener" aria-label="Watch Cruddy by Design on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="cruddy-by-design-about">When a controller wants a custom action, there is usually a new resource waiting to be named. Keep to the seven standard ones.</p>
+        <div class="foot"><p class="meta">Adam Wathan<br>Laracon US 2017 · 40:30</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-f" id="impossible-states" data-c="orange" style="--min:25;--i:9">
-      <h2><button class="spine" type="button" aria-expanded="false" aria-controls="impossible-states-sleeve"><span class="st">Making Impossible States Impossible</span><span class="mins" aria-hidden="true">25</span></button></h2>
-      <div class="sleeve" id="impossible-states-sleeve"><div class="in">
+      <h2><a class="spine" href="https://www.youtube.com/watch?v=IcgmSRJHu_8" target="_blank" rel="noopener" aria-describedby="impossible-states-about"><span class="st">Making Impossible States Impossible</span><span class="mins" aria-hidden="true">25</span><span class="sr">, Richard Feldman, on YouTube (opens in a new tab)</span></a></h2>
+      <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Making Impossible States Impossible</p>
-        <p class="about">Shape your data so that the states which should never happen cannot be represented at all.</p>
-        <p class="meta">Richard Feldman<br>elm-conf 2016 · 25:06</p>
-        <div class="foot"><a class="watch" href="https://www.youtube.com/watch?v=IcgmSRJHu_8" target="_blank" rel="noopener" aria-label="Watch Making Impossible States Impossible on YouTube (opens in a new tab)">Watch on YouTube<svg aria-hidden="true"><use href="#out"/></svg></a>
-          <span class="reels" aria-hidden="true"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></span></div>
+        <p class="about" id="impossible-states-about">Shape your data so that the states which should never happen cannot be represented at all.</p>
+        <div class="foot"><p class="meta">Richard Feldman<br>elm-conf 2016 · 25:06</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
       </div></div>
     </li>
   </ol>

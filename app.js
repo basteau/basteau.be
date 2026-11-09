@@ -1,6 +1,6 @@
 import { defineSound } from './audio.js';
 import { ICONS } from './icons.js';
-import { TECH, PALETTE, COLORS, deal, shapeOf, glyph, stretch, drift } from './board.js';
+import { PALETTE, deal, shapeOf, glyph, stretch, drift } from './board.js';
 import { root, vw, vh, reduce, blip, player, wireSound, wireTheme } from './chrome.js';
 import { createField } from './field.js';
 
@@ -46,7 +46,7 @@ const SFX = {
   // tapping the name: a soft water drop (a sine that bends up, a touch of reverb)
   bloop: defineSound({ layers: [{ source: { type: 'sine', frequency: { start: 240, end: 620 } }, envelope: { attack: .002, decay: .14, sustain: 0, release: .05 }, gain: .14 }],
                        effects: [{ type: 'reverb', decay: .4, damping: .5, mix: .12 }] }),
-  // the talks link: four tapes pulled out one after another
+  // favourites opening: its four tapes pulled out one after another
   shelf: defineSound({ layers: [659.25, 783.99, 587.33, 880].map((f, i) => blip(f, .03, .05, i * .045)) }),
   deal: defineSound({ layers: Array.from({ length: 6 }, (_, i) => blip(1700 + i * 140, .01, .035, i * .028)) }),
 };
@@ -424,7 +424,31 @@ wireSound($('#sound'));
 wireTheme($('#theme'), () => field.recolor());
 
 $('#shuffle').addEventListener('click', shuffle);
-$('#talks').addEventListener('pointerenter', e => e.pointerType === 'mouse' && play('shelf'));
+
+// favourites: the popover opens, closes and returns focus by itself (index.html). On top of that it sounds its little
+// shelf as it opens, the arrow keys walk its rows, and arrow down on the pill opens it at the first one
+const favBtn = $('#fav'), favs = $('#favs');
+const favLinks = () => [...favs.querySelectorAll('a')];
+favs.addEventListener('toggle', e => e.newState === 'open' && play('shelf'));
+// tabbing out of the menu closes it, so it never stays open behind the keyboard
+favs.addEventListener('focusout', e => {
+  if (e.relatedTarget && e.relatedTarget !== favBtn && !favs.contains(e.relatedTarget) && favs.matches(':popover-open')) favs.hidePopover();
+});
+// coming back with the browser's back button restores the page as it was left: without the menu still open
+addEventListener('pageshow', e => { if (e.persisted && favs.matches(':popover-open')) favs.hidePopover(); });
+favBtn.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  if (!favs.matches(':popover-open')) favs.showPopover({ source: favBtn });
+  favLinks().at(e.key === 'ArrowDown' ? 0 : -1).focus();
+});
+favs.addEventListener('keydown', e => {
+  const links = favLinks(), at = links.indexOf(document.activeElement);
+  const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: links.length - 1 }[e.key];
+  if (to === undefined) return;
+  e.preventDefault();
+  links[(to + links.length) % links.length].focus();
+});
 
 // work pills: one open at a time. Pointing at a pill or tabbing to it opens it; leaving the row settles back on the
 // current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so there the first
