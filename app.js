@@ -1,54 +1,49 @@
 import { defineSound } from './audio.js';
 import { ICONS } from './icons.js';
 import { PALETTE, deal, shapeOf, glyph, stretch, drift } from './board.js';
-import { root, vw, vh, reduce, blip, player, wireSound, wireTheme } from './chrome.js';
+import { root, vw, vh, reduce, strike, tick, player, wireSound, wireTheme } from './chrome.js';
 import { createField } from './field.js';
 
 const $ = s => document.querySelector(s);
 
 /* =====================================================================
-   sound: @web-kits/audio definitions, following the create-sound recipe
-   (click/tap <= 0.1s, toggles two notes 25ms apart, success as an arpeggio,
-   layer gains summing under ~0.6). Nothing plays until the visitor acts.
+   sound: @web-kits/audio definitions, voiced to stay clear of the piercing
+   2-5 kHz band: soft onsets, pure overtones, and the rarer the moment the
+   louder it may be. All of it leaves through chrome.js's room and limiter.
    ===================================================================== */
 // C-major pentatonic ladder: every match climbs one step, so a whole game plays a little melody
-const LADDER = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093, 2349.32];
+const LADDER = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
 const SFX = {
   // a tile sounds like it looks: its colour picks the note (pentatonic, so any run of flips stays consonant),
   // its shape picks the timbre (round = soft sine pop, square = woody, squircle = softer wood, pebble = rounded knock,
   // quarter/dome/leaf = small bells)
   flip: ([color, kind]) => {
-    const f = { magenta: 1046.5, cyan: 1318.51, orange: 1567.98, violet: 1760 }[color];
-    const env = { attack: 0, decay: .03, sustain: 0, release: .012 };
-    const timbre = {
-      circle: { source: { type: 'sine', frequency: { start: f * .75, end: f } }, envelope: env, gain: .12 },
-      ring: { source: { type: 'sine', frequency: { start: f * .75, end: f } }, envelope: env, gain: .11 },
-      square: { source: { type: 'triangle', frequency: f * .5 }, envelope: { ...env, decay: .024 }, filter: { type: 'lowpass', frequency: 2400 }, gain: .14 },
-      quarter: { source: { type: 'sine', frequency: f, fm: { ratio: 1.41, depth: 260 } }, envelope: { ...env, decay: .04 }, gain: .08 },
-      dome: { source: { type: 'sine', frequency: f, fm: { ratio: 2, depth: 180 } }, envelope: { ...env, decay: .04 }, gain: .08 },
-      leaf: { source: { type: 'sine', frequency: f, fm: { ratio: 3.5, depth: 140 } }, envelope: { ...env, decay: .045 }, gain: .07 },
-      squircle: { source: { type: 'triangle', frequency: f * .5 }, envelope: { ...env, decay: .03 }, filter: { type: 'lowpass', frequency: 1700 }, gain: .15 },
-      pebble: { source: { type: 'sine', frequency: { start: f * .9, end: f }, fm: { ratio: 1.5, depth: 90 } }, envelope: { ...env, decay: .035 }, gain: .1 },
+    const f = { magenta: 523.25, cyan: 659.25, orange: 783.99, violet: 880 }[color];
+    const pop = gain => [{ source: { type: 'sine', frequency: { start: f * .78, end: f } }, envelope: { attack: .003, decay: .055, sustain: 0, release: .02 }, gain }];
+    const voice = {
+      circle: pop(.095),
+      ring: pop(.095),
+      square: strike(f * .5, .07, .087, { overtones: [[3.93, .2, .35]] }),
+      squircle: strike(f * .5, .06, .094, { overtones: [[3.93, .1, .35]] }),
+      pebble: strike(f * .5, .05, .1, { overtones: [[2.02, .3, .5]] }),
+      quarter: strike(f, .09, .075, { overtones: [[2.76, .16, .5], [5.4, .04, .3]] }),
+      dome: strike(f, .09, .075, { overtones: [[2, .2, .5], [3, .06, .3]] }),
+      leaf: strike(f, .09, .075, { overtones: [[3.5, .14, .4]] }),
     }[kind];
-    return defineSound(timbre);
+    return defineSound({ layers: [tick(2000, .07), ...voice] });
   },
-  unflip: defineSound({ source: { type: 'sine', frequency: { start: 900, end: 640 } },
-                        envelope: { attack: 0, decay: .035, sustain: 0, release: .012 }, gain: .06 }),
-  miss: defineSound({ source: { type: 'triangle', frequency: { start: 330, end: 247 } },
-                      envelope: { attack: .002, decay: .09, sustain: 0, release: .03 }, filter: { type: 'lowpass', frequency: 1800 }, gain: .12 }),
-  match: i => defineSound({ layers: [
-      { source: { type: 'sine', frequency: { start: LADDER[i] * 1.012, end: LADDER[i] } }, envelope: { attack: .002, decay: .17, sustain: 0, release: .06 }, gain: .15 },
-      { source: { type: 'sine', frequency: LADDER[i] * 2 }, envelope: { attack: .002, decay: .07, sustain: 0, release: .03 }, delay: .028, gain: .05 },
-    ], effects: [{ type: 'reverb', decay: .35, damping: .5, mix: .1 }] }),
-  win: defineSound({ layers: [523.25, 659.25, 783.99, 1046.5, 1318.51].map((f, i) => (
-      { source: { type: 'sine', frequency: f }, envelope: { attack: .004, decay: .42, sustain: 0, release: .14 }, delay: i * .07, gain: .11 })),
-    effects: [{ type: 'reverb', decay: .6, damping: .4, mix: .14 }] }),
-  // tapping the name: a soft water drop (a sine that bends up, a touch of reverb)
-  bloop: defineSound({ layers: [{ source: { type: 'sine', frequency: { start: 240, end: 620 } }, envelope: { attack: .002, decay: .14, sustain: 0, release: .05 }, gain: .14 }],
-                       effects: [{ type: 'reverb', decay: .4, damping: .5, mix: .12 }] }),
+  unflip: defineSound({ source: { type: 'sine', frequency: { start: 520, end: 392 } },
+                        envelope: { attack: .003, decay: .06, sustain: 0, release: .02 }, gain: .04 }),
+  miss: defineSound({ source: { type: 'triangle', frequency: { start: 294, end: 220 } },
+                      envelope: { attack: .004, decay: .12, sustain: 0, release: .03 }, filter: { type: 'lowpass', frequency: 1200 }, gain: .085 }),
+  match: i => defineSound({ layers: strike(LADDER[i], .26, .075, { overtones: [[2, .16, .45], [3, .04, .3]] }) }),
+  win: defineSound({ layers: [392, 523.25, 659.25, 783.99, 1046.5].flatMap((f, i) => strike(f, .55, .05, { delay: i * .075, overtones: [[2, .12, .4]] })) }),
+  // tapping the name: a soft water drop (a sine that bends up)
+  bloop: defineSound({ source: { type: 'sine', frequency: { start: 220, end: 560 } }, envelope: { attack: .003, decay: .12, sustain: 0, release: .03 }, gain: .09 }),
   // favourites opening: its four tapes pulled out one after another
-  shelf: defineSound({ layers: [659.25, 783.99, 587.33, 880].map((f, i) => blip(f, .03, .05, i * .045)) }),
-  deal: defineSound({ layers: Array.from({ length: 6 }, (_, i) => blip(1700 + i * 140, .01, .035, i * .028)) }),
+  shelf: defineSound({ layers: [523.25, 659.25, 440, 783.99].flatMap((f, i) => strike(f, .08, .04, { delay: i * .05, overtones: [[3.93, .12, .3]] })) }),
+  // a reshuffle: six cards dealt, a little brighter each
+  deal: defineSound({ layers: Array.from({ length: 6 }, (_, i) => tick(900 + i * 110, .3, i * .028)) }),
 };
 const play = player(SFX);
 
@@ -303,7 +298,7 @@ function onCard(c, keyboard) {
   markPlayed();
   if (open.length === 2) settleMiss(true);              // a third card is interruptible: the miss turns back at once
   setState(c, 'up', keyboard); open.push(c);
-  play('flip', [c.color, c.kind], { jitter: { detune: 12 } });
+  play('flip', [c.color, c.kind], { jitter: { detune: 12, volume: .1 } });
   if (open.length === 2) {
     moves++;
     const [a, b] = open;

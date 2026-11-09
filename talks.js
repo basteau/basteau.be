@@ -1,5 +1,5 @@
 import { defineSound } from './audio.js';
-import { reduce, player, wireSound, wireTheme } from './chrome.js';
+import { reduce, strike, tick, player, wireSound, wireTheme } from './chrome.js';
 
 /* the talks page: a shelf of tapes (talks.html), one pulled out at a time. Every tape is a link to its talk */
 const $ = s => document.querySelector(s);
@@ -12,16 +12,14 @@ wireSound($('#sound'));
 wireTheme($('#theme'));
 
 /* the shelf plays like a xylophone: every tape is a bar, the longer the talk the lower its note (a C-major
-   pentatonic, so any run across the spines stays consonant). A woody triangle with a short click on top */
-const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
+   pentatonic, so any run across the spines stays consonant). A soft bar with a short wooden knock on top, quiet because
+   a mouse plays it just by passing */
+const SCALE = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
 const mins = t => +t.style.getPropertyValue('--min');
 const byLength = [...tapes].sort((a, b) => mins(b) - mins(a));
 const bars = new Map();
 const play = player({
-  bar: f => bars.get(f) ?? bars.set(f, defineSound({ layers: [
-      { source: { type: 'triangle', frequency: f }, envelope: { attack: 0, decay: .17, sustain: 0, release: .05 }, filter: { type: 'lowpass', frequency: 2600 }, gain: .16 },
-      { source: { type: 'sine', frequency: f * 4 }, envelope: { attack: 0, decay: .024, sustain: 0, release: .01 }, gain: .04 },
-    ], effects: [{ type: 'reverb', decay: .3, damping: .5, mix: .08 }] })).get(f),
+  bar: f => bars.get(f) ?? bars.set(f, defineSound({ layers: [tick(2400, .04), ...strike(f, .22, .05, { overtones: [[4, .14, .16]] })] })).get(f),
 });
 
 /* pulling a tape out slides the last one back and sounds its note. In the stack the tape above may have just folded, so the pulled one is
@@ -31,7 +29,7 @@ function pull(tape, { quiet = false } = {}) {
   if (tape.hasAttribute('data-open')) return;
   for (const t of tapes) t.toggleAttribute('data-open', t === tape);
   if (quiet) return;
-  play('bar', SCALE[byLength.indexOf(tape)], { jitter: { detune: 8 } });
+  play('bar', SCALE[byLength.indexOf(tape)], { jitter: { detune: 8, volume: .1 } });
   if (stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 480);
 }
 
