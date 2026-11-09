@@ -408,7 +408,7 @@
      whichever side has the room, so it opens downwards on a desktop and upwards from the foot of a phone; browsers
      without anchor positioning open it centred. The pill sits beside the contact drops where the column has the room
      (narrower columns and phones give it a line of its own under them, so it is in view without scrolling) ---------- */
-  .fav { grid-area: talks; justify-self: start; position: relative; z-index: 1; margin: 20px 0 0 8px; }
+  .fav { grid-area: talks; justify-self: start; position: relative; z-index: 1; margin-block-start: 20px; margin-inline-start: 8px; }
   .fav-btn { position: relative; display: inline-flex; align-items: center; gap: 10px; block-size: 42px; padding-inline: 14px 12px;
              border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); font-size: 15px; line-height: 20px; font-weight: 500;
              white-space: nowrap; anchor-name: --fav; transition: border-color 160ms ease; }
@@ -417,10 +417,11 @@
   .fav-btn:active { scale: .96; }
   .fav-btn .mini { display: flex; align-items: flex-end; gap: 2px; }
   .fav-btn .mini i { inline-size: var(--w); block-size: 20px; border-radius: 2px; background: var(--c); }
-  .fav-btn .mini i:nth-child(1) { --w: 6px; --c: var(--magenta); --lift: -3px; border-start-start-radius: 4px; }
-  .fav-btn .mini i:nth-child(2) { --w: 8px; --c: var(--cyan); --lift: -7px; }
-  .fav-btn .mini i:nth-child(3) { --w: 5px; --c: var(--orange); --lift: -2px; border-start-start-radius: 3px; border-start-end-radius: 3px; }
-  .fav-btn .mini i:nth-child(4) { --w: 8px; --c: var(--violet); --lift: -5px; border-start-end-radius: 5px; }
+  /* --lift spreads evenly up and down, so the little shelf stays centred in the pill when its tapes stand out */
+  .fav-btn .mini i:nth-child(1) { --k: 1; --w: 6px; --c: var(--magenta); --lift: 2px; border-start-start-radius: 4px; }
+  .fav-btn .mini i:nth-child(2) { --k: 2; --w: 8px; --c: var(--cyan); --lift: -3px; }
+  .fav-btn .mini i:nth-child(3) { --k: 3; --w: 5px; --c: var(--orange); --lift: 3px; border-start-start-radius: 3px; border-start-end-radius: 3px; }
+  .fav-btn .mini i:nth-child(4) { --k: 4; --w: 8px; --c: var(--violet); --lift: 0px; border-start-end-radius: 5px; }
   .fav-btn .chev { flex: none; color: var(--muted); }
   /* open: the tapes stand pulled out and the chevron turns over */
   .fav-btn:has(+ .favs:popover-open) { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
@@ -432,7 +433,7 @@
   }
   /* beside the drops, level with Say hello (the row of drops ends 280px into the column) */
   @media (min-width: 1180px) and (min-height: 500px) and (orientation: landscape) {
-    .fav { grid-area: sub; align-self: end; margin: 0 0 6px 316px; }
+    .fav { grid-area: sub; align-self: end; margin-block: 0 6px; margin-inline-start: 316px; }
   }
 
   .favs { inline-size: min(240px, 100vw - 48px); max-block-size: calc(100svh - 24px); overflow-y: auto; overscroll-behavior: contain;
@@ -464,9 +465,7 @@
   @media (prefers-reduced-motion: no-preference) {
     .fav-btn { transition: border-color 160ms ease, scale 150ms ease-out; }
     .fav-btn .mini { view-transition-name: shelf; }
-    .fav-btn .mini i { transition: translate 320ms var(--spring) calc((var(--k) - 1) * 40ms); }
-    .fav-btn .mini i:nth-child(1) { --k: 1; } .fav-btn .mini i:nth-child(2) { --k: 2; } .fav-btn .mini i:nth-child(3) { --k: 3; }
-    .fav-btn .mini i:nth-child(4) { --k: 4; }
+    .fav-btn .mini i { transition: translate 300ms var(--spring) calc((var(--k) - 1) * 40ms); }
     /* now and then a tape nods out of the little shelf, to catch the eye */
     .fav-btn:not(:hover, :focus-visible, :active, :has(+ .favs:popover-open)) .mini i:nth-child(2) { animation: nod 7s var(--ease-in-out) 3.2s infinite; }
     .fav-btn .chev { transition: rotate 200ms var(--ease-out); }
@@ -564,7 +563,7 @@
     @keyframes write-down { from { clip-path: inset(-40% 100% -300% -6%); } to { clip-path: inset(-40% -80px -300% -6%); } }
     .controls { justify-self: start; inline-size: min(100% + 10px, calc(var(--cols) * var(--cell) + 4px)); margin: 6px -10px 0 0; }
     .controls .score { margin-inline-end: auto; padding-inline-start: 4px; }
-    .fav { margin: 14px 0 0 4px; }
+    .fav { margin-block: 14px 0; margin-inline-start: 4px; }
     .name { padding-block-start: 12px; }
     .sub { gap: 26px; padding: 16px 0 0 4px; }
     /* the open pill and the two marks share one line from a 360px phone up: the current job says it shorter, the pills

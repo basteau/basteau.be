@@ -1,7 +1,5 @@
 import { defineSound } from './audio.js';
-import { PALETTE } from './board.js';
 import { reduce, player, wireSound, wireTheme } from './chrome.js';
-import { createField } from './field.js';
 
 /* the talks page: a shelf of tapes (talks.html), one pulled out at a time. Every tape is a link to its talk */
 const $ = s => document.querySelector(s);
@@ -10,9 +8,8 @@ const link = t => t.querySelector('.spine');
 // the tapes lie in a stack on phones (same query as the CSS)
 const stacked = matchMedia('(max-width: 899px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px)');
 
-const field = createField($('#field'));
 wireSound($('#sound'));
-wireTheme($('#theme'), () => field.recolor());
+wireTheme($('#theme'));
 
 /* the shelf plays like a xylophone: every tape is a bar, the longer the talk the lower its note (a C-major
    pentatonic, so any run across the spines stays consonant). A woody triangle with a short click on top */
@@ -27,21 +24,14 @@ const play = player({
     ], effects: [{ type: 'reverb', decay: .3, damping: .5, mix: .08 }] })).get(f),
 });
 
-/* pulling a tape out slides the last one back. It sounds its note and sends a ring through the dotted ground in its
-   colour (not on every spine of a fast sweep). In the stack the tape above may have just folded, so the pulled one is
+/* pulling a tape out slides the last one back and sounds its note. In the stack the tape above may have just folded, so the pulled one is
    scrolled back into view once it has settled */
-let lastRing = 0, lastInput = 0;
+let lastInput = 0;
 function pull(tape, { quiet = false } = {}) {
   if (tape.hasAttribute('data-open')) return;
   for (const t of tapes) t.toggleAttribute('data-open', t === tape);
   if (quiet) return;
   play('bar', SCALE[byLength.indexOf(tape)], { jitter: { detune: 8 } });
-  const now = performance.now();
-  if (now - lastRing > 320) {
-    lastRing = now;
-    const r = tape.getBoundingClientRect();
-    field.ripple(r.left + r.width / 2, r.top + r.height / 2, PALETTE[tape.dataset.c].hex, .8);
-  }
   if (stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 480);
 }
 
@@ -95,6 +85,3 @@ function hop() {
     { duration: 720, easing: 'cubic-bezier(.45, 0, .55, 1)' });
 }
 setTimeout(hop, 4200);
-
-let rz = 0;
-addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => field.resize(), 80); });

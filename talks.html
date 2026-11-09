@@ -29,7 +29,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;800&family=Geist+Mono:wght@500&family=Shantell+Sans:wght@500&display=swap" rel="stylesheet">
 <link rel="modulepreload" href="talks.js">
 <link rel="modulepreload" href="chrome.js">
-<link rel="modulepreload" href="field.js">
 <script>
   // same rule as the home page: the system preference, unless the visitor picked the other one
   (() => {
@@ -53,12 +52,13 @@
     --ink: light-dark(var(--black), var(--white));
     --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
     --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
+    --dot: light-dark(oklch(15% .0021 286.1 / .16), oklch(100% 0 none / .16));
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --spring: cubic-bezier(.34, 1.56, .64, 1);
     --snap: cubic-bezier(.2, 0, 0, 1);
-    /* the shelf: how much wider a pulled-out tape gets, and the small and large corner of a tape's cut */
-    --extra: clamp(260px, 27vw, 380px); --r: 14px; --R: 60px;
+    /* the shelf: how much wider a pulled-out tape gets, the small and large corner of a tape's cut, and a pulled tape's big corner */
+    --extra: clamp(260px, 27vw, 380px); --r: 14px; --R: 60px; --corner: calc(var(--R) * 1.6);
   }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"] { color-scheme: dark; }
@@ -66,7 +66,8 @@
   /* ---------- reset ---------- */
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
   :root { text-wrap: pretty; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-size-adjust: 100%; }
-  body { min-block-size: 100svh; background: var(--ground); color: var(--ink); font-family: Geist, system-ui, sans-serif;
+  /* the home page's dotted paper, at rest: here the tapes are the only thing that moves */
+  body { min-block-size: 100svh; background: var(--ground) radial-gradient(circle at center, var(--dot) 0, var(--dot) 1px, transparent 1.5px) 0 0 / 24px 24px; color: var(--ink); font-family: Geist, system-ui, sans-serif;
          font-synthesis: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: start; }
   a { color: inherit; text-decoration: none; }
@@ -88,7 +89,6 @@
   ::view-transition-old(shelf) { display: none; }
 
   @keyframes fade { from { opacity: 0; } }
-  #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
   #rough-defs { position: absolute; }
 
   /* ---------- the page: a bar, the title, and a shelf that takes the rest of the screen ---------- */
@@ -147,7 +147,7 @@
           background-color: var(--c); background-size: 180px; background-blend-mode: soft-light;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
           animation: fade 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 40ms + 220ms); }
-  .tape[data-open] { inline-size: calc(var(--base) + var(--extra)); border-radius: var(--r) calc(var(--R) * 1.6) var(--r) var(--r); }
+  .tape[data-open] { inline-size: calc(var(--base) + var(--extra)); border-radius: var(--r); border-start-end-radius: var(--corner); }
   /* ink on the tapes: the site's black on magenta, cyan and orange, its white on violet (and the reverse on the way out) */
   .tape[data-c="magenta"] { --c: var(--magenta); --on: var(--black); --on-fg: var(--white); }
   .tape[data-c="cyan"] { --c: var(--cyan); --on: var(--black); --on-fg: var(--white); }
@@ -184,11 +184,12 @@
   .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--base) + var(--extra)); visibility: hidden;
             transition: visibility 0s 120ms; }
   .tape[data-open] .sleeve { visibility: visible; transition: visibility 0s; }
-  .in { block-size: 100%; display: flex; flex-direction: column; padding: min(34px, 6cqh) clamp(24px, var(--extra) * .095, 36px) min(32px, 5.5cqh); }
+  .in { block-size: 100%; display: flex; flex-direction: column; padding-block: min(34px, 6cqh) min(32px, 5.5cqh); padding-inline: clamp(24px, var(--extra) * .095, 36px); }
   .in > * { opacity: 0; transition: opacity 120ms linear; }
   .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms); }
   .in > .about { --step: 1; } .in > .foot { --step: 2; }
-  .big { font-size: min(var(--extra) * .145, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em; text-wrap: balance; }
+  /* room on the right for the pulled tape's big corner, which the title's first lines would otherwise run into */
+  .big { padding-inline-end: calc(var(--corner) * .56); font-size: min(var(--extra) * .145, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em; text-wrap: balance; }
   .about { max-inline-size: 34ch; padding-block-start: min(24px, 3.8cqh); font-size: clamp(16px, 3.4cqh, 19px); line-height: 1.42; font-weight: 500; }
   /* the sleeve's foot: who and where on one side, and where the tape leads on the other */
   .foot { margin-block-start: auto; padding-block-start: 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
@@ -213,7 +214,7 @@
      talk, and the page scrolls. A row per state (spine, sleeve) on 1fr / 0fr tracks, so opening is one
      grid-template-rows transition and each tape grows to its own text ---------- */
   @media (max-width: 899px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px) {
-    :root { --r: 12px; --R: 30px; }
+    :root { --r: 12px; --R: 30px; --corner: calc(var(--R) * 2.1); }
     .page { block-size: auto; min-block-size: 100svh; padding: calc(12px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px)); }
     .home { font-size: 24px; gap: 8px; }
     .head { flex-wrap: wrap; gap: 0 16px; padding-block: 10px 22px; }
@@ -223,14 +224,14 @@
     .page { justify-content: flex-start; }
     .shelf { flex: none; max-block-size: none; flex-direction: column; gap: 5px; container-type: normal; }
     .tape { inline-size: auto; display: grid; grid-template-rows: 1fr 0fr; }
-    .tape[data-open] { inline-size: auto; grid-template-rows: 0fr 1fr; border-radius: var(--r) calc(var(--R) * 2.1) var(--r) var(--r); }
+    .tape[data-open] { inline-size: auto; grid-template-rows: 0fr 1fr; }
     .cut-d { border-radius: var(--R); }
-    .spine { position: static; flex-direction: row; gap: 16px; min-block-size: 0; overflow: clip; padding: 0 18px 0 20px; }
+    .spine { position: static; flex-direction: row; gap: 16px; min-block-size: 0; overflow: clip; padding-block: 0; padding-inline: 20px 18px; }
     .tape:has(.spine:focus-visible) { outline-offset: 2px; }
     .st { writing-mode: horizontal-tb; rotate: none; white-space: normal; display: flex; align-items: center;
           min-block-size: calc(18px + var(--min) * 1.2px); padding-block: 10px; font-size: 19px; line-height: 21px; }
     .sleeve { position: static; inline-size: auto; min-block-size: 0; overflow: clip; }
-    .in { block-size: auto; padding: 24px 22px 22px; }
+    .in { block-size: auto; padding-block: 24px 22px; padding-inline: 22px; }
     .big { font-size: min(46px, 11.8vw); max-inline-size: 7.5em; }
     .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
     .foot { padding-block-start: 22px; }
@@ -245,13 +246,12 @@
 <noscript><style>
   .page { block-size: auto; } .shelf { flex: none; flex-direction: column; container-type: normal; }
   .tools { display: none; }
-  .tape, .tape[data-open] { inline-size: auto; display: block; } .spine { position: static; flex-direction: row; padding: 20px 22px 0; }
+  .tape, .tape[data-open] { inline-size: auto; display: block; } .spine { position: static; flex-direction: row; padding-block: 20px 0; padding-inline: 22px; }
   .st { writing-mode: horizontal-tb; rotate: none; white-space: normal; opacity: 1 !important; font-size: 32px; line-height: 1; } .mins, .big { display: none; }
   .sleeve { position: static; inline-size: auto; visibility: visible; } .in { padding-block-start: 0; } .in > * { opacity: 1; translate: none; }
 </style></noscript>
 </head>
 <body>
-<canvas id="field" aria-hidden="true"></canvas>
 <svg id="rough-defs" width="0" height="0" aria-hidden="true"><defs>
   <!-- the home page's pen wobble, for the note's arrow -->
   <filter id="rough" x="-10%" y="-30%" width="120%" height="160%">
