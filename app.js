@@ -431,6 +431,15 @@ favs.addEventListener('focusout', e => {
 });
 // coming back with the browser's back button restores the page as it was left: without the menu still open
 addEventListener('pageshow', e => { if (e.persisted && favs.matches(':popover-open')) favs.hidePopover(); });
+// now and then a tape nods out of the little shelf, to catch the eye: the board's quiet rules, and a transition (index.html)
+// rather than a keyframe loop, so a pointer arriving mid-nod just takes it over
+function nod() {
+  setTimeout(nod, 7000);
+  if (reduce.matches || document.hidden || performance.now() - lastInput < 2500 || favBtn.matches(':hover, :focus-visible') || favs.matches(':popover-open')) return;
+  favBtn.dataset.nod = '';
+  setTimeout(() => delete favBtn.dataset.nod, 260);
+}
+setTimeout(nod, 9500);
 favBtn.addEventListener('keydown', e => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   e.preventDefault();

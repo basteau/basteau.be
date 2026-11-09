@@ -414,22 +414,21 @@
              white-space: nowrap; anchor-name: --fav; transition: border-color 160ms ease; }
   /* a 44px target round the 42px pill */
   .fav-btn::after { content: ""; position: absolute; inset: -1px; }
-  .fav-btn:active { scale: .96; }
+  .fav-btn:active { scale: .97; }
   .fav-btn .mini { display: flex; align-items: flex-end; gap: 2px; }
-  .fav-btn .mini i { inline-size: var(--w); block-size: 20px; border-radius: 2px; background: var(--c); }
+  .fav-btn .mini i { inline-size: var(--w); block-size: 20px; border-radius: 2px; background: var(--c); translate: 0 calc(var(--lift) * var(--out, 0)); }
   /* --lift spreads evenly up and down, so the little shelf stays centred in the pill when its tapes stand out */
   .fav-btn .mini i:nth-child(1) { --k: 1; --w: 6px; --c: var(--magenta); --lift: 2px; border-start-start-radius: 4px; }
   .fav-btn .mini i:nth-child(2) { --k: 2; --w: 8px; --c: var(--cyan); --lift: -3px; }
   .fav-btn .mini i:nth-child(3) { --k: 3; --w: 5px; --c: var(--orange); --lift: 3px; border-start-start-radius: 3px; border-start-end-radius: 3px; }
-  .fav-btn .mini i:nth-child(4) { --k: 4; --w: 8px; --c: var(--violet); --lift: 0px; border-start-end-radius: 5px; }
+  .fav-btn .mini i:nth-child(4) { --k: 4; --w: 8px; --c: var(--violet); --lift: -1px; border-start-end-radius: 5px; }
   .fav-btn .chev { flex: none; color: var(--muted); }
   /* open: the tapes stand pulled out and the chevron turns over */
-  .fav-btn:has(+ .favs:popover-open) { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
-  .fav-btn:has(+ .favs:popover-open) .mini i { translate: 0 var(--lift); }
+  .fav-btn:has(+ .favs:popover-open) { --out: 1; border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
   .fav-btn:has(+ .favs:popover-open) .chev { rotate: 180deg; }
+  .fav-btn[data-nod] .mini i:nth-child(2) { --out: 1; }
   @media (hover: hover) and (pointer: fine) {
-    .fav-btn:hover { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
-    .fav-btn:hover .mini i { translate: 0 var(--lift); }
+    .fav-btn:hover { --out: 1; border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
   }
   /* beside the drops, level with Say hello (the row of drops ends 280px into the column) */
   @media (min-width: 1180px) and (min-height: 500px) and (orientation: landscape) {
@@ -439,9 +438,9 @@
   .favs { inline-size: min(240px, 100vw - 48px); max-block-size: calc(100svh - 24px); overflow-y: auto; overscroll-behavior: contain;
           padding: 6px; border: 1px solid var(--rule); border-radius: 18px; background: var(--ground); color: var(--ink);
           box-shadow: 0 1px 2px oklch(0% 0 none / .06), 0 8px 24px oklch(0% 0 none / .1), 0 24px 56px oklch(0% 0 none / .12);
-          position-anchor: --fav; opacity: 0;
-          transition: opacity 200ms var(--ease-out), translate 200ms var(--ease-out), display 200ms allow-discrete, overlay 200ms allow-discrete; }
-  .favs:popover-open { opacity: 1; }
+          position-anchor: --fav; opacity: 0; --t: 130ms;
+          transition: opacity var(--t) var(--ease-out), scale var(--t) var(--ease-out), display var(--t) allow-discrete, overlay var(--t) allow-discrete; }
+  .favs:popover-open { --t: 200ms; opacity: 1; }
   @starting-style { .favs:popover-open { opacity: 0; } }
   @supports (position-area: block-end) {
     .favs { margin: 8px 0; position-area: block-end span-inline-end;
@@ -463,18 +462,18 @@
     .favs a:hover svg { translate: 2px 0; color: var(--ink); }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .fav-btn { transition: border-color 160ms ease, scale 150ms ease-out; }
+    .fav-btn { transition: border-color 160ms ease, scale 120ms var(--ease-out); }
     .fav-btn .mini { view-transition-name: shelf; }
-    .fav-btn .mini i { transition: translate 300ms var(--spring) calc((var(--k) - 1) * 40ms); }
-    /* now and then a tape nods out of the little shelf, to catch the eye */
-    .fav-btn:not(:hover, :focus-visible, :active, :has(+ .favs:popover-open)) .mini i:nth-child(2) { animation: nod 7s var(--ease-in-out) 3.2s infinite; }
+    /* the tapes step out one after another and all go back at once, quicker. A plain ease-out: a spring only wobbles over 3px */
+    .fav-btn .mini i { transition: translate calc(150ms + var(--out, 0) * 50ms) var(--ease-out) calc(var(--out, 0) * (var(--k) - 1) * 30ms); }
     .fav-btn .chev { transition: rotate 200ms var(--ease-out); }
-    .favs { translate: 0 8px; }
-    .favs:popover-open { translate: 0 0; }
-    @starting-style { .favs:popover-open { translate: 0 8px; } }
-    .favs a svg { transition: translate 160ms var(--ease-out); }
+    /* the panel grows out of the pill's side instead of sliding, so it reads right whichever way it flips */
+    .favs { scale: .97; transform-origin: 0 50%; }
+    .favs:popover-open { scale: 1; }
+    @starting-style { .favs:popover-open { scale: .97; } }
+    .favs a { transition: background-color 120ms ease; }
+    .favs a svg { transition: translate 160ms var(--ease-out), color 160ms ease; }
   }
-  @keyframes nod { 0%, 84%, 100% { translate: 0 0; } 90% { translate: 0 -7px; } 96% { translate: 0 1px; } }
 
   /* ---------- the board ---------- */
   /* every tile keeps its gap on all four sides, the outer ones too, so the board is pulled out by one gap (the
