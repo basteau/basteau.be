@@ -402,42 +402,36 @@
   }
   @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
 
-  /* ---------- my favourite things: a little shelf of the collections I keep, each a small object of its medium
-     standing on a pencil line with its name beside it, like the talks page's shelf seen from across the
-     room. Today it holds the talks: four tapes, each with its label strip, the last one leaning on its neighbour.
-     Films and series (a VHS) and books (a few spines) join as more objects further along the same line, each a link to
-     its own page. They are printed like the tiles, in the logo colours with the grain. At rest nothing moves; under
-     the pointer or keyboard focus one tape is pulled up out of the row, the way the talks page pulls one out, and the
-     leaning one rights itself. On the way over the tapes grow into the talks page's shelf (a view transition,
+  /* ---------- my favourite things: a little shelf of the collections I keep, told by objects alone. Today it holds
+     the talks, four tapes on a pencil line, each with its label strip, the last one leaning on its neighbour; films
+     and series (a VHS) and books (a few spines) will stand further along the same line, each a link to its own page
+     (named for screen readers). They are printed like the tiles, in the logo colours with the grain. Now and then a
+     tape peeks up out of the row, asking to be pulled; under the pointer or keyboard focus it is pulled out and the
+     leaning one rights itself, and on the way over the tapes grow into the talks page's shelf (a view transition,
      talks.html) ---------- */
-  .shelf { display: grid; justify-items: start; }
-  .shelf-note { margin-inline-start: 2px; font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
-                rotate: -3deg; transform-origin: 0 100%; }
-  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 28px; padding-inline: 10px 22px; list-style: none; }
+  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 24px; padding-inline: 8px 16px; list-style: none; }
   /* the shelf: a pencil line under the objects, run through the stack scale's wobble */
   .shelf ul::before { content: ""; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: 2.5px; border-radius: 2px;
                       background: var(--ink); rotate: -.5deg; filter: url(#rough); }
   /* (the room above the tapes is what the pulled one rises into, inside the focus ring) */
-  .shelf a { display: flex; align-items: flex-end; gap: 10px; padding-block-start: 14px; }
-  .shelf a:focus-visible { outline-offset: 5px; border-radius: 6px; }
+  .shelf a { display: block; padding-block-start: 16px; }
+  .shelf a:focus-visible { outline-offset: 4px; border-radius: 6px; }
   .shelf .obj { display: flex; align-items: flex-end; gap: 2px; }
   .shelf .obj i { position: relative; inline-size: var(--w); block-size: var(--h); border-radius: 2px;
                   background: var(--c) var(--grain) 0 0 / 180px; background-blend-mode: soft-light; transform-origin: 0 100%; }
   /* each tape's label strip, a little way down its spine */
   .shelf .obj i::after { content: ""; position: absolute; inset-inline: 2px; inset-block-start: 24%; block-size: 3px; border-radius: 1px;
                          background: oklch(100% 0 none / .6); }
-  .tapes i:nth-child(1) { --w: 9px; --h: 36px; --c: var(--magenta); border-start-start-radius: 6px; }
-  .tapes i:nth-child(2) { --w: 12px; --h: 42px; --c: var(--cyan); }
-  .tapes i:nth-child(3) { --w: 8px; --h: 34px; --c: var(--orange); border-start-start-radius: 4px; border-start-end-radius: 4px; }
+  .tapes i:nth-child(1) { --w: 11px; --h: 43px; --c: var(--magenta); border-start-start-radius: 7px; }
+  .tapes i:nth-child(2) { --w: 14px; --h: 50px; --c: var(--cyan); }
+  .tapes i:nth-child(3) { --w: 9px; --h: 40px; --c: var(--orange); border-start-start-radius: 5px; border-start-end-radius: 5px; }
   /* (it leans back onto its shorter neighbour, pivoting on the corner that stays on the shelf) */
-  .tapes i:nth-child(4) { --w: 12px; --h: 39px; --c: var(--violet); border-start-end-radius: 7px; rotate: -6deg; }
-  /* (its name sits on the shelf beside it, set like the pills' names) */
-  .shelf .label { padding-block-end: 3px; font-size: 15px; line-height: 1; font-weight: 500; color: var(--ink); white-space: nowrap; }
+  .tapes i:nth-child(4) { --w: 14px; --h: 47px; --c: var(--violet); border-start-end-radius: 8px; rotate: -6deg; }
   .shelf a:active .obj { scale: .96; transform-origin: 50% 100%; }
-  .shelf a:focus-visible .tapes i:nth-child(2) { translate: 0 -10px; }
+  .shelf a:focus-visible .tapes i:nth-child(2) { translate: 0 -12px; animation: none; }
   .shelf a:focus-visible .tapes i:nth-child(4) { rotate: 0deg; }
   @media (hover: hover) and (pointer: fine) {
-    .shelf a:hover .tapes i:nth-child(2) { translate: 0 -10px; }
+    .shelf a:hover .tapes i:nth-child(2) { translate: 0 -12px; animation: none; }
     .shelf a:hover .tapes i:nth-child(4) { rotate: 0deg; }
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -445,7 +439,10 @@
     .shelf .obj { transition: scale 120ms var(--ease-out); }
     /* pulled out on a soft ease, and the leaning tape rights itself with a little sway */
     .shelf .obj i { transition: translate 280ms var(--ease-out), rotate 420ms var(--spring); }
+    /* the peek: once every nine seconds, a short rise and settle, still the rest of the time */
+    .tapes i:nth-child(2) { animation: peek 9s var(--ease-in-out) 4s infinite; }
   }
+  @keyframes peek { 0%, 88%, 100% { translate: 0 0; } 92% { translate: 0 -8px; } 96% { translate: 0 1px; } }
   /* ---------- the board's controls ---------- */
   .icon { position: relative; inline-size: 44px; block-size: 44px; display: grid; place-items: center; border-radius: 999px;
           transition: background-color 160ms ease; }
@@ -700,9 +697,8 @@
     </div>
     <!-- my favourite things: one object per collection, each leading to its own page -->
     <nav class="shelf" aria-label="My favourite things">
-      <p class="shelf-note" aria-hidden="true">my favourite things</p>
       <ul>
-        <li><a href="talks.html"><span class="obj tapes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="label">Talks</span></a></li>
+        <li><a href="talks.html"><span class="obj tapes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="sr">Talks</span></a></li>
       </ul>
     </nav>
     </div>
