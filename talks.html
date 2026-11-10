@@ -84,7 +84,7 @@
   .theming::view-transition-old(root), .theming::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
   .theming::view-transition-new(root) { -webkit-mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0;
                                         mask: radial-gradient(closest-side, #000 92%, transparent) no-repeat 0 0 / 0 0; }
-  /* arriving from the home page the real shelf grows out of the little one on the favourites pill; the little one's
+  /* arriving from the home page the real shelf grows out of the little one on its Talks link; the little one's
      snapshot is left out, because stretched to this size it is only a blur */
   @media (prefers-reduced-motion: no-preference) { .shelf { view-transition-name: shelf; } }
   ::view-transition-group(shelf) { animation-duration: 420ms; animation-timing-function: var(--snap); }

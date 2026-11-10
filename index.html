@@ -45,7 +45,7 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;500;600;800&family=Geist+Mono:wght@500;700&family=Shantell+Sans:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;800&family=Geist+Mono:wght@500;700&family=Shantell+Sans:wght@500;600&display=swap" rel="stylesheet">
 <link rel="modulepreload" href="app.js">
 <link rel="modulepreload" href="board.js">
 <link rel="modulepreload" href="icons.js">
@@ -90,7 +90,17 @@
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --spring: cubic-bezier(.34, 1.56, .64, 1);
-    --cell: 120px; --cols: 4; --name: 184px;
+    /* a print grain (fractal noise, laid in soft-light) for everything that is printed in the logo colours, like riso
+       on uncoated stock: the board's tiles and the shelf's objects */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --cols: 4; --rows: 6;
+    /* the cell app.js will measure (spec()), worked out ahead in CSS so the first paint already has the board's room */
+    --cell: round(down, max(44px, min((max(100svh, 600px) - 64px) * .12, min(100vw, var(--page)) * .07)), 1px);
+    /* and the name's size, the same way (size() in app.js): it fills what the board leaves of the page, at most a
+       step above the board. "basteau" set in Geist 800 is 3.767 times as wide as its size */
+    --name: min(max(200px, 22svh), (min(100vw, var(--page)) - 3 * var(--gutter) - var(--cols) * var(--cell) - 8px) / 3.767);
+    /* the page's outer margin, the same on both sides, and the gap between who and the game */
+    --gutter: clamp(48px, 7.5vw, 120px);
     /* the widest the page gets: the layout is drawn for 16:10, and the board and the name grow with the height */
     --page: max(1440px, 160svh);
   }
@@ -126,15 +136,14 @@
 
   #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
 
-  /* ---------- the page: who on the left, read from the top (where I sit on the stack, the name, the work and the
-     ways to reach me), and the game as a full-height column on the right, with its own bar under it. On a screen wider
-     than --page it stops growing and sits in the middle, by its visible edges: the name starts 96px in and the board
-     ends 24px in, so the page is pulled 36px to the left of centre ---------- */
-  .page { position: relative; z-index: 1; display: grid; block-size: 100svh; min-block-size: 560px;
-          max-inline-size: var(--page); margin-inline-start: max(0px, (100% - var(--page)) / 2 - 36px);
+  /* ---------- the page: who on the left, read from the top (where I sit on the stack, the name, a line about my work
+     and the ways to reach me), and the game as a column on the right with its bar under it. The same gutter frames
+     both sides and parts them; past --page the page stops growing and sits in the middle ---------- */
+  .page { position: relative; z-index: 1; display: grid; block-size: 100svh; min-block-size: 600px;
+          max-inline-size: var(--page); margin-inline: auto;
           grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr;
           grid-template-areas: ". board" "scale board" "name board" "sub board" ". board";
-          padding-block: 24px; padding-inline: 96px 24px; column-gap: 48px; }
+          padding-block: 32px; padding-inline: var(--gutter); column-gap: var(--gutter); }
 
   /* ---------- the stack scale: where I sit between the metal and the pixels, hand drawn ----------
      one grid: a column per level, wider for the three I live in. The bands, axis and arrow are plain CSS lines run
@@ -211,17 +220,15 @@
   /* arrival: the scale is drawn, not dropped in. The axis runs left to right like a pen stroke, the bands are sketched
      round it one after another, the levels hang off their ticks, the arrowhead lands, and the notes are written last,
      left to right. Clip paths over generous margins, so the pen wobble and the tilted notes are never cut */
-  /* (--t0: on desktop it heads the page and starts at once; on phones it closes the page and waits for the name) */
-  .scale { --t0: 0ms; }
   .axis, .band, .note { animation: fade 560ms var(--ease-out) both; }
-  .axis { animation-duration: 680ms; animation-delay: calc(var(--t0) + 60ms); }
-  .b-lo { animation-delay: calc(var(--t0) + 140ms); } .b-home { animation-delay: calc(var(--t0) + 230ms); } .b-hi { animation-delay: calc(var(--t0) + 320ms); }
-  .arrowhead { animation: fade 220ms var(--ease-out) calc(var(--t0) + 640ms) both; transform-origin: 100% 50%; }
+  .axis { animation-duration: 680ms; animation-delay: 60ms; }
+  .b-lo { animation-delay: 140ms; } .b-home { animation-delay: 230ms; } .b-hi { animation-delay: 320ms; }
+  .arrowhead { animation: fade 220ms var(--ease-out) 640ms both; transform-origin: 100% 50%; }
   .lv { animation: fade 380ms var(--ease-out) both; }
-  .l1, .lp { animation-delay: calc(var(--t0) + 220ms); } .l2 { animation-delay: calc(var(--t0) + 250ms); } .l3 { animation-delay: calc(var(--t0) + 280ms); }
-  .h1 { animation-delay: calc(var(--t0) + 310ms); } .h2 { animation-delay: calc(var(--t0) + 340ms); } .h3 { animation-delay: calc(var(--t0) + 370ms); }
-  .r1, .rp { animation-delay: calc(var(--t0) + 400ms); } .r2 { animation-delay: calc(var(--t0) + 430ms); }
-  .n-lo { animation-delay: calc(var(--t0) + 480ms); } .n-home { animation-delay: calc(var(--t0) + 560ms); } .n-hi { animation-delay: calc(var(--t0) + 640ms); }
+  .l1, .lp { animation-delay: 220ms; } .l2 { animation-delay: 250ms; } .l3 { animation-delay: 280ms; }
+  .h1 { animation-delay: 310ms; } .h2 { animation-delay: 340ms; } .h3 { animation-delay: 370ms; }
+  .r1, .rp { animation-delay: 400ms; } .r2 { animation-delay: 430ms; }
+  .n-lo { animation-delay: 480ms; } .n-home { animation-delay: 560ms; } .n-hi { animation-delay: 640ms; }
   @media (prefers-reduced-motion: no-preference) {
     .axis, .band, .note { animation-name: draw; }
     .arrowhead { animation-name: tip; }
@@ -321,17 +328,17 @@
     .grad span { animation-name: draw; }
   }
 
-  .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-block-start: 30px; padding-inline-start: 8px; }
-  /* the ways to reach me and my favourites share a line, level with each other, wherever the column has the room for
-     both; where it hasn't, the favourites wrap under the drops */
-  .reach { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; }
+  .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-block: 30px 26px; padding-inline-start: 8px; }
+  /* the ways to reach me and my favourite things share a line wherever the column has the room for both (on phones
+     from about 390px); narrower, the shelf takes the line below */
+  .reach { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 40px; }
   .reach > * { flex: none; }
   /* the board's bar: the score at its left edge, shuffle, sound and theme at its right, in the air under the board
      (it hangs off the board, so the board itself stays in the middle of the column). The last glyph ends on the
-     board's edge: its 40px button runs 11px past it */
-  .controls { position: absolute; inset-block-start: calc(100% + 10px); inset-inline: 0 -11px; display: flex; align-items: center; gap: 2px; }
+     board's edge: its 44px button runs 13px past it */
+  .controls { position: absolute; inset-block-start: calc(100% + 8px); inset-inline: 0 -13px; display: flex; align-items: center; }
   .controls .score { margin-inline-end: auto; padding-inline: 0 12px; }
-  /* (never narrower than the board: on phones it bleeds its outer gap past the column, so it may not shrink to fit) */
+  /* (never narrower than the board: it may not shrink to fit) */
   .board-wrap { grid-area: board; display: grid; place-items: safe center; align-self: center; position: relative;
                 min-inline-size: max-content; }
 
@@ -370,7 +377,7 @@
          border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600;
          box-shadow: inset 0 1.5px 0 oklch(100% 0 none / .22), inset 0 -2px 6px oklch(0% 0 none / .12); }
   .cta:focus-visible { outline-color: var(--ink); }
-  /* (an icon beside a label is sized by the label's capitals, here and on the pills and the favourites) */
+  /* (an icon beside a label is sized by the label's capitals, here and on the pills) */
   .cta .go { flex: none; block-size: 1.5cap; inline-size: auto; }
   .cta .mail { display: none; }
   .cta:active { scale: .95; }
@@ -395,12 +402,53 @@
   }
   @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
 
+  /* ---------- my favourite things: a little shelf of the collections I keep, each one a small object of its medium
+     standing on a pencil line, like the talks page's shelf seen from across the room. Today it holds the talks (a
+     stack of tapes); films and series (a VHS) and books (a few spines) join as more objects on the same line, each a
+     link to its own page with its name and count under the shelf. The objects are printed like the tiles, in the
+     logo colours with the grain, and cut out like stickers with a ground-coloured edge. At rest nothing moves; under
+     the pointer or keyboard focus an object lifts off the shelf and its tapes step out one after another, and on the
+     way over the tapes grow into the talks page's shelf (a view transition, talks.html) ---------- */
+  /* (its line sits level with the foot of the drops and its names hang under it, in the room .sub keeps below) */
+  .shelf { display: grid; justify-items: start; margin-block-end: -26px; }
+  .shelf-note { margin-block-end: -2px; margin-inline-start: 2px; font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
+                rotate: -3deg; transform-origin: 0 100%; }
+  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 20px; padding: 0 12px; list-style: none; }
+  /* the shelf: a pencil line under the objects, run through the stack scale's wobble */
+  .shelf ul::before { content: ""; position: absolute; inset-inline: -4px -14px; inset-block-end: 24px; block-size: 2.5px; border-radius: 2px;
+                      background: var(--ink); rotate: -.6deg; filter: url(#rough); }
+  /* (the room above an object is what it lifts into, inside its focus ring) */
+  .shelf a { display: grid; justify-items: center; row-gap: 10px; padding-block-start: 12px; color: var(--muted); }
+  .shelf a:focus-visible { outline-offset: 4px; border-radius: 6px; }
+  .shelf .obj { display: flex; align-items: flex-end; gap: 3px; block-size: 44px; filter: drop-shadow(0 1px 1.5px oklch(0% 0 none / .16)); }
+  .shelf .obj i { inline-size: var(--w); block-size: var(--h); border-radius: 2px; background: var(--c) var(--grain) 0 0 / 180px;
+                  background-blend-mode: soft-light; box-shadow: 0 0 0 2px var(--ground); translate: 0 calc(var(--lift) * var(--out, 0)); }
+  /* (--lift spreads up and down, so the stack stays on its shelf when the tapes stand out) */
+  .tapes i:nth-child(1) { --k: 1; --w: 9px; --h: 36px; --c: var(--magenta); --lift: -3px; border-start-start-radius: 6px; }
+  .tapes i:nth-child(2) { --k: 2; --w: 12px; --h: 42px; --c: var(--cyan); --lift: -6px; }
+  .tapes i:nth-child(3) { --k: 3; --w: 7px; --h: 34px; --c: var(--orange); --lift: -2px; border-start-start-radius: 4px; border-start-end-radius: 4px; }
+  .tapes i:nth-child(4) { --k: 4; --w: 12px; --h: 39px; --c: var(--violet); --lift: -5px; border-start-end-radius: 7px; }
+  .shelf .label { font: 500 11px/14px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .shelf .label b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .shelf a:active .obj { scale: .96; }
+  .shelf a:focus-visible { --out: 1; color: var(--ink); }
+  .shelf a:focus-visible .obj { translate: 0 -4px; rotate: -2deg; }
+  @media (hover: hover) and (pointer: fine) {
+    .shelf a:hover { --out: 1; color: var(--ink); }
+    .shelf a:hover .obj { translate: 0 -4px; rotate: -2deg; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .tapes { view-transition-name: shelf; }
+    .shelf a { transition: color 160ms ease; }
+    .shelf .obj { transition: translate 260ms var(--spring), rotate 260ms var(--spring), scale 120ms var(--ease-out); }
+    /* the tapes step out one after another and all go back at once, quicker */
+    .shelf .obj i { transition: translate calc(150ms + var(--out, 0) * 50ms) var(--ease-out) calc(var(--out, 0) * (var(--k) - 1) * 30ms); }
+  }
   /* ---------- the board's controls ---------- */
-  .icon { position: relative; inline-size: 40px; block-size: 40px; display: grid; place-items: center; border-radius: 999px;
+  .icon { position: relative; inline-size: 44px; block-size: 44px; display: grid; place-items: center; border-radius: 999px;
           transition: background-color 160ms ease; }
   .icon:active { scale: .96; }
   .icon:focus-visible { outline-offset: 0; }
-  @media (pointer: coarse) { .icon { inline-size: 44px; block-size: 44px; } }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
   /* sound: waves and the mute cross share one slot, swapped with a scale + blur crossfade */
@@ -412,7 +460,7 @@
   #shuffle svg { transform-origin: 9px 9px; }
   #shuffle.spin svg { rotate: -360deg; }
   /* after a win, a ring calls for the next game */
-  #shuffle[data-attn]::after { content: ""; position: absolute; inset: 9px; border-radius: 999px; box-shadow: 0 0 0 2px var(--magenta); }
+  #shuffle[data-attn]::after { content: ""; position: absolute; inset: 11px; border-radius: 999px; box-shadow: 0 0 0 2px var(--magenta); }
   @media (prefers-reduced-motion: no-preference) {
     .icon { transition: background-color 160ms ease, scale 160ms var(--ease-out); }
     .icon .swap { transition-property: opacity, scale, filter; }
@@ -426,77 +474,6 @@
            padding-inline: 4px 12px; display: inline-flex; white-space: pre; }
   .score .n { display: inline-block; color: var(--ink); }
   .score .of { color: var(--muted); }
-
-  /* ---------- favourites: a pill like the work pills, with a little shelf of tapes on it, that opens a short menu of
-     my collections. Today that is the talks; whatever joins later (films, books) is one more row. Each row leads to
-     its collection's own page, which is the only place the collection itself is shown.
-     The list is a native popover: the button opens and closes it with no script, Escape and a click outside close
-     it, focus goes back to the button, and it sits in the top layer. It is anchored to the pill and flips to
-     whichever side has the room, so it opens downwards on a desktop and upwards from the foot of a phone; browsers
-     without anchor positioning open it centred. The pill sits on the contact drops' line (.reach) ---------- */
-  .fav { position: relative; z-index: 1; }
-  .fav-btn { position: relative; display: inline-flex; align-items: center; gap: 10px; block-size: 42px; padding-inline: 14px 12px;
-             border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); font-size: 15px; line-height: 20px; font-weight: 500;
-             white-space: nowrap; anchor-name: --fav; transition: border-color 160ms ease; }
-  /* a 44px target round the 40-42px pill */
-  .fav-btn::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
-  .fav-btn .narrow { display: none; }
-  .fav-btn:active { scale: .97; }
-  .fav-btn .mini { display: flex; align-items: flex-end; gap: 2px; }
-  .fav-btn .mini i { inline-size: var(--w); block-size: 20px; border-radius: 2px; background: var(--c); translate: 0 calc(var(--lift) * var(--out, 0)); }
-  /* --lift spreads evenly up and down, so the little shelf stays centred in the pill when its tapes stand out */
-  .fav-btn .mini i:nth-child(1) { --k: 1; --w: 6px; --c: var(--magenta); --lift: 2px; border-start-start-radius: 4px; }
-  .fav-btn .mini i:nth-child(2) { --k: 2; --w: 8px; --c: var(--cyan); --lift: -3px; }
-  .fav-btn .mini i:nth-child(3) { --k: 3; --w: 5px; --c: var(--orange); --lift: 3px; border-start-start-radius: 3px; border-start-end-radius: 3px; }
-  .fav-btn .mini i:nth-child(4) { --k: 4; --w: 8px; --c: var(--violet); --lift: -1px; border-start-end-radius: 5px; }
-  .fav-btn .chev { flex: none; block-size: 1.125cap; inline-size: auto; color: var(--muted); }
-  /* open: the tapes stand pulled out and the chevron turns over */
-  .fav-btn:has(+ .favs:popover-open) { --out: 1; border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
-  .fav-btn:has(+ .favs:popover-open) .chev { rotate: 180deg; }
-  .fav-btn[data-nod] .mini i:nth-child(2) { --out: 1; }
-  @media (hover: hover) and (pointer: fine) {
-    .fav-btn:hover { --out: 1; border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
-  }
-
-  .favs { inline-size: min(240px, 100vw - 48px); max-block-size: calc(100svh - 24px); overflow-y: auto; overscroll-behavior: contain;
-          padding: 6px; border: 1px solid var(--rule); border-radius: 18px; background: var(--ground); color: var(--ink);
-          box-shadow: 0 1px 2px oklch(0% 0 none / .06), 0 8px 24px oklch(0% 0 none / .1), 0 24px 56px oklch(0% 0 none / .12);
-          position-anchor: --fav; opacity: 0; --t: 130ms;
-          transition: opacity var(--t) var(--ease-out), scale var(--t) var(--ease-out), display var(--t) allow-discrete, overlay var(--t) allow-discrete; }
-  .favs:popover-open { --t: 200ms; opacity: 1; }
-  @starting-style { .favs:popover-open { opacity: 0; } }
-  @supports (position-area: block-end) {
-    .favs { margin-block: 8px; margin-inline: 0; position-area: block-end span-inline-end;
-            position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; }
-  }
-  .favs ul { padding: 0; list-style: none; }
-  /* a row: the collection's colour, its name, how many are in it, and the way in. The radius is the panel's less its
-     padding */
-  .favs a { display: flex; align-items: center; gap: 12px; min-block-size: 44px; padding-block: 8px; padding-inline: 12px; border-radius: 12px;
-            font-size: 15px; line-height: 20px; font-weight: 500; }
-  .favs a::before { content: ""; flex: none; inline-size: 8px; block-size: 22px; border-radius: 2px; border-start-end-radius: 5px; background: var(--c); }
-  .favs a span { margin-inline-start: auto; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em;
-                 font-variant-numeric: tabular-nums; color: var(--muted); }
-  .favs a svg { flex: none; block-size: 1.3cap; inline-size: auto; color: var(--muted); }
-  .favs a:focus-visible { outline-offset: -2px; }
-  .favs a:active { background: var(--rule); }
-  @media (hover: hover) and (pointer: fine) {
-    .favs a:hover { background: var(--rule); }
-    .favs a:hover svg { translate: 2px 0; color: var(--ink); }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .fav-btn { transition: border-color 160ms ease, scale 120ms var(--ease-out); }
-    .fav-btn .mini { view-transition-name: shelf; }
-    /* the tapes step out one after another and all go back at once, quicker. A plain ease-out: a spring only wobbles over 3px */
-    .fav-btn .mini i { transition: translate calc(150ms + var(--out, 0) * 50ms) var(--ease-out) calc(var(--out, 0) * (var(--k) - 1) * 30ms); }
-    .fav-btn .chev { transition: rotate 200ms var(--ease-out); }
-    /* the panel grows out of the pill's side instead of sliding, so it reads right whichever way it flips */
-    .favs { scale: .97; transform-origin: 0 50%; }
-    .favs:popover-open { scale: 1; }
-    @starting-style { .favs:popover-open { scale: .97; } }
-    .favs a { transition: background-color 120ms ease; }
-    .favs a svg { transition: translate 160ms var(--ease-out), color 160ms ease; }
-  }
 
   /* ---------- the board ---------- */
   /* every tile keeps its gap on all four sides, the outer ones too, so the board is pulled out by one gap (the
@@ -521,7 +498,7 @@
      Without motion the card doesn't turn: its faces cross-fade */
   .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; clip-path: var(--shape);
           background-color: var(--c); background-size: 180px; background-blend-mode: soft-light;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-image: var(--grain);
           transition: opacity 160ms linear; }
   .card:not([data-state="down"]) .back, .card[data-state="down"] .front { opacity: 0; }
   /* hover lifts the tile within its own gap (~2px a side), never into a neighbour */
@@ -550,6 +527,24 @@
   }
   .card.instant .inner, .card.instant .face { transition: none !important; }
 
+  /* ---------- the fold: where room is short (phones), the board rests as its first row with the top of the next one
+     showing under it, fading out, so it reads as more to come. The first play opens it to the full grid (app.js sets
+     data-open on .board-wrap, makes the hidden rows inert, and data-opening while it grows): the fold eases down to
+     the board's full height while the fade lets go and the new rows deal in. Phones paint folded until app.js says
+     open, so the first paint never jumps. The heights are the board's own footprint (its rows, less the outer gap it
+     is pulled out by on each side, --g) plus 8px of air on every side for the breathing surface and the focus
+     rings ---------- */
+  @property --fade { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  .fold { --g: max(2px, var(--cell) * .028); position: relative; margin: -8px; padding: 8px; overflow: clip;
+          block-size: calc(var(--rows) * var(--cell) - 2 * var(--g) + 16px); }
+  @media (max-width: 759px) {
+    .fold { -webkit-mask: linear-gradient(#000 calc(100% - var(--fade)), transparent); mask: linear-gradient(#000 calc(100% - var(--fade)), transparent); }
+    .board-wrap:not([data-open]) .fold { block-size: calc(var(--cell) - var(--g) + 36px); --fade: 30px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .board-wrap[data-opening] .fold { transition: block-size 380ms var(--ease-out), --fade 380ms var(--ease-out); }
+  }
+
   /* ---------- copied-address toast ---------- */
   .toast { position: fixed; inset-inline: 0; inset-block-end: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 20;
            inline-size: fit-content; margin-inline: auto; display: flex; align-items: center; gap: 10px; padding-block: 12px; padding-inline: 14px 18px;
@@ -568,49 +563,29 @@
   @media (prefers-reduced-motion: no-preference) { .rise { animation-name: rise; } }
   @keyframes rise { from { opacity: 0; translate: 0 10px; filter: blur(4px); } }
 
-  /* ---------- phones and portrait tablets: who, then the game, then the detail. The name, the work and the ways to
-     reach me lead, a wide 5 x 4 board follows with its bar under it, high enough to be played from the first screen,
-     and the stack scale closes the page. Taller screens centre the lot ---------- */
+  /* ---------- phones and portrait tablets: one column, read in the same order as the desktop's left side (where I sit
+     on the stack, the name, the line and the ways to reach me), then the game: on a phone folded to its first row,
+     on a portrait tablet a wide 5 x 4 board. Taller screens centre the lot ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
-    :root { --cols: 5; }
+    :root { --cols: 5; --rows: 4; --gutter: 24px; --cell: round(down, max(44px, min((100vw - 48px) / 5, 10svh)), 1px);
+            --name: min(150px, (min(100vw, max(50svh, 220px) + 48px) - 48px) / 3.767); }
     .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto 1fr;
-            grid-template-areas: "." "name" "sub" "board" "scale" "."; block-size: auto; min-block-size: 100svh; column-gap: 0;
-            padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)); padding-inline: 24px; }
-    /* on a portrait tablet the board is sized by the height and comes out narrower than the screen: there the column
-       is as wide as the board (five cells of a tenth of the height, never under 44px, as spec() in app.js sizes them)
-       and sits in the middle */
-    @media (orientation: portrait) { .page { max-inline-size: calc(max(50svh, 220px) + 48px); margin-inline: auto; } }
-    .scale { --t0: 240ms; margin-block: 30px 0; margin-inline-start: 4px; }
-    /* the board and its bar share the intro's left edge (on phones the board fills the width anyway) */
-    .board-wrap { margin-block-start: 36px; justify-self: start; }
-    /* the nudge sits close over the board's right end, under the favourites pill, with its arrow's tip on the last
-       card's centre */
-    .nudge { inset-inline-end: calc(.5 * var(--cell) + 38px); inset-block-end: calc(100% + 10px); }
-    /* the narrowest phones have no room for the favourites beside the drops. They take a line of their own, and the
-       nudge folds onto two lines beside them instead of over the board: it starts at least 24px past the pill, and
-       further right where that lands its arrow's tip (47px in) on the last card's centre */
-    @media (max-width: 359px) {
-      .board-wrap { margin-block-start: 28px; }
-      .nudge { inset-inline: max(204px, 100% - .5 * var(--cell) - 47px) auto; inset-block-end: calc(100% + 24px); }
-      .nudge b { display: inline-block; inline-size: min-content; white-space: normal; }
-      .nudge svg { inset-inline-start: 8px; inset-block-start: calc(100% - 12px); inline-size: 46px; block-size: 39px; }
-      @media (prefers-reduced-motion: no-preference) { .dealt .nudge { animation-name: write-down; } }
-      @keyframes write-down { from { clip-path: inset(-40% 100% -300% -6%); } to { clip-path: inset(-40% -80px -300% -6%); } }
+            grid-template-areas: "." "scale" "name" "sub" "board" "."; block-size: auto; min-block-size: 100svh;
+            padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)); }
+    /* a phone hangs the page from the top instead of centring it, so opening the board grows the page downwards and
+       never moves the card that was just tapped */
+    @media (max-width: 759px) {
+      :root { --name: min(104px, (100vw - 48px) / 3.767); }
+      .page { grid-template-rows: auto auto auto auto 1fr; grid-template-areas: "scale" "name" "sub" "board" ".";
+              padding-block-start: calc(48px + env(safe-area-inset-top, 0px)); }
     }
-    /* the bar is in the flow under the board, and the page grows by it */
-    .board-wrap { grid-template-columns: minmax(0, 1fr); }
-    .controls { position: static; justify-self: stretch; margin-block-start: 6px; margin-inline: 2px -4px; }
-    /* the favourites pill is a size smaller, like the work pills, to share the drops' line. Under 400px it says it
-       shorter, as the current job does, and under 375px the envelope and the pill's own spacing give a little more.
-       Under 360px there is no fitting it, and it takes the line below, in full */
-    .reach { flex-wrap: nowrap; gap: 14px 10px; }
-    .fav-btn { block-size: 40px; padding-inline: 12px 10px; gap: 8px; font-size: 14px; }
-    @media (min-width: 360px) and (max-width: 399px) { .fav-btn .wide { display: none; } .fav-btn .narrow { display: inline; } }
-    @media (min-width: 360px) and (max-width: 374px) { .reach { column-gap: 8px; } .fav-btn { padding-inline: 10px 8px; gap: 6px; } }
-    @media (max-width: 359px) { .reach { flex-wrap: wrap; } .fav { flex-basis: 100%; } }
-    /* (the name leads the page, so it brings the room for its cap and its pencil note, which stand above it) */
-    .name { padding-block-start: 28px; }
-    .sub { gap: 26px; padding-block-start: 16px; padding-inline-start: 4px; }
+    /* on a portrait tablet the board is sized by the height and comes out narrower than the screen: there the column
+       is as wide as the board (five cells of a tenth of the height, never under 44px, as spec() in app.js sizes them) */
+    @media (orientation: portrait) { .page { max-inline-size: calc(max(50svh, 220px) + 48px); } }
+    .scale { margin-block: 0 22px; margin-inline-start: 4px; }
+    .sub { gap: 24px; padding-block-start: 20px; padding-inline-start: 4px; }
+    /* (the name brings the room for its cap and its pencil note, which stand above it) */
+    .name { padding-block-start: 20px; }
     /* the open pill and the two marks share one line from a 360px phone up: the current job says it shorter, the pills
        are a size smaller, and under 380px the arrow goes (narrower phones wrap the current job under the marks) */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
@@ -619,25 +594,37 @@
     .pill[data-open] { grid-template-columns: 28px 8px 1fr 9px; }
     .pill .mark { inline-size: 28px; block-size: 28px; }
     @media (max-width: 379px) { .pill .out { display: none; } }
+    .reach { gap: 20px 24px; }
     .cta { block-size: 50px; padding-inline: 24px 22px; font-size: 16px; }
     .drop { inline-size: 44px; block-size: 44px; }
     .drop svg { inline-size: 19px; block-size: 19px; } .drop.x svg { inline-size: 16px; block-size: 16px; }
     /* on phones Say hello is just its envelope, a round 50px button (the words stay for screen readers), which leaves
-       the rest of the row to the links and the board's nudge. Portrait tablets have the room to say it */
+       the rest of the line to the shelf. Portrait tablets have the room to say it */
     @media (max-width: 759px) {
       .cta { inline-size: 50px; padding: 0; justify-content: center; }
-      @media (min-width: 360px) and (max-width: 374px) { .cta { inline-size: 46px; block-size: 46px; } }
       .cta .say { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; clip-path: inset(50%); white-space: nowrap; }
       .cta .go { display: none; } .cta .mail { display: block; }
       .actions { --bud: -56px; --bud-x: -109px; }
+    }
+    /* the board and its bar share the intro's left edge, with the bar in the flow under the board */
+    /* (clear of the shelf's names above and of the board's own nudge) */
+    .board-wrap { margin-block-start: 52px; justify-self: start; grid-template-columns: minmax(0, 1fr); }
+    .controls { position: static; justify-self: stretch; margin-block-start: 4px; margin-inline: 0 -13px; }
+    /* the nudge sits close over the board's right end, with its arrow's tip on the last card's centre */
+    .nudge { inset-inline-end: calc(.5 * var(--cell) + 38px); inset-block-end: calc(100% + 10px); }
+    /* a short phone keeps the board's first row on the first screen: less air above and between */
+    @media (max-width: 759px) and (max-height: 700px) {
+      .page { padding-block-start: calc(16px + env(safe-area-inset-top, 0px)); }
+      .scale { margin-block-end: 12px; }
+      .board-wrap { margin-block-start: 40px; }
     }
   }
 
   /* ---------- a phone on its side: the desktop layout, tighter, with a wide 5 x 4 board that fits the height and a page
      that grows to its content instead of clipping it ---------- */
   @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
-    :root { --cols: 5; }
-    .page { block-size: auto; min-block-size: 100svh; padding-block: 20px; padding-inline: 48px 24px; column-gap: 32px; }
+    :root { --cols: 5; --rows: 4; --gutter: 40px; --cell: round(down, max(44px, min((100svh - 92px) / 4, 100vw * .084)), 1px); }
+    .page { block-size: auto; min-block-size: 100svh; padding-block: 20px; }
     /* the current job says it shorter, as on phones, so the three pills share a line */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
     /* the board stays whole in view while the intro scrolls past it */
@@ -709,22 +696,18 @@
       <a class="drop" href="https://github.com/basteau" rel="me" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
       <a class="drop x" href="https://x.com/itsbasteau" rel="me" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.6l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg></a>
     </div>
-    <!-- favourites: one row per collection, each leading to its own page -->
-    <div class="fav">
-    <button class="fav-btn" id="fav" type="button" popovertarget="favs"><span class="mini" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="wide">My favourites</span><span class="narrow">Favourites</span>
-      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <nav class="favs" id="favs" popover aria-label="My favourites">
+    <!-- my favourite things: one object per collection, each leading to its own page -->
+    <nav class="shelf" aria-label="My favourite things">
+      <p class="shelf-note" aria-hidden="true">my favourite things</p>
       <ul>
-        <li><a href="talks.html" style="--c:var(--magenta)">Talks<span aria-hidden="true">10</span>
-          <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        <li><a href="talks.html"><span class="obj tapes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="label">Talks <b>10</b><span class="sr"> talks</span></span></a></li>
       </ul>
     </nav>
-    </div>
     </div>
   </div>
   <div class="board-wrap">
     <p class="nudge" aria-hidden="true"><b>let’s play</b><svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
-    <div class="board" id="board" role="group" aria-label="Memory game: match the tech I work with. Arrow keys move between cards."></div>
+    <div class="fold"><div class="board" id="board" role="group" aria-label="Memory game: match the tech I work with. Arrow keys move between cards."></div></div>
     <div class="controls rise" style="--i:4">
       <span class="score" aria-hidden="true"><span class="n" data-n>00</span><span class="of" data-of> / 12</span></span>
       <button class="icon" id="shuffle" type="button" aria-label="Shuffle the board">
@@ -745,6 +728,7 @@
 </main>
 
 <p class="sr" id="live" aria-live="polite"></p>
+<p class="sr" id="fold-hint"></p>
 <div class="toast" id="toast" role="status" aria-live="polite"><i aria-hidden="true"></i><span>basteau@proton.me copied</span></div>
 
 <script type="module" src="app.js"></script>

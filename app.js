@@ -40,28 +40,30 @@ const SFX = {
   win: defineSound({ layers: [392, 523.25, 659.25, 783.99, 1046.5].flatMap((f, i) => strike(f, .55, .05, { delay: i * .075, overtones: [[2, .12, .4]] })) }),
   // tapping the name: a soft water drop (a sine that bends up)
   bloop: defineSound({ source: { type: 'sine', frequency: { start: 220, end: 560 } }, envelope: { attack: .003, decay: .12, sustain: 0, release: .03 }, gain: .09 }),
-  // favourites opening: its four tapes pulled out one after another
-  shelf: defineSound({ layers: [523.25, 659.25, 440, 783.99].flatMap((f, i) => strike(f, .08, .04, { delay: i * .05, overtones: [[3.93, .12, .3]] })) }),
   // a reshuffle: six cards dealt, a little brighter each
   deal: defineSound({ layers: Array.from({ length: 6 }, (_, i) => tick(900 + i * 110, .3, i * .028)) }),
 };
 const play = player(SFX);
 
 /* =====================================================================
-   layout: a full-height 4 x 6 column beside the name on desktop, a wide
-   5 x 4 board under the intro on phones. Cells stay square; everything
-   else follows them.
+   layout: a 4 x 6 column beside the name on desktop, a wide 5 x 4 board
+   under the intro on phones and portrait tablets. Cells stay square;
+   everything else follows them. Phones fold the board to its first row
+   until it's played (the fold, below)
    ===================================================================== */
-const page = $('.page');
+const page = $('.page'), wrap = $('.board-wrap');
+// the CSS's own breakpoints, asked the same way (a window's width here includes a classic scrollbar, as in the CSS)
+const PHONE = matchMedia('(max-width: 759px)'), COLUMN = matchMedia('(max-width: 759px), (max-width: 1099px) and (orientation: portrait)');
+const SIDEWAYS = matchMedia('(min-width: 760px) and (max-height: 499px) and (orientation: landscape)');
 function spec() {
-  const W = vw(), H = vh(), m = W < 760 || (W < 1100 && H > W);   // same breakpoints as the CSS
+  const W = vw(), H = vh(), m = COLUMN.matches;   // one column: phones and portrait tablets
   const PW = page.clientWidth;   // the page stops growing on very wide screens (index.html), and so does the board
-  const low = !m && H < 500;   // a phone on its side: the wide board beside the intro, sized to the height
+  const low = SIDEWAYS.matches;   // a phone on its side: the wide board beside the intro, sized to the height
   const [cols, rows] = m || low ? [5, 4] : [4, 6];
-  const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 5, H * .4 / 4)
-    : low ? Math.min((H - 40 - 50) / 4, W * .42 / 5)   // (room for the bar under the board)
-    : Math.min((Math.max(H, 560) - 48) * .8 / 6, PW * .34 / 4)));   // desktop: a column with air above and below
-  return { cols, rows, cell, holes: [], m, low, key: `${cols}x${rows}` };
+  const cell = Math.max(44, Math.floor(m ? Math.min((W - 48) / 5, H * .4 / 4)   // phones: the full width inside the 24px gutters
+    : low ? Math.min((H - 40 - 52) / 4, W * .42 / 5)   // (room for the bar under the board)
+    : Math.min((Math.max(H, 600) - 64) * .72 / 6, PW * .28 / 4)));   // desktop: a column with air above and below
+  return { cols, rows, cell, m, low, fold: PHONE.matches, key: `${cols}x${rows}` };
 }
 
 /* =====================================================================
@@ -74,7 +76,7 @@ function newGame({ animate = true } = {}) {
   clearTimeout(missTimer); open = []; matched = 0; moves = 0; locked = false;
   $('#shuffle').removeAttribute('data-attn');
   S = spec();
-  const model = deal(S.cols, S.rows, S.holes, seed = (seed * 31 + 7) >>> 0);
+  const model = deal(S.cols, S.rows, [], seed = (seed * 31 + 7) >>> 0);
   pairs = model.pairs;
   board.textContent = '';
   root.style.setProperty('--cols', S.cols); root.classList.remove('won');
@@ -96,16 +98,17 @@ function newGame({ animate = true } = {}) {
   }
   cards[0].el.tabIndex = 0;
   document.querySelectorAll('[data-of]').forEach(n => { n.textContent = ` / ${pad(pairs)}`; });
-  size(); score(false);
+  size(); score(false); fold();
   if (animate) dealIn();
-  board.parentElement.classList.add('dealt');   // the nudge waits for a board to point at
+  wrap.classList.add('dealt');   // the nudge waits for a board to point at
   breathe();
 }
 
 // lay everything out at the current viewport without touching game state
 function size() {
-  const W = vw(), PW = page.clientWidth;
+  const PW = page.clientWidth;
   root.style.setProperty('--cell', S.cell + 'px');
+  root.style.setProperty('--rows', S.rows);
   const cell = S.cell;
   for (const c of cards) {
     const st = c.el.style;
@@ -116,9 +119,10 @@ function size() {
   }
   // the name fills the space left of the board (capped so it never shouts louder than the board)
   const name = $('#name');
-  const avail = S.m ? PW - 48 : PW - (S.low ? 48 : 96) - 24 - (S.low ? 32 : 48) - S.cols * S.cell - 8;   // the page's padding and gap
+  const cs = getComputedStyle(page), gutters = parseFloat(cs.paddingInlineStart) + parseFloat(cs.paddingInlineEnd);
+  const avail = S.m ? PW - gutters : PW - gutters - parseFloat(cs.columnGap) - S.cols * S.cell - 8;
   // phones 104px, portrait tablets up to 150px, desktop 200px, growing with the height beside a bigger board
-  const cap = S.m ? (W < 760 ? 104 : 150) : Math.round(Math.max(200, vh() * .22));
+  const cap = S.m ? (S.fold ? 104 : 150) : Math.round(Math.max(200, vh() * .22));
   name.style.fontSize = '100px';
   const w100 = name.getBoundingClientRect().width;
   root.style.setProperty('--name', Math.min(cap, Math.floor(100 * avail / w100)) + 'px');
@@ -135,28 +139,31 @@ function cutCard(c) {
   c.el.style.setProperty('--round', c.radius.map(k => (k * S.cell).toFixed(2) + 'px').join(' '));   // for the focus ring
 }
 
-/* every few seconds, while nobody is playing, one tile turns a quarter: any shape whose corners show the swing (a
-   circle or ring would look still), never a flip (nothing gets revealed), no sound (nothing plays unprompted), and
-   off for reduced motion. The tile rotates 90deg clockwise as one rigid piece and then settles as its next
-   orientation: its radii and gaps turn with it, swapped in the same frame the rotation is dropped, so nothing about
-   the shape changes on the way (edge tiles too: every side has its gap). The last few tiles sit out the draw, so
-   the turns wander the board */
-const idle = c => c.state === 'down' && !c.turning;
-const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble', 'square', 'squircle']);
+// a card nobody is playing with, still, and in view (the fold hides all but the first row)
+const idle = c => c.state === 'down' && !c.turning && (!folded || c.y === 0);
 let lastInput = 0;
 addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
 addEventListener('keydown', () => { lastInput = performance.now(); });
-// a random pick (a card or a pair) from the pool, skipping recently used cards while there's anything else to pick
+// a random pick from the pool, skipping recently used cards while there's anything else to pick
 function draw(pool, recent, keep) {
-  const fresh = pool.filter(x => ![x].flat().some(c => recent.includes(c)));
+  const fresh = pool.filter(c => !recent.includes(c));
   const from = fresh.length ? fresh : pool, x = from[Math.floor(Math.random() * from.length)];
-  if (x) { recent.push(...[x].flat()); recent.splice(0, recent.length - keep); }
+  if (x) { recent.push(x); recent.splice(0, recent.length - keep); }
   return x;
 }
+
+/* now and then, while nobody is playing, one tile turns a quarter: any shape whose corners show the swing (a circle or
+   ring would look still), never a flip (nothing gets revealed), no sound (nothing plays unprompted), and off for
+   reduced motion. A calm rhythm, one every four to six seconds, so the board feels alive without asking for the eye.
+   The tile rotates 90deg clockwise as one rigid piece and then settles as its next orientation: its radii and gaps
+   turn with it, swapped in the same frame the rotation is dropped, so nothing about the shape changes on the way.
+   The last few tiles sit out the draw, so the turns wander the board */
+const TURNS = new Set(['quarter', 'dome', 'leaf', 'pebble', 'square', 'squircle']);
 const turned = [];
 function idleTurn() {
-  setTimeout(idleTurn, 1500 + Math.random() * 1000);
-  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
+  setTimeout(idleTurn, 4000 + Math.random() * 2000);
+  if (!S || reduce.matches || document.hidden || open.length || locked || peeking?.playState === 'running'
+      || performance.now() - lastInput < 2500) return;
   const c = draw(cards.filter(c => idle(c) && TURNS.has(c.kind)), turned, 4); if (!c) return;
   c.turning = true;
   const spin = c.el.querySelector('.back').animate([{ rotate: '0deg' }, { rotate: '90deg' }],
@@ -167,7 +174,7 @@ function idleTurn() {
     cutCard(c); spin.cancel(); c.turning = false;
   };
 }
-setTimeout(idleTurn, 3000);
+setTimeout(idleTurn, 5000);
 
 /* the board is a game, and says so until it's been played: a handwritten nudge above it (index.html), and now and
    then a face-down card that lifts on its hinge and settles back, the way a real card gets nudged. Both stop on the
@@ -200,37 +207,13 @@ function pointedAt() {
   if (c) peeked.push(c);
   return c;
 }
-setTimeout(peek, 2700);   // just before the first idle turn, so the two never share the moment
+setTimeout(peek, 2700);   // once the deal and the nudge have landed, and before the first turn
 
-/* and, on its own clock, two touching face-down tiles of different colours trade colours: the same quiet rules as the
-   turn. The whole palette moves with the colour (face, mark tones, flip sound, ripple), so a card flipped later
-   belongs to its new tile. The crossfade runs on the computed colours, so a theme switch never animates the board */
-const OKLAB = CSS.supports('color', 'color-mix(in oklab, red, blue)');
+// a card wears its tile's colour on both faces, its mark's tones and its flip sound (board.js PALETTE)
 function paint(c, color) {
   const P = PALETTE[c.color = color], st = c.el.style;
   st.setProperty('--c', P.css); st.setProperty('--up', P.up); st.setProperty('--tone', P.tone); st.setProperty('--ghost', P.ghost);
 }
-const swapped = [];
-function idleSwap() {
-  setTimeout(idleSwap, 1800 + Math.random() * 1200);
-  if (!S || reduce.matches || document.hidden || open.length || locked || performance.now() - lastInput < 2500) return;
-  const near = [];   // every touching pair (right and below neighbours) of idle tiles that differ in colour
-  for (const a of cards) {
-    if (!idle(a)) continue;
-    for (const b of [grid[a.y][a.x + 1], grid[a.y + 1]?.[a.x]]) if (b && idle(b) && b.color !== a.color) near.push([a, b]);
-  }
-  const pair = draw(near, swapped, 4); if (!pair) return;
-  const colors = pair.map(c => c.color).reverse();
-  pair.forEach((c, i) => {
-    const back = c.el.querySelector('.back'), from = getComputedStyle(back).backgroundColor;
-    paint(c, colors[i]);
-    const to = getComputedStyle(back).backgroundColor;
-    // stepped through OKLab: a straight sRGB fade sags to mud halfway (orange to violet passes a dull brown)
-    const steps = OKLAB ? [0, 25, 50, 75, 100].map(p => `color-mix(in oklab, ${to} ${p}%, ${from})`) : [from, to];
-    back.animate(steps.map(backgroundColor => ({ backgroundColor })), { duration: 700, easing: 'cubic-bezier(.45, 0, .55, 1)' });
-  });
-}
-setTimeout(idleSwap, 4500);
 
 /* the board breathes as one surface: a single swell, and the breath running out of it in slow ripples, with every
    tile following the same displacement field (stretch in board.js), so the breath travels through the grid instead
@@ -259,13 +242,14 @@ function surface(now) {
   depth += ((busy ? .4 : 1) - depth) * (1 - Math.exp(-dt / .6));
   // where the swell wants to be: its own path, pulled up to 85% of the way to the visitor, fading out over 2.5
   // cells beyond the board's edge; a tap holds it for 1.2s (long enough for the spring to arrive), then lets go
-  const want = drift(surfT, S.cols, S.rows, PH);
+  const rows = folded ? 1 : S.rows;   // folded, it breathes in the one row on show
+  const want = drift(surfT, S.cols, rows, PH);
   if (pointer) {
     const r = board.getBoundingClientRect(), px = (pointer.x - r.left) / S.cell, py = (pointer.y - r.top) / S.cell;
-    const out = Math.max(0, -px, px - S.cols, -py, py - S.rows), held = pointer.tap ? Math.min(1, Math.exp(-(now - pointer.tap - 1200) / 1500)) : 1;
+    const out = Math.max(0, -px, px - S.cols, -py, py - rows), held = pointer.tap ? Math.min(1, Math.exp(-(now - pointer.tap - 1200) / 1500)) : 1;
     const pull = .85 * Math.max(0, 1 - out / 2.5) * held;
     if (pointer.tap && held < .01) pointer = null;
-    want[0] += pull * (Math.min(S.cols, Math.max(0, px)) - want[0]); want[1] += pull * (Math.min(S.rows, Math.max(0, py)) - want[1]);
+    want[0] += pull * (Math.min(S.cols, Math.max(0, px)) - want[0]); want[1] += pull * (Math.min(rows, Math.max(0, py)) - want[1]);
   }
   if (!focus) focus = want;
   for (const i of [0, 1]) { vel[i] += (9 * (want[i] - focus[i]) - 6 * vel[i]) * dt; focus[i] += vel[i] * dt; }   // ω = 3/s
@@ -281,13 +265,53 @@ function breathe() {
 new IntersectionObserver(([e]) => { inView = e.isIntersecting; if (inView) breathe(); }).observe(board);
 reduce.addEventListener('change', breathe);
 
-function dealIn() {
+// cards land one diagonal after another; `from` is the row the wave starts on (the fold deals in the rows it opens)
+function dealIn(from = 0, delay = 120) {
   if (reduce.matches) return;
   for (const c of cards) {
+    if (c.y < from) continue;
     c.el.querySelector('.back').animate(
       [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }],
-      { duration: 380, delay: 120 + (c.x + c.y) * 34, easing: 'cubic-bezier(.23, 1, .32, 1)', fill: 'backwards' });
+      { duration: 380, delay: delay + (c.x + c.y - from) * 34, easing: 'cubic-bezier(.23, 1, .32, 1)', fill: 'backwards' });
   }
+}
+
+/* the fold: on a phone the board rests as its first row and opens on the first play, a tap or Enter on a card (which
+   flips it as well) or the arrow down into the rows below. The rows it hides are inert, so neither the keyboard nor
+   a screen reader lands on them, and the board says what is hidden. Once played it stays open for the visit, through
+   shuffles, turns of the phone and reloads (the CSS shows phones folded until this says open, so a first paint never
+   jumps) */
+const OPENED = 'basteau:board', hint = $('#fold-hint');
+let opened = (() => { try { return sessionStorage.getItem(OPENED) === 'open'; } catch { return false; } })();
+let folded = false;
+function fold() {
+  folded = S.fold && !opened;
+  wrap.toggleAttribute('data-open', !folded);
+  for (const c of cards) c.el.inert = folded && c.y > 0;
+  hint.textContent = `Showing the first row of ${S.cols * S.rows} cards. Play a card or press Down to open the rest.`;
+  if (folded) { board.setAttribute('aria-describedby', 'fold-hint'); rove(cards.find(c => c.el.tabIndex === 0)?.y > 0 ? cards[0] : null); }
+  else board.removeAttribute('aria-describedby');
+}
+// played on any layout counts: a board played sideways doesn't fold up again when the phone is turned upright
+function unfold() {
+  if (!opened) { opened = true; try { sessionStorage.setItem(OPENED, 'open'); } catch {} }
+  if (!folded) return;
+  folded = false;
+  wrap.toggleAttribute('data-opening', !reduce.matches); wrap.setAttribute('data-open', '');
+  board.removeAttribute('aria-describedby');
+  for (const c of cards) c.el.inert = false;
+  dealIn(2, 60);   // (the second row is already showing under the first: the fold just uncovers it)
+  live.textContent = `The board opened: ${pairs} pairs to find.`;
+  // once the fold has grown (index.html), bring the whole board and its bar into view if it now runs past the screen
+  setTimeout(() => {
+    wrap.removeAttribute('data-opening');
+    wrap.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+  }, reduce.matches ? 0 : 400);
+}
+// the board's one tab stop (a roving tabindex): `to` takes it
+function rove(to) {
+  if (!to) return;
+  for (const c of cards) c.el.tabIndex = c === to ? 0 : -1;
 }
 
 function setState(c, state, instant) {
@@ -298,7 +322,7 @@ function setState(c, state, instant) {
 
 function onCard(c, keyboard) {
   if (c.state !== 'down' || locked) return;
-  markPlayed();
+  markPlayed(); unfold();
   if (open.length === 2) settleMiss(true);              // a third card is interruptible: the miss turns back at once
   setState(c, 'up', keyboard); open.push(c);
   play('flip', [c.color, c.kind], { jitter: { detune: 12, volume: .1 } });
@@ -344,7 +368,6 @@ function onWin(last) {
   $('#shuffle').setAttribute('data-attn', '');
   // the pencil note that invited the game comes back to say how it went: taken off the board and put back, so it is
   // written again (index.html)
-  const wrap = board.parentElement;
   $('.nudge b').textContent = `${moves} moves!`;
   wrap.classList.remove('dealt'); void wrap.offsetWidth; wrap.classList.add('dealt');
   root.classList.add('won');
@@ -383,24 +406,24 @@ function shuffle() {
   if (!reduce.matches) leaving = Object.assign(board.cloneNode(true), { id: '', inert: true });
   newGame();
   if (!leaving) return;
-  const at = board.getBoundingClientRect(), wrap = board.parentElement.getBoundingClientRect();   // to the subpixel
-  leaving.style.cssText += `position: absolute; margin: 0; pointer-events: none; left: ${at.left - wrap.left}px; top: ${at.top - wrap.top}px;`;
+  const at = board.getBoundingClientRect(), box = board.parentElement.getBoundingClientRect();   // to the subpixel
+  leaving.style.cssText += `position: absolute; margin: 0; pointer-events: none; left: ${at.left - box.left}px; top: ${at.top - box.top}px;`;
   board.after(leaving);
   const out = was.map((c, i) => leaving.children[i].animate([{ opacity: 0, scale: .6 }],
     { duration: 180, delay: (c.x + c.y) * 34, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }));
   out.at(-1).onfinish = () => { leaving.remove(); leaving = null; };   // the bottom-right tile leaves last
 }
 
-// arrows walk the grid (roving tabindex); Enter / Space flip through the button's own click
+// arrows walk the grid (roving tabindex); Enter / Space flip through the button's own click. Down from a folded
+// board's only row opens it
 board.addEventListener('keydown', e => {
-  const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
-  if (!moves) return;
+  const step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+  if (!step) return;
   const cur = cards.find(c => c.el === document.activeElement); if (!cur) return;
   e.preventDefault();
-  let y = cur.y, x = cur.x;
-  y += moves[0]; x += moves[1];
-  const next = grid[y]?.[x]; if (!next) return;
-  cur.el.tabIndex = -1; next.el.tabIndex = 0; next.el.focus();
+  if (e.key === 'ArrowDown') unfold();
+  const next = grid[cur.y + step[0]]?.[cur.x + step[1]]; if (!next) return;
+  rove(next); next.el.focus();
 });
 
 /* =====================================================================
@@ -428,40 +451,6 @@ wireSound($('#sound'));
 wireTheme($('#theme'), () => field.recolor());
 
 $('#shuffle').addEventListener('click', shuffle);
-
-// favourites: the popover opens, closes and returns focus by itself (index.html). On top of that it sounds its little
-// shelf as it opens, the arrow keys walk its rows, and arrow down on the pill opens it at the first one
-const favBtn = $('#fav'), favs = $('#favs');
-const favLinks = () => [...favs.querySelectorAll('a')];
-favs.addEventListener('toggle', e => e.newState === 'open' && play('shelf'));
-// tabbing out of the menu closes it, so it never stays open behind the keyboard
-favs.addEventListener('focusout', e => {
-  if (e.relatedTarget && e.relatedTarget !== favBtn && !favs.contains(e.relatedTarget) && favs.matches(':popover-open')) favs.hidePopover();
-});
-// coming back with the browser's back button restores the page as it was left: without the menu still open
-addEventListener('pageshow', e => { if (e.persisted && favs.matches(':popover-open')) favs.hidePopover(); });
-// now and then a tape nods out of the little shelf, to catch the eye: the board's quiet rules, and a transition (index.html)
-// rather than a keyframe loop, so a pointer arriving mid-nod just takes it over
-function nod() {
-  setTimeout(nod, 7000);
-  if (reduce.matches || document.hidden || performance.now() - lastInput < 2500 || favBtn.matches(':hover, :focus-visible') || favs.matches(':popover-open')) return;
-  favBtn.dataset.nod = '';
-  setTimeout(() => delete favBtn.dataset.nod, 260);
-}
-setTimeout(nod, 9500);
-favBtn.addEventListener('keydown', e => {
-  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-  e.preventDefault();
-  if (!favs.matches(':popover-open')) favs.showPopover({ source: favBtn });
-  favLinks().at(e.key === 'ArrowDown' ? 0 : -1).focus();
-});
-favs.addEventListener('keydown', e => {
-  const links = favLinks(), at = links.indexOf(document.activeElement);
-  const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: links.length - 1 }[e.key];
-  if (to === undefined) return;
-  e.preventDefault();
-  links[(to + links.length) % links.length].focus();
-});
 
 // work pills: one open at a time. Pointing at a pill or tabbing to it opens it; leaving the row settles back on the
 // current job a beat later, so sliding from pill to pill never flickers home. Touch has no hover, so there the first
@@ -516,7 +505,7 @@ addEventListener('resize', () => {
     field.resize();
     const next = spec();
     if (next.key !== S.key) newGame({ animate: false });
-    else { S = next; size(); }
+    else { S = next; size(); fold(); }
   }, 80);
 });
 

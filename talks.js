@@ -38,7 +38,7 @@ function pull(tape, { settle = true } = {}) {
 /* a mouse pulls tapes out just by running along the spines (only a pointer that actually moved: a tape sliding under
    a still one doesn't count), and the keyboard pulls the tape it tabs to; either way the tape is out by the time it
    is clicked, and the click goes to the talk. Touch has no hover, so there the first tap on a shelved tape pulls it
-   out to say what it is, and a tap on the pulled one follows it (as the work pills do on the home page). Every press
+   out to say what it is, and a tap on the pulled one follows it. Every press
    on a tape, with a mouse, a finger or Enter, sounds its note. Arrow keys walk the shelf */
 let seen = {}, preview = null;
 for (const tape of tapes) {
