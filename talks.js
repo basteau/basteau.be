@@ -32,26 +32,29 @@ let lastInput = 0;
 function pull(tape, { settle = true } = {}) {
   if (tape.hasAttribute('data-open')) return;
   for (const t of tapes) t.toggleAttribute('data-open', t === tape);
-  if (settle && stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 480);
+  if (settle && stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 560);
 }
 
-/* a mouse pulls tapes out just by running along the spines (only a pointer that actually moved: a tape sliding under
-   a still one doesn't count), and the keyboard pulls the tape it tabs to; either way the tape is out by the time it
-   is clicked, and the click goes to the talk. Touch has no hover, so there the first tap on a shelved tape pulls it
+/* a mouse pulls a tape out by resting on its spine for a beat (only a pointer that actually moved: a tape sliding
+   under a still one doesn't count), so a sweep along the shelf glides past instead of pulling every tape on the way;
+   the keyboard pulls the tape it tabs to. Either way the tape is out by the time it is clicked, and the click goes
+   to the talk. Touch has no hover, so there the first tap on a shelved tape pulls it
    out to say what it is, and a tap on the pulled one follows it. Every press
    on a tape, with a mouse, a finger or Enter, sounds its note. Arrow keys walk the shelf */
-let seen = {}, preview = null;
+const DWELL = 90;
+let seen = {}, preview = null, dwell = 0;
 for (const tape of tapes) {
   const a = link(tape);
   a.addEventListener('pointermove', e => {
     if (e.pointerType !== 'mouse' || (e.clientX === seen.x && e.clientY === seen.y)) return;
     seen = { x: e.clientX, y: e.clientY };
-    pull(tape);
+    clearTimeout(dwell); dwell = setTimeout(() => pull(tape), DWELL);
   });
+  a.addEventListener('pointerleave', () => clearTimeout(dwell));
   a.addEventListener('focus', () => a.matches(':focus-visible') && pull(tape));
   a.addEventListener('pointerdown', e => { preview = e.pointerType !== 'mouse' && !tape.hasAttribute('data-open') ? tape : null; });
   a.addEventListener('click', e => {
-    sound(tape);
+    clearTimeout(dwell); sound(tape);
     if (preview !== tape) return;
     preview = null; e.preventDefault(); pull(tape);
   });
@@ -81,8 +84,8 @@ function hop() {
   if (reduce.matches || document.hidden || performance.now() - lastInput < 3000 || shelf.contains(document.activeElement)) return;
   const idle = tapes.filter(t => !t.hasAttribute('data-open') && t !== hopped);
   hopped = idle[Math.floor(Math.random() * idle.length)];
-  const by = stacked.matches ? ['10px 0', '-3px 0'] : ['0 -14px', '0 3px'];
-  hopped.animate([{ translate: '0 0' }, { translate: by[0], offset: .4 }, { translate: by[1], offset: .78 }, { translate: '0 0' }],
-    { duration: 720, easing: 'cubic-bezier(.45, 0, .55, 1)' });
+  const by = stacked.matches ? ['7px 0', '-2px 0'] : ['0 -10px', '0 2px'];
+  hopped.animate([{ translate: '0 0' }, { translate: by[0], offset: .42 }, { translate: by[1], offset: .8 }, { translate: '0 0' }],
+    { duration: 900, easing: 'cubic-bezier(.45, 0, .55, 1)' });
 }
 setTimeout(hop, 4200);

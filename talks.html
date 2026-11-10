@@ -56,6 +56,8 @@
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --snap: cubic-bezier(.2, 0, 0, 1);
+    /* a tape sliding out or back: eased in, so it never jerks off the mark, and a long soft landing */
+    --glide: cubic-bezier(.32, .72, 0, 1);
     /* the shelf: how much wider a pulled-out tape gets, the small and large corner of a tape's cut, and a pulled tape's
        big corner, which grows with the tape */
     --extra: clamp(260px, 27vw, 380px); --r: 14px; --R: 60px; --corner: calc(var(--extra) * .25);
@@ -180,17 +182,17 @@
         font-size: min(26px, (100cqh - 76px) / 19.6, (100cqw - (var(--tapes) - 1) * 6px - var(--extra)) * .05); line-height: 28px; }
   @supports (writing-mode: sideways-lr) { .st { writing-mode: sideways-lr; rotate: none; } }
   .mins { flex: none; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-  .st, .mins { transition: opacity 200ms var(--ease-out) 160ms; }
-  .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 90ms linear; }
+  .st, .mins { transition: opacity 260ms var(--ease-out) 200ms; }
+  .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 160ms var(--ease-out); }
 
   /* the sleeve leaves at once and arrives line by line behind the widening tape: transitions, so a pointer that
      moves on mid-way just turns them round */
   .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--base) + var(--extra)); visibility: hidden;
-            transition: visibility 0s 120ms; }
+            transition: visibility 0s 160ms; }
   .tape[data-open] .sleeve { visibility: visible; transition: visibility 0s; }
   .in { block-size: 100%; display: flex; flex-direction: column; padding-block: min(34px, 6cqh) min(32px, 5.5cqh); padding-inline: clamp(24px, var(--extra) * .095, 36px); }
-  .in > * { opacity: 0; transition: opacity 120ms linear; }
-  .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms); }
+  .in > * { opacity: 0; transition: opacity 160ms var(--ease-out); }
+  .tape[data-open] .in > * { opacity: 1; transition: opacity 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms); }
   .in > .about { --step: 1; } .in > .foot { --step: 2; }
   /* room on the right for the pulled tape's big corner, which the title's first lines would otherwise run into. The
      size is the largest at which "The Future of" still shares a line at every width, so no title strands a lone "of".
@@ -209,12 +211,15 @@
   @media (hover: hover) and (pointer: fine) { .tape[data-open]:hover .where svg { translate: 2px -2px; } }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* the tapes are shelved one after another, and a pulled one slides out on a quick start and a long soft landing */
+    /* the tapes are shelved one after another, and a pulled one glides out while the last one glides back. Its sleeve
+       settles in line by line, rising a few pixels out of a soft blur, and leaves the same way, only quicker */
     .tape { animation-name: shelve; animation-duration: 620ms; animation-timing-function: var(--snap);
-            transition: inline-size 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms var(--ease-out); }
-    .in > * { translate: 0 10px; transition: opacity 120ms linear, translate 0s 120ms; }
-    .tape[data-open] .in > * { translate: none; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms),
-                                                             translate 460ms var(--snap) calc(var(--step, 0) * 60ms + 140ms); }
+            transition: inline-size 560ms var(--glide), border-radius 560ms var(--glide), scale 150ms var(--ease-out); }
+    .in > * { translate: 0 6px; filter: blur(3px); transition: opacity 160ms var(--ease-out), translate 0s 160ms, filter 160ms var(--ease-out); }
+    .tape[data-open] .in > * { translate: none; filter: none;
+                               transition: opacity 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms),
+                                           translate 520ms var(--glide) calc(var(--step, 0) * 50ms + 160ms),
+                                           filter 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms); }
     .where svg { transition: translate 160ms var(--ease-out); }
   }
   @keyframes shelve { from { opacity: 0; translate: 0 28px; } }
@@ -245,7 +250,7 @@
     .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
     .foot { padding-block-start: 22px; }
     @media (prefers-reduced-motion: no-preference) {
-      .tape { transition: grid-template-rows 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms var(--ease-out); }
+      .tape { transition: grid-template-rows 560ms var(--glide), border-radius 560ms var(--glide), scale 150ms var(--ease-out); }
     }
   }
   /* a little more side room on roomy stacks (portrait tablets) */

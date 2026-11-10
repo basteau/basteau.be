@@ -328,7 +328,7 @@
     .grad span { animation-name: draw; }
   }
 
-  .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-block: 30px 26px; padding-inline-start: 8px; }
+  .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-block-start: 30px; padding-inline-start: 8px; }
   /* the ways to reach me and my favourite things share a line wherever the column has the room for both (on phones
      from about 390px); narrower, the shelf takes the line below */
   .reach { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 40px; }
@@ -402,47 +402,52 @@
   }
   @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
 
-  /* ---------- my favourite things: a little shelf of the collections I keep, each one a small object of its medium
-     standing on a pencil line, like the talks page's shelf seen from across the room. Today it holds the talks (a
-     stack of tapes); films and series (a VHS) and books (a few spines) join as more objects on the same line, each a
-     link to its own page with its name and count under the shelf. The objects are printed like the tiles, in the
-     logo colours with the grain, and cut out like stickers with a ground-coloured edge. At rest nothing moves; under
-     the pointer or keyboard focus an object lifts off the shelf and its tapes step out one after another, and on the
-     way over the tapes grow into the talks page's shelf (a view transition, talks.html) ---------- */
-  /* (its line sits level with the foot of the drops and its names hang under it, in the room .sub keeps below) */
-  .shelf { display: grid; justify-items: start; margin-block-end: -26px; }
-  .shelf-note { margin-block-end: -2px; margin-inline-start: 2px; font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
+  /* ---------- my favourite things: a little shelf of the collections I keep, each a small object of its medium
+     standing on a pencil line with its name and count beside it, like the talks page's shelf seen from across the
+     room. Today it holds the talks: four tapes, each with its label strip, the last one leaning on its neighbour.
+     Films and series (a VHS) and books (a few spines) join as more objects further along the same line, each a link to
+     its own page. They are printed like the tiles, in the logo colours with the grain. At rest nothing moves; under
+     the pointer or keyboard focus one tape is pulled up out of the row, the way the talks page pulls one out, and the
+     leaning one rights itself. On the way over the tapes grow into the talks page's shelf (a view transition,
+     talks.html) ---------- */
+  .shelf { display: grid; justify-items: start; }
+  .shelf-note { margin-inline-start: 2px; font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
                 rotate: -3deg; transform-origin: 0 100%; }
-  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 20px; padding: 0 12px; list-style: none; }
+  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 28px; padding-inline: 10px 22px; list-style: none; }
   /* the shelf: a pencil line under the objects, run through the stack scale's wobble */
-  .shelf ul::before { content: ""; position: absolute; inset-inline: -4px -14px; inset-block-end: 24px; block-size: 2.5px; border-radius: 2px;
-                      background: var(--ink); rotate: -.6deg; filter: url(#rough); }
-  /* (the room above an object is what it lifts into, inside its focus ring) */
-  .shelf a { display: grid; justify-items: center; row-gap: 10px; padding-block-start: 12px; color: var(--muted); }
-  .shelf a:focus-visible { outline-offset: 4px; border-radius: 6px; }
-  .shelf .obj { display: flex; align-items: flex-end; gap: 3px; block-size: 44px; filter: drop-shadow(0 1px 1.5px oklch(0% 0 none / .16)); }
-  .shelf .obj i { inline-size: var(--w); block-size: var(--h); border-radius: 2px; background: var(--c) var(--grain) 0 0 / 180px;
-                  background-blend-mode: soft-light; box-shadow: 0 0 0 2px var(--ground); translate: 0 calc(var(--lift) * var(--out, 0)); }
-  /* (--lift spreads up and down, so the stack stays on its shelf when the tapes stand out) */
-  .tapes i:nth-child(1) { --k: 1; --w: 9px; --h: 36px; --c: var(--magenta); --lift: -3px; border-start-start-radius: 6px; }
-  .tapes i:nth-child(2) { --k: 2; --w: 12px; --h: 42px; --c: var(--cyan); --lift: -6px; }
-  .tapes i:nth-child(3) { --k: 3; --w: 7px; --h: 34px; --c: var(--orange); --lift: -2px; border-start-start-radius: 4px; border-start-end-radius: 4px; }
-  .tapes i:nth-child(4) { --k: 4; --w: 12px; --h: 39px; --c: var(--violet); --lift: -5px; border-start-end-radius: 7px; }
-  .shelf .label { font: 500 11px/14px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .shelf ul::before { content: ""; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: 2.5px; border-radius: 2px;
+                      background: var(--ink); rotate: -.5deg; filter: url(#rough); }
+  /* (the room above the tapes is what the pulled one rises into, inside the focus ring) */
+  .shelf a { display: flex; align-items: flex-end; gap: 10px; padding-block-start: 14px; color: var(--muted); }
+  .shelf a:focus-visible { outline-offset: 5px; border-radius: 6px; }
+  .shelf .obj { display: flex; align-items: flex-end; gap: 2px; }
+  .shelf .obj i { position: relative; inline-size: var(--w); block-size: var(--h); border-radius: 2px;
+                  background: var(--c) var(--grain) 0 0 / 180px; background-blend-mode: soft-light; transform-origin: 0 100%; }
+  /* each tape's label strip, a little way down its spine */
+  .shelf .obj i::after { content: ""; position: absolute; inset-inline: 2px; inset-block-start: 24%; block-size: 3px; border-radius: 1px;
+                         background: oklch(100% 0 none / .6); }
+  .tapes i:nth-child(1) { --w: 9px; --h: 36px; --c: var(--magenta); border-start-start-radius: 6px; }
+  .tapes i:nth-child(2) { --w: 12px; --h: 42px; --c: var(--cyan); }
+  .tapes i:nth-child(3) { --w: 8px; --h: 34px; --c: var(--orange); border-start-start-radius: 4px; border-start-end-radius: 4px; }
+  /* (it leans back onto its shorter neighbour, pivoting on the corner that stays on the shelf) */
+  .tapes i:nth-child(4) { --w: 12px; --h: 39px; --c: var(--violet); border-start-end-radius: 7px; rotate: -6deg; }
+  .shelf .label { padding-block-end: 4px; font: 500 11px/1 "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
   .shelf .label b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .shelf a:active .obj { scale: .96; }
-  .shelf a:focus-visible { --out: 1; color: var(--ink); }
-  .shelf a:focus-visible .obj { translate: 0 -4px; rotate: -2deg; }
+  .shelf a:active .obj { scale: .96; transform-origin: 50% 100%; }
+  .shelf a:focus-visible { color: var(--ink); }
+  .shelf a:focus-visible .tapes i:nth-child(2) { translate: 0 -10px; }
+  .shelf a:focus-visible .tapes i:nth-child(4) { rotate: 0deg; }
   @media (hover: hover) and (pointer: fine) {
-    .shelf a:hover { --out: 1; color: var(--ink); }
-    .shelf a:hover .obj { translate: 0 -4px; rotate: -2deg; }
+    .shelf a:hover { color: var(--ink); }
+    .shelf a:hover .tapes i:nth-child(2) { translate: 0 -10px; }
+    .shelf a:hover .tapes i:nth-child(4) { rotate: 0deg; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .tapes { view-transition-name: shelf; }
     .shelf a { transition: color 160ms ease; }
-    .shelf .obj { transition: translate 260ms var(--spring), rotate 260ms var(--spring), scale 120ms var(--ease-out); }
-    /* the tapes step out one after another and all go back at once, quicker */
-    .shelf .obj i { transition: translate calc(150ms + var(--out, 0) * 50ms) var(--ease-out) calc(var(--out, 0) * (var(--k) - 1) * 30ms); }
+    .shelf .obj { transition: scale 120ms var(--ease-out); }
+    /* pulled out on a soft ease, and the leaning tape rights itself with a little sway */
+    .shelf .obj i { transition: translate 280ms var(--ease-out), rotate 420ms var(--spring); }
   }
   /* ---------- the board's controls ---------- */
   .icon { position: relative; inline-size: 44px; block-size: 44px; display: grid; place-items: center; border-radius: 999px;
@@ -607,8 +612,8 @@
       .actions { --bud: -56px; --bud-x: -109px; }
     }
     /* the board and its bar share the intro's left edge, with the bar in the flow under the board */
-    /* (clear of the shelf's names above and of the board's own nudge) */
-    .board-wrap { margin-block-start: 52px; justify-self: start; grid-template-columns: minmax(0, 1fr); }
+    /* (clear of the board's own nudge, which stands above it) */
+    .board-wrap { margin-block-start: 44px; justify-self: start; grid-template-columns: minmax(0, 1fr); }
     .controls { position: static; justify-self: stretch; margin-block-start: 4px; margin-inline: 0 -13px; }
     /* the nudge sits close over the board's right end, with its arrow's tip on the last card's centre */
     .nudge { inset-inline-end: calc(.5 * var(--cell) + 38px); inset-block-end: calc(100% + 10px); }
