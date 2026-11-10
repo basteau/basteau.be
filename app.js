@@ -59,7 +59,7 @@ function spec() {
   const low = !m && H < 500;   // a phone on its side: the wide board beside the intro, sized to the height
   const [cols, rows] = m || low ? [5, 4] : [4, 6];
   const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 5, H * .4 / 4)
-    : low ? Math.min((H - 40) / 4, W * .42 / 5)
+    : low ? Math.min((H - 40 - 50) / 4, W * .42 / 5)   // (room for the bar under the board)
     : Math.min((Math.max(H, 560) - 48) * .8 / 6, PW * .34 / 4)));   // desktop: a column with air above and below
   return { cols, rows, cell, holes: [], m, low, key: `${cols}x${rows}` };
 }
