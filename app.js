@@ -52,13 +52,15 @@ const play = player(SFX);
    5 x 4 board under the intro on phones. Cells stay square; everything
    else follows them.
    ===================================================================== */
+const page = $('.page');
 function spec() {
   const W = vw(), H = vh(), m = W < 760 || (W < 1100 && H > W);   // same breakpoints as the CSS
+  const PW = page.clientWidth;   // the page stops growing on very wide screens (index.html), and so does the board
   const low = !m && H < 500;   // a phone on its side: the wide board beside the intro, sized to the height
   const [cols, rows] = m || low ? [5, 4] : [4, 6];
   const cell = Math.max(44, Math.floor(m ? Math.min((W - 30) / 5, H * .4 / 4)
     : low ? Math.min((H - 40) / 4, W * .42 / 5)
-    : Math.min((Math.max(H, 560) - 48) * .8 / 6, W * .34 / 4)));   // desktop: a column with air above and below
+    : Math.min((Math.max(H, 560) - 48) * .8 / 6, PW * .34 / 4)));   // desktop: a column with air above and below
   return { cols, rows, cell, holes: [], m, low, key: `${cols}x${rows}` };
 }
 
@@ -75,7 +77,7 @@ function newGame({ animate = true } = {}) {
   const model = deal(S.cols, S.rows, S.holes, seed = (seed * 31 + 7) >>> 0);
   pairs = model.pairs;
   board.textContent = '';
-  board.style.setProperty('--cols', S.cols);
+  root.style.setProperty('--cols', S.cols); root.classList.remove('won');
   grid = Array.from({ length: S.rows }, () => Array(S.cols).fill(null));
   cards = [];
   for (const m of model.cells) {
@@ -102,7 +104,7 @@ function newGame({ animate = true } = {}) {
 
 // lay everything out at the current viewport without touching game state
 function size() {
-  const W = vw();
+  const W = vw(), PW = page.clientWidth;
   root.style.setProperty('--cell', S.cell + 'px');
   const cell = S.cell;
   for (const c of cards) {
@@ -114,9 +116,9 @@ function size() {
   }
   // the name fills the space left of the board (capped so it never shouts louder than the board)
   const name = $('#name');
-  const avail = S.m ? W - 48 : W - (S.low ? 48 : 96) - 24 - (S.low ? 32 : 48) - S.cols * S.cell - 8;   // the page's padding and gap
-  // phones 104px, portrait tablets up to 150px, desktop 200px growing to 260px on tall screens beside a bigger board
-  const cap = S.m ? (W < 760 ? 104 : 150) : Math.round(Math.min(260, Math.max(200, vh() * .22)));
+  const avail = S.m ? PW - 48 : PW - (S.low ? 48 : 96) - 24 - (S.low ? 32 : 48) - S.cols * S.cell - 8;   // the page's padding and gap
+  // phones 104px, portrait tablets up to 150px, desktop 200px, growing with the height beside a bigger board
+  const cap = S.m ? (W < 760 ? 104 : 150) : Math.round(Math.max(200, vh() * .22));
   name.style.fontSize = '100px';
   const w100 = name.getBoundingClientRect().width;
   root.style.setProperty('--name', Math.min(cap, Math.floor(100 * avail / w100)) + 'px');
@@ -130,6 +132,7 @@ function size() {
 function cutCard(c) {
   const { shape, done } = shapeOf(c, S.cell);
   c.el.style.setProperty('--shape', shape); c.el.style.setProperty('--shape-done', done);
+  c.el.style.setProperty('--round', c.radius.map(k => (k * S.cell).toFixed(2) + 'px').join(' '));   // for the focus ring
 }
 
 /* every few seconds, while nobody is playing, one tile turns a quarter: any shape whose corners show the swing (a
@@ -339,6 +342,12 @@ function onWin(last) {
   play('win');
   live.textContent = `All ${pairs} pairs in ${moves} moves.`;
   $('#shuffle').setAttribute('data-attn', '');
+  // the pencil note that invited the game comes back to say how it went: taken off the board and put back, so it is
+  // written again (index.html)
+  const wrap = board.parentElement;
+  $('.nudge b').textContent = `${moves} moves!`;
+  wrap.classList.remove('dealt'); void wrap.offsetWidth; wrap.classList.add('dealt');
+  root.classList.add('won');
   if (reduce.matches) return;
   // the board breathes once, outward from the last pair; the name answers with a little wave
   for (const c of cards) {

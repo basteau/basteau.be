@@ -82,14 +82,17 @@
     --cta-bg: light-dark(oklch(54.47% .1557 250.4), oklch(56.33% .1557 249.9)); --cta-fg: var(--white);
     --drop: light-dark(oklch(94.09% .03 246.6), oklch(30.41% .0616 247.1));
     --drop-fg: light-dark(oklch(48.85% .138 249.9), oklch(82.52% .0964 241.5));
-    /* the stack scale's inks: the side notes (orange and cyan darkened to read on white) and the home band's hatch */
+    /* the stack scale's inks: the notes (orange, magenta and cyan darkened to read on white) and the home band's hatch */
     --lo: light-dark(oklch(54.53% .1259 61.6), var(--orange));
+    --mid: light-dark(oklch(57% .25 358.3), var(--magenta));
     --hi: light-dark(oklch(54.47% .1557 250.4), var(--cyan));
     --hatch: light-dark(oklch(87.8% .0804 346.1), oklch(65.12% .2624 358.3 / .34));
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --spring: cubic-bezier(.34, 1.56, .64, 1);
     --cell: 120px; --cols: 4; --name: 184px;
+    /* the widest the page gets: the layout is drawn for 16:10, and the board and the name grow with the height */
+    --page: max(1440px, 160svh);
   }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"] { color-scheme: dark; }
@@ -123,8 +126,11 @@
 
   #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
 
-  /* ---------- the page: identity on the left, the board as a full-height column on the right ---------- */
+  /* ---------- the page: identity on the left, the board as a full-height column on the right. On a screen wider
+     than --page it stops growing and sits in the middle, by its visible edges: the name starts 96px in and the board
+     ends 24px in, so the page is pulled 36px to the left of centre ---------- */
   .page { position: relative; z-index: 1; display: grid; block-size: 100svh; min-block-size: 560px;
+          max-inline-size: var(--page); margin-inline-start: max(0px, (100% - var(--page)) / 2 - 36px);
           grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto auto 1fr auto;
           grid-template-areas: ". board" "scale board" "name board" "sub board" "talks board" ". board" "controls board";
           padding: 24px 24px 24px 96px; column-gap: 48px; }
@@ -160,12 +166,14 @@
   .r1 { grid-column: 8; } .r2 { grid-column: 9; }
   .lp, .rp { display: none; }
   .note { font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap; }
-  .n-lo > span, .n-hi > span { display: inline-block; }
+  .n-lo > span { display: inline-block; } .n-hi > span { display: block; }
   .n-lo { grid-row: note; grid-column: low / home; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--lo); rotate: -1.5deg; }
-  .n-hi { grid-row: note; grid-column: high / end; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--hi); rotate: 1.5deg; }
+  /* (two lines, like home turf: on one it would run past the arrow and the end of the name) */
+  .n-hi { grid-row: note; grid-column: high / end; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--hi); rotate: 1.5deg;
+          white-space: normal; text-align: center; }
   /* home turf sits over the middle of the middle: frontend */
   .n-home { grid-row: note; grid-column: home / high; justify-self: center; align-self: end; margin-block-end: 5px; display: flex;
-            flex-direction: column; align-items: center; text-align: center; color: var(--magenta); rotate: -1.5deg; }
+            flex-direction: column; align-items: center; text-align: center; color: var(--mid); rotate: -1.5deg; }
   .n-home b { font-weight: 600; font-size: 20px; line-height: 24px; }
   /* a big name on a big screen: the annotations grow a step with it */
   @container (min-width: 900px) {
@@ -179,8 +187,7 @@
     .sc { grid-template-rows: [note] 54px [band] 28px [label] 24px; }
     .lv { font-size: 10px; letter-spacing: .05em; }
     .note { font-size: 14px; line-height: 17px; }
-    .n-lo, .n-hi { white-space: normal; text-align: center; }
-    .n-hi .dot { display: none; }
+    .n-lo { white-space: normal; text-align: center; }
   }
   /* phones: each side folds into one level, and each side note hangs right under its own level, on two lines held to
      that band's outer edge, so the level, its band and its note read as one group (and the middle stays clear) */
@@ -247,6 +254,7 @@
   .pill .out { flex: none; block-size: 1cap; inline-size: auto; }
   .pill[data-open] { grid-template-columns: 30px 10px 1fr 11px; }
   .pill[data-open] .what { opacity: 1; transition: opacity 240ms var(--ease-out) 60ms; }
+  .pill:focus-visible { outline-color: var(--ink); }
   .pill:active { scale: .97; }
   @media (hover: hover) and (pointer: fine) {
     .pill:hover { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
@@ -315,20 +323,22 @@
 
   /* ---------- the nudge: a pencil note in the scale's hand, in the air above the board ----------
      written in after the deal and wiped away once the board has been played (app.js sets .played; it's back on the
-     next visit). The arrow's tip sits 108.5px from the note's left edge, so the note slides to land it on the second
-     card's centre (the third on the narrowest phones, where the second is under the words) */
-  .nudge { position: absolute; inset-inline-start: max(2px, calc(1.5 * var(--cell) - 111.5px)); inset-block-end: calc(100% + 16px);
+     next visit), and written once more when the game is won, to say in how many moves (.won). The arrow's tip sits
+     38px past the words, so the note is placed by its right edge to land the tip on the second card's centre,
+     whatever it says */
+  .nudge { position: absolute; inset-inline-end: calc(100% - 1.5 * var(--cell) + 38px); inset-block-end: calc(100% + 16px);
            rotate: -3deg; transform-origin: 0 100%; pointer-events: none; white-space: nowrap; visibility: hidden;
            transition: opacity 300ms ease; }
   .dealt .nudge { visibility: visible; animation: fade 760ms cubic-bezier(.4, .4, .3, 1) 900ms both; }
   .nudge b { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
   .nudge svg { position: absolute; inset-inline-start: calc(100% - 6px); inset-block-start: -12px; inline-size: 52px; block-size: 44px;
                fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
-  .played .nudge { opacity: 0; }
+  .played:not(.won) .nudge { opacity: 0; }
+  .won .dealt .nudge { animation-delay: 500ms; }
   @media (prefers-reduced-motion: no-preference) {
     .nudge { transition: opacity 300ms ease, translate 300ms var(--ease-out); }
     .dealt .nudge { animation-name: write; }
-    .played .nudge { translate: 0 6px; }
+    .played:not(.won) .nudge { translate: 0 6px; }
   }
   /* written left to right at a steady hand, slowing only as the arrowhead lands, with room on the right for the arrow */
   @keyframes write { from { clip-path: inset(-40% 100% -70% -6%); } to { clip-path: inset(-40% -80px -70% -6%); } }
@@ -373,6 +383,7 @@
   .icon { position: relative; inline-size: 40px; block-size: 40px; display: grid; place-items: center; border-radius: 999px;
           transition: background-color 160ms ease; }
   .icon:active { scale: .96; }
+  .icon:focus-visible { outline-offset: 0; }
   @media (pointer: coarse) { .icon { inline-size: 44px; block-size: 44px; } }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
@@ -481,7 +492,11 @@
   .board { display: grid; grid-template-columns: repeat(var(--cols), var(--cell)); grid-auto-rows: var(--cell); isolation: isolate;
            margin: calc(-1 * max(2px, var(--cell) * .028)); }
   .card { position: relative; cursor: pointer; }
-  .card:focus-visible { outline-offset: -3px; }
+  /* the focus ring follows the tile's own cut (--round, from app.js), and the plate's once it is turned. It is drawn
+     on the skin, so the card itself stays a square to press */
+  .card:focus-visible { outline: none; }
+  .card:focus-visible .skin { outline: max(2px, .08em) solid var(--ink); outline-offset: -3px; border-radius: var(--round); }
+  .card:not([data-state="down"]):focus-visible .skin { border-radius: calc(var(--cell) * .32); }
   .card:active { scale: .97; }
   .card[data-state="done"] { cursor: default; }
   .card[data-state="done"]:active { scale: none; }
@@ -545,9 +560,14 @@
      desktop), and a wide 5 x 4 board follows with its score and controls on a bar under it, so a phone shows the
      whole site in one screen. Taller screens centre the lot ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
+    :root { --cols: 5; }
     .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto auto auto 1fr;
             grid-template-areas: "." "scale" "name" "sub" "talks" "board" "controls" "."; block-size: auto; min-block-size: 100svh; column-gap: 0;
             padding: calc(12px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)); }
+    /* on a portrait tablet the board is sized by the height and comes out narrower than the screen: there the column
+       is as wide as the board (five cells of a tenth of the height, never under 44px, as spec() in app.js sizes them)
+       and sits in the middle */
+    @media (orientation: portrait) { .page { max-inline-size: calc(max(50svh, 220px) + 48px); margin-inline: auto; } }
     .scale { margin: 10px 0 22px 4px; }
     /* the board and its bar share the intro's left edge (on phones the board fills the width anyway) */
     .board-wrap { margin-block-start: 28px; justify-self: start; }
@@ -555,7 +575,7 @@
        arrow drops into the top right card. The favourites pill ends 180px into the board's column there, so the note
        starts at least 24px past it, and further right where that lands the arrow's tip (47px in) on the last card's
        centre */
-    .nudge { inset-inline-start: max(204px, 100% - .5 * var(--cell) - 47px); inset-block-end: calc(100% + 24px); }
+    .nudge { inset-inline: max(204px, 100% - .5 * var(--cell) - 47px) auto; inset-block-end: calc(100% + 24px); }
     .nudge b { display: inline-block; inline-size: min-content; white-space: normal; }
     .nudge svg { inset-inline-start: 8px; inset-block-start: calc(100% - 12px); inline-size: 46px; block-size: 39px; }
     @media (prefers-reduced-motion: no-preference) { .dealt .nudge { animation-name: write-down; } }
@@ -589,7 +609,11 @@
   /* ---------- a phone on its side: the desktop layout, tighter, with a wide 5 x 4 board that fits the height and a page
      that grows to its content instead of clipping it ---------- */
   @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
+    :root { --cols: 5; }
     .page { block-size: auto; min-block-size: 100svh; padding: 20px 24px 20px 48px; column-gap: 32px; }
+    /* the current job says it shorter, as on phones, so the three pills share a line; the bar keeps clear of the pill above */
+    .pill .wide { display: none; } .pill .narrow { display: inline; }
+    .controls { margin-block-start: 16px; }
     /* the board stays whole in view while the intro scrolls past it */
     .board-wrap { align-self: start; position: sticky; inset-block-start: 20px; }
     .nudge { display: none; }
@@ -640,7 +664,7 @@
       <span class="lv lp">low<br>level</span><span class="lv rp">ui/ux<br>design</span>
       <span class="note n-home"><b>home turf</b>good at it, by myself</span>
       <span class="note n-lo"><span>curious,</span> <span>a bit afraid</span></span>
-      <span class="note n-hi"><span>excited about<span class="dot"> ·</span></span> <span>good with AI</span></span>
+      <span class="note n-hi"><span>excited about</span> <span>good with AI</span></span>
     </div>
   </figure>
   <h1 class="name rise" id="name" style="--i:1" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
