@@ -38,7 +38,8 @@
   @view-transition { navigation: auto; }
 
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
-  :root { text-wrap: pretty; -webkit-font-smoothing: antialiased; overscroll-behavior-y: none; }
+  :root { text-wrap: pretty; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
   @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
   body { min-block-size: 100svh; display: grid; place-content: safe center; justify-items: start; gap: 28px; padding: 24px;
          background: var(--ground) radial-gradient(circle at center, var(--rule) 0, var(--rule) 1px, transparent 1.5px) 0 0 / 24px 24px;
@@ -54,6 +55,7 @@
   @keyframes wave { to { --x1: .6em; } }
   a { display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px; border-radius: 999px;
       background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600; text-decoration: none; touch-action: manipulation; }
+  a svg { flex: none; block-size: 1.5cap; inline-size: auto; }
   a:active { scale: .97; }
   a:focus-visible { outline: max(2px, .08em) solid var(--ink); outline-offset: .25em; }
   @media (prefers-reduced-motion: no-preference) {

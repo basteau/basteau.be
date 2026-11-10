@@ -65,7 +65,9 @@
 
   /* ---------- reset ---------- */
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
-  :root { text-wrap: pretty; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-size-adjust: 100%; }
+  :root { text-wrap: pretty; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+  @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
   /* the home page's dotted paper, at rest: here the tapes are the only thing that moves */
   body { min-block-size: 100svh; background: var(--ground) radial-gradient(circle at center, var(--dot) 0, var(--dot) 1px, transparent 1.5px) 0 0 / 24px 24px; color: var(--ink); font-family: Geist, system-ui, sans-serif;
          font-synthesis: none; -webkit-tap-highlight-color: transparent; }
@@ -94,11 +96,12 @@
   /* ---------- the page: a bar, the title, and a shelf that takes the rest of the screen ---------- */
   .page { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; block-size: 100svh; min-block-size: 620px;
           max-inline-size: 1760px; margin-inline: auto;
-          padding: calc(24px + env(safe-area-inset-top, 0px)) clamp(32px, 6.6vw, 96px) calc(clamp(24px, 4.4svh, 40px) + env(safe-area-inset-bottom, 0px)); }
+          padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(clamp(24px, 4.4svh, 40px) + env(safe-area-inset-bottom, 0px)); padding-inline: clamp(32px, 6.6vw, 96px); }
   .bar { display: flex; align-items: center; justify-content: space-between; margin-inline: -8px -11px; }
   .home { display: inline-flex; align-items: center; gap: 10px; block-size: 44px; padding-inline: 8px; border-radius: 999px;
           font-size: 26px; line-height: 1; font-weight: 800; letter-spacing: -.05em; }
   .home i { font-style: normal; color: var(--cyan); }
+  .home .back { flex: none; block-size: 1cap; inline-size: auto; }
   .home:active { scale: .96; }
   .tools { display: flex; align-items: center; gap: 2px; }
 
@@ -168,9 +171,9 @@
   .spine { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
            padding-block: 22px 18px; }
   .spine::after { content: ""; position: absolute; inset: 0; }
-  .spine:focus-visible { outline: none; }
+  .spine:focus-visible { outline: 2px solid transparent; }
   .tape:has(.spine:focus-visible) { outline: max(2px, .08em) solid var(--ink); outline-offset: 3px; }
-  .tape:has(.spine:active) { scale: .985; }
+  .tape:has(.spine:active) { scale: .98; }
   /* the title runs up the spine, sized so the longest one still fits a short shelf and the thinnest tape (25 of the
      353 minutes) on a narrow one (set sideways where the browser can, turned round where it can't) */
   .st { writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; font-weight: 800; letter-spacing: -.03em;
@@ -190,8 +193,10 @@
   .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms); }
   .in > .about { --step: 1; } .in > .foot { --step: 2; }
   /* room on the right for the pulled tape's big corner, which the title's first lines would otherwise run into. The
-     size is the largest at which "The Future of" still shares a line at every width, so no title strands a lone "of" */
-  .big { padding-inline-end: calc(var(--corner) * .56); font-size: min(var(--extra) * .135, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em; text-wrap: balance; }
+     size is the largest at which "The Future of" still shares a line at every width, so no title strands a lone "of".
+     A word a little wider than the line runs into that room; it is never broken */
+  .big { padding-inline-end: calc(var(--corner) * .56); font-size: min(var(--extra) * .135, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em;
+         text-wrap: balance; overflow-wrap: normal; }
   .about { max-inline-size: 34ch; padding-block-start: min(24px, 3.8cqh); font-size: clamp(16px, 3.4cqh, 19px); line-height: 1.42; font-weight: 500; }
   /* the sleeve's foot: who, where and how long on three short lines, and where the tape leads at the end of the last
      one. Both share one cell, so the lines keep the sleeve's full width and never wrap round the way out */
@@ -200,16 +205,16 @@
           font-variant-numeric: tabular-nums; }
   .foot > * { grid-area: 1 / 1; }
   .where { justify-self: end; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-  .where svg { inline-size: 11px; block-size: 11px; flex: none; }
+  .where svg { flex: none; block-size: 1.3cap; inline-size: auto; }
   @media (hover: hover) and (pointer: fine) { .tape[data-open]:hover .where svg { translate: 2px -2px; } }
 
   @media (prefers-reduced-motion: no-preference) {
     /* the tapes are shelved one after another, and a pulled one slides out on a quick start and a long soft landing */
     .tape { animation-name: shelve; animation-duration: 620ms; animation-timing-function: var(--snap);
-            transition: inline-size 520ms var(--snap), border-radius 520ms var(--snap), scale 150ms ease-out; }
+            transition: inline-size 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms var(--ease-out); }
     .in > * { translate: 0 10px; transition: opacity 120ms linear, translate 0s 120ms; }
     .tape[data-open] .in > * { translate: none; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 60ms + 140ms),
-                                                             translate 520ms var(--snap) calc(var(--step, 0) * 60ms + 140ms); }
+                                                             translate 460ms var(--snap) calc(var(--step, 0) * 60ms + 140ms); }
     .where svg { transition: translate 160ms var(--ease-out); }
   }
   @keyframes shelve { from { opacity: 0; translate: 0 28px; } }
@@ -219,11 +224,11 @@
      grid-template-rows transition and each tape grows to its own text ---------- */
   @media (max-width: 899px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px) {
     :root { --r: 12px; --R: 30px; --corner: calc(var(--R) * 2.1); }
-    .page { block-size: auto; min-block-size: 100svh; padding: calc(12px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px)); }
+    .page { block-size: auto; min-block-size: 100svh; padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)); padding-inline: 20px; }
     .home { font-size: 24px; gap: 8px; }
     .head { flex-wrap: wrap; gap: 0 16px; padding-block: 10px 22px; }
     h1 { font-size: 96px; }
-    .note { order: 3; flex-basis: 100%; padding: 16px 0 0 4px; rotate: -2deg; font-size: 18px; line-height: 24px; }
+    .note { order: 3; flex-basis: 100%; padding-block: 16px 0; padding-inline-start: 4px; rotate: -2deg; font-size: 18px; line-height: 24px; }
     .note svg { display: none; }
     .page { justify-content: flex-start; }
     .shelf { flex: none; max-block-size: none; flex-direction: column; gap: 5px; container-type: normal; }
@@ -240,7 +245,7 @@
     .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
     .foot { padding-block-start: 22px; }
     @media (prefers-reduced-motion: no-preference) {
-      .tape { transition: grid-template-rows 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms ease-out; }
+      .tape { transition: grid-template-rows 460ms var(--snap), border-radius 460ms var(--snap), scale 150ms var(--ease-out); }
     }
   }
   /* a little more side room on roomy stacks (portrait tablets) */
@@ -297,7 +302,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Simple Made Easy</p>
         <p class="about" id="simple-made-easy-about">Simple and easy are not the same thing, and reaching for easy is how software gets complex.</p>
-        <div class="foot"><p class="meta">Rich Hickey<br>Strange Loop 2011<br>1:01:38</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Rich Hickey<br>Strange Loop 2011<br>1:01:38</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-a" id="event-loop" data-c="cyan" style="--min:27;--i:1">
@@ -305,7 +310,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">What the heck is the event loop anyway?</p>
         <p class="about" id="event-loop-about">How the call stack, the task queue and the event loop let single-threaded JavaScript do several things at once.</p>
-        <div class="foot"><p class="meta">Philip Roberts<br>JSConf EU 2014<br>26:52</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Philip Roberts<br>JSConf EU 2014<br>26:52</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape" id="in-the-loop" data-c="orange" style="--min:35;--i:2">
@@ -313,7 +318,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">In the Loop</p>
         <p class="about" id="in-the-loop-about">What the browser does on every turn of the event loop: tasks, microtasks, rendering and requestAnimationFrame, in order.</p>
-        <div class="foot"><p class="meta">Jake Archibald<br>JSConf.Asia 2018<br>35:12</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Jake Archibald<br>JSConf.Asia 2018<br>35:12</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-b" id="rethinking-reactivity" data-c="violet" style="--min:37;--i:3">
@@ -321,7 +326,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Rethinking Reactivity</p>
         <p class="about" id="rethinking-reactivity-about">A framework can be a compiler: move reactivity out of the runtime and into the build step.</p>
-        <div class="foot"><p class="meta">Rich Harris<br>You Gotta Love Frontend 2019<br>36:45</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Rich Harris<br>You Gotta Love Frontend 2019<br>36:45</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-c" id="wet-codebase" data-c="cyan" style="--min:25;--i:4">
@@ -329,7 +334,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The Wet Codebase</p>
         <p class="about" id="wet-codebase-about">The wrong abstraction costs more than duplication, and taking one apart again should be a normal thing to do.</p>
-        <div class="foot"><p class="meta">Dan Abramov<br>Deconstruct 2019<br>25:01</p><p class="where" aria-hidden="true">Vimeo<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Dan Abramov<br>Deconstruct 2019<br>25:01</p><p class="where" aria-hidden="true">Vimeo<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-d" id="beyond-components" data-c="orange" style="--min:31;--i:5">
@@ -337,7 +342,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The World Beyond Components</p>
         <p class="about" id="beyond-components-about">Components organise code; they do not have to decide what re-renders. Fine-grained reactivity can do that part.</p>
-        <div class="foot"><p class="meta">Ryan Carniato<br>React Finland 2022<br>30:40</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Ryan Carniato<br>React Finland 2022<br>30:40</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-e" id="little-things" data-c="magenta" style="--min:39;--i:6">
@@ -345,7 +350,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">All the Little Things</p>
         <p class="about" id="little-things-about">A tangle of conditionals refactored into small objects, one safe step at a time.</p>
-        <div class="foot"><p class="meta">Sandi Metz<br>RailsConf 2014<br>38:47</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Sandi Metz<br>RailsConf 2014<br>38:47</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape" id="future-of-programming" data-c="violet" style="--min:33;--i:7">
@@ -353,7 +358,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">The Future&nbsp;of Programming</p>
         <p class="about" id="future-of-programming-about">Given as if it were 1973: the bold ideas programming already had, and a warning against believing we know what programming is.</p>
-        <div class="foot"><p class="meta">Bret Victor<br>DBX 2013<br>32:55</p><p class="where" aria-hidden="true">Vimeo<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Bret Victor<br>DBX 2013<br>32:55</p><p class="where" aria-hidden="true">Vimeo<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-c" id="cruddy-by-design" data-c="cyan" style="--min:40;--i:8">
@@ -361,7 +366,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Cruddy by Design</p>
         <p class="about" id="cruddy-by-design-about">When a controller wants a custom action, there is usually a new resource waiting to be named. Keep to the seven standard ones.</p>
-        <div class="foot"><p class="meta">Adam Wathan<br>Laracon US 2017<br>40:30</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Adam Wathan<br>Laracon US 2017<br>40:30</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
     <li class="tape cut-f" id="impossible-states" data-c="orange" style="--min:25;--i:9">
@@ -369,7 +374,7 @@
       <div class="sleeve"><div class="in">
         <p class="big" aria-hidden="true">Making Impossible States Impossible</p>
         <p class="about" id="impossible-states-about">Shape your data so that the states which should never happen cannot be represented at all.</p>
-        <div class="foot"><p class="meta">Richard Feldman<br>elm-conf 2016<br>25:06</p><p class="where" aria-hidden="true">YouTube<svg><use href="#out"/></svg></p></div>
+        <div class="foot"><p class="meta">Richard Feldman<br>elm-conf 2016<br>25:06</p><p class="where" aria-hidden="true">YouTube<svg viewBox="0 0 10 10"><use href="#out"/></svg></p></div>
       </div></div>
     </li>
   </ol>

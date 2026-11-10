@@ -11,9 +11,11 @@ const stacked = matchMedia('(max-width: 899px), (max-width: 1099px) and (orienta
 wireSound($('#sound'));
 wireTheme($('#theme'));
 
-/* the shelf plays like a xylophone: every tape is a bar, the longer the talk the lower its note (a C-major
-   pentatonic, so any run across the spines stays consonant). A soft bar with a short wooden knock on top, quiet because
-   a mouse plays it just by passing */
+/* the shelf is tuned like a xylophone: every tape is a bar, the longer the talk the lower its note (a C-major
+   pentatonic, so any two tapes are consonant): a soft bar with a short wooden knock on top. A tape sounds when it is
+   pressed, never when it is only pointed at or tabbed to: browsers keep a page silent until the visitor has clicked
+   or pressed a key, so a run along the spines would say nothing at first and then start sounding after some
+   unrelated click */
 const SCALE = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
 const mins = t => +t.style.getPropertyValue('--min');
 const byLength = [...tapes].sort((a, b) => mins(b) - mins(a));
@@ -22,22 +24,22 @@ const play = player({
   bar: f => bars.get(f) ?? bars.set(f, defineSound({ layers: [tick(2400, .04), ...strike(f, .22, .05, { overtones: [[4, .14, .16]] })] })).get(f),
 });
 
-/* pulling a tape out slides the last one back and sounds its note. In the stack the tape above may have just folded, so the pulled one is
-   scrolled back into view once it has settled */
+const sound = tape => play('bar', SCALE[byLength.indexOf(tape)], { jitter: { detune: 8, volume: .1 } });
+
+/* pulling a tape out slides the last one back. In the stack the tape above may have just folded, so the pulled one is
+   scrolled back into view once it has settled (not for a tape the address asked for: the browser has scrolled to it) */
 let lastInput = 0;
-function pull(tape, { quiet = false } = {}) {
+function pull(tape, { settle = true } = {}) {
   if (tape.hasAttribute('data-open')) return;
   for (const t of tapes) t.toggleAttribute('data-open', t === tape);
-  if (quiet) return;
-  play('bar', SCALE[byLength.indexOf(tape)], { jitter: { detune: 8, volume: .1 } });
-  if (stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 480);
+  if (settle && stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 480);
 }
 
 /* a mouse pulls tapes out just by running along the spines (only a pointer that actually moved: a tape sliding under
    a still one doesn't count), and the keyboard pulls the tape it tabs to; either way the tape is out by the time it
    is clicked, and the click goes to the talk. Touch has no hover, so there the first tap on a shelved tape pulls it
-   out to say what it is, and a tap on the pulled one follows it (as the work pills do on the home page). Arrow keys
-   walk the shelf */
+   out to say what it is, and a tap on the pulled one follows it (as the work pills do on the home page). Every press
+   on a tape, with a mouse, a finger or Enter, sounds its note. Arrow keys walk the shelf */
 let seen = {}, preview = null;
 for (const tape of tapes) {
   const a = link(tape);
@@ -49,6 +51,7 @@ for (const tape of tapes) {
   a.addEventListener('focus', () => a.matches(':focus-visible') && pull(tape));
   a.addEventListener('pointerdown', e => { preview = e.pointerType !== 'mouse' && !tape.hasAttribute('data-open') ? tape : null; });
   a.addEventListener('click', e => {
+    sound(tape);
     if (preview !== tape) return;
     preview = null; e.preventDefault(); pull(tape);
   });
@@ -65,7 +68,7 @@ for (const type of ['pointerdown', 'pointermove', 'keydown']) addEventListener(t
 // a link to a tape (talks.html#wet-codebase) arrives with it pulled out
 function fromHash() {
   const tape = tapes.find(t => t.id === location.hash.slice(1));
-  if (tape) pull(tape, { quiet: true });
+  if (tape) pull(tape, { settle: false });
 }
 addEventListener('hashchange', fromHash);
 fromHash();
