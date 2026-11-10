@@ -182,17 +182,17 @@
         font-size: min(26px, (100cqh - 76px) / 19.6, (100cqw - (var(--tapes) - 1) * 6px - var(--extra)) * .05); line-height: 28px; }
   @supports (writing-mode: sideways-lr) { .st { writing-mode: sideways-lr; rotate: none; } }
   .mins { flex: none; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-  .st, .mins { transition: opacity 260ms var(--ease-out) 200ms; }
-  .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 160ms var(--ease-out); }
+  .st, .mins { transition: opacity 240ms var(--ease-out) 140ms; }
+  .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 120ms var(--ease-out); }
 
   /* the sleeve leaves at once and arrives line by line behind the widening tape: transitions, so a pointer that
      moves on mid-way just turns them round */
   .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--base) + var(--extra)); visibility: hidden;
-            transition: visibility 0s 160ms; }
+            transition: visibility 0s 120ms; }
   .tape[data-open] .sleeve { visibility: visible; transition: visibility 0s; }
   .in { block-size: 100%; display: flex; flex-direction: column; padding-block: min(34px, 6cqh) min(32px, 5.5cqh); padding-inline: clamp(24px, var(--extra) * .095, 36px); }
-  .in > * { opacity: 0; transition: opacity 160ms var(--ease-out); }
-  .tape[data-open] .in > * { opacity: 1; transition: opacity 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms); }
+  .in > * { opacity: 0; transition: opacity 120ms var(--ease-out); }
+  .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 40ms + 80ms); }
   .in > .about { --step: 1; } .in > .foot { --step: 2; }
   /* room on the right for the pulled tape's big corner, which the title's first lines would otherwise run into. The
      size is the largest at which "The Future of" still shares a line at every width, so no title strands a lone "of".
@@ -214,12 +214,12 @@
     /* the tapes are shelved one after another, and a pulled one glides out while the last one glides back. Its sleeve
        settles in line by line, rising a few pixels out of a soft blur, and leaves the same way, only quicker */
     .tape { animation-name: shelve; animation-duration: 620ms; animation-timing-function: var(--snap);
-            transition: inline-size 560ms var(--glide), border-radius 560ms var(--glide), scale 150ms var(--ease-out); }
-    .in > * { translate: 0 6px; filter: blur(3px); transition: opacity 160ms var(--ease-out), translate 0s 160ms, filter 160ms var(--ease-out); }
+            transition: inline-size 460ms var(--glide), border-radius 460ms var(--glide), scale 150ms var(--ease-out); }
+    .in > * { translate: 0 6px; filter: blur(3px); transition: opacity 120ms var(--ease-out), translate 0s 120ms, filter 120ms var(--ease-out); }
     .tape[data-open] .in > * { translate: none; filter: none;
-                               transition: opacity 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms),
-                                           translate 520ms var(--glide) calc(var(--step, 0) * 50ms + 160ms),
-                                           filter 380ms var(--ease-out) calc(var(--step, 0) * 50ms + 160ms); }
+                               transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 40ms + 80ms),
+                                           translate 440ms var(--glide) calc(var(--step, 0) * 40ms + 80ms),
+                                           filter 320ms var(--ease-out) calc(var(--step, 0) * 40ms + 80ms); }
     .where svg { transition: translate 160ms var(--ease-out); }
   }
   @keyframes shelve { from { opacity: 0; translate: 0 28px; } }
@@ -250,7 +250,7 @@
     .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
     .foot { padding-block-start: 22px; }
     @media (prefers-reduced-motion: no-preference) {
-      .tape { transition: grid-template-rows 560ms var(--glide), border-radius 560ms var(--glide), scale 150ms var(--ease-out); }
+      .tape { transition: grid-template-rows 460ms var(--glide), border-radius 460ms var(--glide), scale 150ms var(--ease-out); }
     }
   }
   /* a little more side room on roomy stacks (portrait tablets) */

@@ -32,23 +32,26 @@ let lastInput = 0;
 function pull(tape, { settle = true } = {}) {
   if (tape.hasAttribute('data-open')) return;
   for (const t of tapes) t.toggleAttribute('data-open', t === tape);
-  if (settle && stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 560);
+  if (settle && stacked.matches) setTimeout(() => tape.scrollIntoView({ block: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' }), 460);
 }
 
-/* a mouse pulls a tape out by resting on its spine for a beat (only a pointer that actually moved: a tape sliding
-   under a still one doesn't count), so a sweep along the shelf glides past instead of pulling every tape on the way;
-   the keyboard pulls the tape it tabs to. Either way the tape is out by the time it is clicked, and the click goes
+/* a mouse pulls a tape out as soon as it slows down on its spine (only a pointer that actually moved: a tape sliding
+   under a still one doesn't count); a pointer still sweeping along the shelf waits a beat first, so it glides past
+   instead of pulling every tape on the way. The keyboard pulls the tape it tabs to. Either way the tape is out by the time it is clicked, and the click goes
    to the talk. Touch has no hover, so there the first tap on a shelved tape pulls it
    out to say what it is, and a tap on the pulled one follows it. Every press
    on a tape, with a mouse, a finger or Enter, sounds its note. Arrow keys walk the shelf */
-const DWELL = 90;
+// a sweep is a pointer faster than this (px per ms); it waits SWEEP ms, or less once it slows down
+const FAST = .8, SWEEP = 60;
 let seen = {}, preview = null, dwell = 0;
 for (const tape of tapes) {
   const a = link(tape);
   a.addEventListener('pointermove', e => {
     if (e.pointerType !== 'mouse' || (e.clientX === seen.x && e.clientY === seen.y)) return;
-    seen = { x: e.clientX, y: e.clientY };
-    clearTimeout(dwell); dwell = setTimeout(() => pull(tape), DWELL);
+    const speed = seen.t ? Math.hypot(e.clientX - seen.x, e.clientY - seen.y) / Math.max(1, e.timeStamp - seen.t) : 0;
+    seen = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+    clearTimeout(dwell);
+    if (speed < FAST) pull(tape); else dwell = setTimeout(() => pull(tape), SWEEP);
   });
   a.addEventListener('pointerleave', () => clearTimeout(dwell));
   a.addEventListener('focus', () => a.matches(':focus-visible') && pull(tape));
