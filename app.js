@@ -287,10 +287,11 @@ let opened = (() => { try { return sessionStorage.getItem(OPENED) === 'open'; } 
 let folded = false, shown = 6;
 function fold() {
   folded = S.fold && !opened;
-  wrap.toggleAttribute('data-open', !folded);
-  // a tall phone has the room for the whole board under the intro (its area, folded, less the bar's 48px): no fold
+  wrap.toggleAttribute('data-open', !folded); wrap.removeAttribute('data-fits');
+  // a tall phone has the room for the whole board under the intro (its area, folded, less the bar's 48px): no fold,
+  // and the board stands at the foot of the screen (index.html), as it will never open and push anything down
   if (folded && wrap.getBoundingClientRect().height - 48 >= S.rows * S.cell - 2 * Math.max(2, S.cell * .028)) {
-    folded = false; wrap.setAttribute('data-open', '');
+    folded = false; wrap.setAttribute('data-open', ''); wrap.setAttribute('data-fits', '');
   }
   cover();
   if (folded) { board.setAttribute('aria-describedby', 'fold-hint'); rove(cards.find(c => c.el.tabIndex === 0)?.y >= shown ? cards[0] : null); }

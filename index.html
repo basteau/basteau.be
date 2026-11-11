@@ -136,13 +136,14 @@
 
   #field { position: fixed; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; z-index: 0; }
 
-  /* ---------- the page: who on the left, read from the top (where I sit on the stack, the name, a line about my work
-     and the ways to reach me), and the game as a column on the right with its bar under it. The same gutter frames
-     both sides and parts them; past --page the page stops growing and sits in the middle ---------- */
+  /* ---------- the page: a head across the top (the ways to reach me, and my favourite things at the far end), then
+     who on the left, read from the top (where I sit on the stack, the name, where I work), and the game as a column
+     on the right with its bar under it. The same gutter frames both sides and parts them; past --page the page stops
+     growing and sits in the middle ---------- */
   .page { position: relative; z-index: 1; display: grid; block-size: 100svh; min-block-size: 600px;
           max-inline-size: var(--page); margin-inline: auto;
-          grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto auto 1fr;
-          grid-template-areas: ". board" "scale board" "name board" "sub board" ". board";
+          grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr auto auto auto 1fr;
+          grid-template-areas: "head head" ". board" "scale board" "name board" "sub board" ". board";
           padding-block: 32px; padding-inline: var(--gutter); column-gap: var(--gutter); }
 
   /* ---------- the stack scale: where I sit between the metal and the pixels, hand drawn ----------
@@ -199,11 +200,12 @@
     .note { font-size: 14px; line-height: 17px; }
     .n-lo { white-space: normal; text-align: center; }
   }
-  /* phones: each side folds into one level, and each side note hangs right under its own level, on two lines held to
-     that band's outer edge, so the level, its band and its note read as one group (and the middle stays clear) */
+  /* phones: each side folds into one level, and every note stays over the axis, as on a wide screen, with only the
+     levels under it: the side notes on two lines held to their band's outer edge, home turf on three over the middle,
+     so the three never meet */
   @container (max-width: 520px) {
     .sc { grid-template-columns: [s] 0 [low] 1fr [home] 1.25fr 1.25fr 1.25fr [high] 1fr [e] 0 [end];
-          grid-template-rows: [note] 50px [band] 26px [label] 36px [legend] auto; }
+          grid-template-rows: [note] 62px [band] 26px [label] 36px; }
     .l1, .l2, .l3, .r1, .r2 { display: none; }
     .lp, .rp { display: block; text-align: center; }
     .lp { grid-column: 2; color: var(--lo); } .rp { grid-column: 6; color: var(--hi); }
@@ -211,10 +213,10 @@
     .lv { font-size: 10px; letter-spacing: .04em; }
     .n-home b { font-size: 17px; line-height: 21px; }
     .note { font-size: 13px; line-height: 16px; }
-    .n-lo, .n-hi { grid-row: legend; align-self: start; margin-block: 7px 0; white-space: normal; inline-size: min-content; }
-    .n-lo > span, .n-hi > span { white-space: nowrap; }
-    .n-lo { grid-column: low / 4; justify-self: start; margin-inline-start: 8px; text-align: start; transform-origin: 0 0; }
-    .n-hi { grid-column: 5 / e; justify-self: end; margin-inline-end: 8px; text-align: end; transform-origin: 100% 0; }
+    .n-lo, .n-hi { white-space: normal; inline-size: min-content; }
+    .n-lo > span, .n-hi > span, .n-home span span { display: block; white-space: nowrap; }
+    .n-lo { grid-column: s / 4; justify-self: start; text-align: start; transform-origin: 0 100%; }
+    .n-hi { grid-column: 5 / end; justify-self: end; text-align: end; transform-origin: 100% 100%; }
   }
 
   /* arrival: the scale is drawn, not dropped in. The axis runs left to right like a pen stroke, the bands are sketched
@@ -249,7 +251,7 @@
      fade always runs. The pills run from the shortest open label to the longest, current job last: opening a pill
      folds the one on its left, which slides it left by that much, and a pill at least as wide as the one it replaces
      always stays under the pointer */
-  .work { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0; list-style: none; }
+  .work { grid-area: sub; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 30px 0 0 8px; list-style: none; }
   .pill { position: relative; display: grid; grid-template-columns: 30px 0px 0fr 0px; align-items: center; block-size: 42px;
           padding: 5px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); color: var(--muted);
           font-size: 15px; line-height: 20px; white-space: nowrap; transition: border-color 160ms ease; }
@@ -328,11 +330,9 @@
     .grad span { animation-name: draw; }
   }
 
-  .sub { grid-area: sub; display: flex; flex-direction: column; align-items: flex-start; gap: 40px; padding-block-start: 30px; padding-inline-start: 8px; }
-  /* the ways to reach me and my favourite things share a line wherever the column has the room for both (on phones
-     from about 390px); narrower, the shelf takes the line below */
-  .reach { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 40px; }
-  .reach > * { flex: none; }
+  /* the head: the contact drops at the start, the shelf at the far end, over the board's right edge */
+  .head { grid-area: head; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-inline-start: 8px; }
+  .head > * { flex: none; }
   /* the board's bar: the score at its left edge, shuffle, sound and theme at its right, in the air under the board
      (it hangs off the board, so the board itself stays in the middle of the column). The last glyph ends on the
      board's edge: its 44px button runs 13px past it */
@@ -373,8 +373,8 @@
   .actions { --bud: -112px; --bud-x: -168px; display: flex; align-items: center; gap: 9px; padding: 12px; margin: -12px;
              filter: url(#goo); }
   #goo .neck { flood-color: var(--drop); }
-  .cta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px;
-         border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600;
+  .cta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 12px; block-size: 50px; padding-inline: 24px 22px;
+         border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg); font-size: 16px; font-weight: 600;
          box-shadow: inset 0 1.5px 0 oklch(100% 0 none / .22), inset 0 -2px 6px oklch(0% 0 none / .12); }
   .cta:focus-visible { outline-color: var(--ink); }
   /* (an icon beside a label is sized by the label's capitals, here and on the pills) */
@@ -410,8 +410,8 @@
      reels spin and the tape runs between them. On the way over it grows into the talks page's shelf (a view
      transition, talks.html) ---------- */
   .shelf ul { display: flex; align-items: center; gap: 16px; padding: 0; list-style: none; }
-  /* (44px tall, so it shares the drops' line and is as easy to hit) */
-  .shelf a { display: grid; place-items: center; block-size: 44px; padding-inline: 6px; border-radius: 8px; color: var(--muted); }
+  /* (44px tall, as easy to hit as the drops, with its pencil ending on the page's edge) */
+  .shelf a { display: grid; place-items: center; block-size: 44px; padding-inline: 6px; margin-inline-end: -6px; border-radius: 8px; color: var(--muted); }
   .shelf a:focus-visible { outline-offset: 2px; }
   .shelf svg { inline-size: 40px; block-size: 28px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.7;
                stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
@@ -540,9 +540,11 @@
     /* folded, the board fills what the intro leaves of the first screen: its area takes the page's spare row (a
        size container, so the fold can ask how tall that is), the fold as many whole rows as fit over the bar (at
        least one, and never all of them), and the next row's peek the rest, so the bar always lands at the bottom of
-       the screen and the page is full on any phone. --h is the fold's height (its room is the area less the bar's
+       the screen and the page is full on any phone. A phone with the room for the whole board shows it whole, standing
+       on the foot of the screen (app.js sets data-fits). --h is the fold's height (its room is the area less the bar's
        48px, plus the 16px its negative margins give back); a row counts as shown whole with 12px of the next one under
        it, and the fade runs over that peek and 10px into the last whole row */
+    .board-wrap[data-fits] { align-self: end; }
     .board-wrap:not([data-open]) { container-type: size; align-self: stretch; justify-self: stretch; min-block-size: calc(var(--cell) + 72px); }
     .board-wrap:not([data-open]) .fold {
       --h: clamp(var(--cell) - var(--g) + 36px, 100cqh - 32px, (var(--rows) - .3) * var(--cell));
@@ -571,27 +573,28 @@
   @media (prefers-reduced-motion: no-preference) { .rise { animation-name: rise; } }
   @keyframes rise { from { opacity: 0; translate: 0 10px; filter: blur(4px); } }
 
-  /* ---------- phones and portrait tablets: one column, read in the same order as the desktop's left side (where I sit
-     on the stack, the name, the line and the ways to reach me), then the game: on a phone folded to its first row,
-     on a portrait tablet a wide 5 x 4 board. Taller screens centre the lot ---------- */
+  /* ---------- phones and portrait tablets: one column, the head on top, then the desktop's left side (where I sit on
+     the stack, the name, where I work), then the game: on a phone folded to the rows that fit the first screen, on a
+     portrait tablet a wide 5 x 4 board. Taller screens centre all but the head ---------- */
   @media (max-width: 759px), (max-width: 1099px) and (orientation: portrait) {
     :root { --cols: 5; --rows: 4; --gutter: 24px; --cell: round(down, max(44px, min((100vw - 48px) / 5, 10svh)), 1px);
             --name: min(150px, (min(100vw, max(50svh, 220px) + 48px) - 48px) / 3.767); }
-    .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto 1fr;
-            grid-template-areas: "." "scale" "name" "sub" "board" "."; block-size: auto; min-block-size: 100svh;
+    .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto auto auto auto 1fr;
+            grid-template-areas: "head" "." "scale" "name" "sub" "board" "."; block-size: auto; min-block-size: 100svh;
             padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)); }
     /* a phone hangs the page from the top instead of centring it, so opening the board grows the page downwards and
        never moves the card that was just tapped */
     @media (max-width: 759px) {
       :root { --name: min(104px, (100vw - 48px) / 3.767); }
-      .page { grid-template-rows: auto auto auto 1fr; grid-template-areas: "scale" "name" "sub" "board";
-              padding-block-start: calc(48px + env(safe-area-inset-top, 0px)); }
+      .page { grid-template-rows: auto auto auto auto 1fr; grid-template-areas: "head" "scale" "name" "sub" "board";
+              padding-block-start: calc(16px + env(safe-area-inset-top, 0px)); }
     }
     /* on a portrait tablet the board is sized by the height and comes out narrower than the screen: there the column
        is as wide as the board (five cells of a tenth of the height, never under 44px, as spec() in app.js sizes them) */
     @media (orientation: portrait) { .page { max-inline-size: calc(max(50svh, 220px) + 48px); } }
+    .head { padding-inline-start: 4px; margin-block-end: 28px; }
     .scale { margin-block: 0 22px; margin-inline-start: 4px; }
-    .sub { gap: 24px; padding-block-start: 20px; padding-inline-start: 4px; }
+    .work { padding-block-start: 20px; padding-inline-start: 4px; }
     /* (the name brings the room for its cap and its pencil note, which stand above it) */
     .name { padding-block-start: 20px; }
     /* the open pill and the two marks share one line from a 360px phone up: the current job says it shorter, the pills
@@ -602,12 +605,10 @@
     .pill[data-open] { grid-template-columns: 28px 8px 1fr 9px; }
     .pill .mark { inline-size: 28px; block-size: 28px; }
     @media (max-width: 379px) { .pill .out { display: none; } }
-    .reach { gap: 20px 24px; }
-    .cta { block-size: 50px; padding-inline: 24px 22px; font-size: 16px; }
     .drop { inline-size: 44px; block-size: 44px; }
     .drop svg { inline-size: 19px; block-size: 19px; } .drop.x svg { inline-size: 16px; block-size: 16px; }
-    /* on phones Say hello is just its envelope, a round 50px button (the words stay for screen readers), which leaves
-       the rest of the line to the shelf. Portrait tablets have the room to say it */
+    /* on phones Say hello is just its envelope, a round 50px button (the words stay for screen readers), so the head
+       stays one light line. Portrait tablets have the room to say it */
     @media (max-width: 759px) {
       .cta { inline-size: 50px; padding: 0; justify-content: center; }
       .cta .say { position: absolute; inline-size: 1px; block-size: 1px; overflow: clip; clip-path: inset(50%); white-space: nowrap; }
@@ -622,7 +623,8 @@
     .nudge { inset-inline-end: calc(.5 * var(--cell) + 38px); inset-block-end: calc(100% + 10px); }
     /* a short phone keeps the board's first row on the first screen: less air above and between */
     @media (max-width: 759px) and (max-height: 700px) {
-      .page { padding-block-start: calc(16px + env(safe-area-inset-top, 0px)); }
+      .page { padding-block-start: calc(8px + env(safe-area-inset-top, 0px)); }
+      .head { margin-block-end: 16px; }
       .scale { margin-block-end: 12px; }
       .board-wrap { margin-block-start: 40px; }
     }
@@ -633,6 +635,7 @@
   @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
     :root { --cols: 5; --rows: 4; --gutter: 40px; --cell: round(down, max(44px, min((100svh - 92px) / 4, 100vw * .084)), 1px); }
     .page { block-size: auto; min-block-size: 100svh; padding-block: 20px; }
+    .head { margin-block-end: 24px; }
     /* the current job says it shorter, as on phones, so the three pills share a line */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
     /* the board stays whole in view while the intro scrolls past it */
@@ -674,29 +677,7 @@
 </defs></svg>
 
 <main class="page">
-  <h1 class="name rise" id="name" style="--i:0" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
-  <p class="grad"><svg class="cap" viewBox="0 0 40 30" aria-hidden="true"><path class="top" d="M2.5 11.2 L20 4 L37.5 11 L20.2 18.2 Z"/><path d="M9.6 14.6 L9.8 21 C14 25.2 26 25 30.2 20.8 L30 14.6"/><path class="tassel" d="M20 11 L32.5 13.8 L32.8 22"/><path class="knot" d="M32.8 21.6 V26.4"/></svg><span>computer scientist</span></p>
-  <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited about, good with AI.">
-    <div class="sc">
-      <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
-      <span class="axis"></span>
-      <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>
-      <span class="lv l1">hardware</span><span class="lv l2">systems</span><span class="lv l3">infra</span>
-      <span class="lv h1">backend</span><span class="lv h2">frontend</span><span class="lv h3">dx</span>
-      <span class="lv r1">ui/ux</span><span class="lv r2">design</span>
-      <span class="lv lp">low<br>level</span><span class="lv rp">ui/ux<br>design</span>
-      <span class="note n-home"><b>home turf</b>good at it, by myself</span>
-      <span class="note n-lo"><span>curious,</span> <span>a bit afraid</span></span>
-      <span class="note n-hi"><span>excited about</span> <span>good with AI</span></span>
-    </div>
-  </figure>
-  <div class="sub rise" style="--i:2">
-    <ul class="work" id="work" aria-label="Work">
-      <li><a class="pill" href="https://aliceapp.eu/" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#549890"/><g fill="#fff" transform="translate(16 16) scale(0.03187) translate(-329.5 -316.5) matrix(.1 0 0 -.1 -622.004 923.856)"><path d="m 10700,9234 c -142,-21 -191,-32 -290,-64 -64,-21 -145,-52 -180,-70 -65,-33 -227,-144 -330,-228 -95,-77 -89,-30 -100,-699 -5,-330 -7,-1028 -3,-1590 l 6,-1003 h -50 -50 l -87,243 c -90,250 -105,277 -155,277 -43,0 -60,-20 -91,-105 -16,-44 -56,-154 -88,-245 l -60,-165 -49,-3 -48,-3 -3,1098 c -2,604 -7,1294 -11,1533 -8,396 -11,442 -30,514 -11,44 -33,100 -48,125 -60,102 -167,189 -303,246 -275,116 -503,94 -715,-68 -94,-72 -155,-150 -222,-284 -31,-62 -61,-117 -68,-123 -6,-5 -65,-14 -131,-20 -138,-12 -176,-20 -300,-67 -76,-29 -106,-47 -175,-107 -97,-83 -144,-142 -198,-246 -52,-102 -66,-164 -65,-300 0,-103 3,-126 33,-213 18,-55 31,-100 29,-102 -2,-1 -45,-24 -97,-49 -210,-105 -267,-157 -360,-329 -92,-171 -128,-329 -108,-476 11,-82 67,-203 137,-293 l 51,-66 -64,-84 c -146,-189 -208,-310 -241,-470 -31,-150 -19,-270 55,-558 60,-230 61,-280 8,-445 -30,-92 -32,-111 -33,-240 -1,-118 2,-151 21,-210 65,-205 234,-371 507,-500 103,-49 304,-125 369,-141 23,-5 28,-11 23,-29 -10,-41 -8,-160 4,-205 35,-132 148,-269 284,-345 85,-47 237,-102 324,-116 54,-9 81,-8 142,5 81,17 206,74 285,130 l 49,35 30,-37 c 160,-200 333,-268 549,-213 128,33 189,76 236,169 41,81 46,140 34,479 -7,201 -9,601 -6,1086 l 6,767 h 92 c 103,0 114,6 138,76 l 14,39 95,3 95,3 12,-40 c 19,-65 49,-81 148,-81 h 84 l -3,-702 c -3,-693 -3,-705 20,-828 81,-446 214,-737 395,-860 57,-39 102,-59 197,-87 8,-2 55,-4 105,-4 306,1 599,201 757,516 52,104 80,187 158,477 258,953 321,1107 763,1834 219,361 425,770 503,999 86,250 118,460 112,728 -8,287 -50,474 -157,692 -142,287 -328,501 -596,680 -256,172 -607,299 -967,350 -92,13 -323,18 -388,9 z m 355,-219 c 64,-9 185,-33 269,-54 512,-131 870,-385 1094,-778 187,-326 233,-754 127,-1174 -80,-315 -250,-658 -679,-1367 -289,-478 -396,-755 -636,-1637 -113,-419 -155,-510 -300,-655 -130,-131 -266,-193 -422,-193 -64,0 -87,5 -132,27 -153,75 -269,318 -348,726 -19,102 -20,153 -25,1855 -3,963 -6,1797 -7,1855 0,58 0,322 2,586 l 2,482 138,100 c 154,112 181,127 302,170 194,68 390,86 615,57 z m -2473,-85 c 155,-49 253,-124 288,-218 34,-90 40,-285 40,-1377 V 6305 h -132 c -116,-1 -144,-4 -222,-28 -152,-47 -449,-199 -501,-257 -13,-14 -20,-36 -20,-62 0,-33 6,-45 34,-70 29,-26 40,-29 73,-25 21,3 71,26 113,51 91,57 256,136 350,168 55,18 92,23 170,23 55,0 109,-3 119,-8 18,-7 19,-35 13,-1115 -4,-723 -2,-1216 6,-1422 10,-304 10,-317 -9,-355 -25,-52 -73,-75 -166,-82 -109,-7 -156,20 -277,162 -104,122 -140,149 -186,139 -16,-3 -73,-37 -126,-75 -100,-71 -198,-122 -259,-133 -40,-7 -120,11 -219,51 -36,14 -67,27 -69,28 -1,1 27,33 64,70 186,193 254,336 254,536 0,84 20,138 66,181 52,49 99,62 208,61 115,-2 226,16 287,47 94,49 180,156 214,267 24,79 37,212 30,307 -7,80 -10,93 -35,118 -39,38 -96,39 -134,2 -14,-15 -26,-37 -26,-50 0,-284 -31,-395 -128,-451 -42,-25 -57,-28 -196,-34 -168,-7 -219,-20 -304,-76 -65,-43 -104,-89 -144,-170 -27,-56 -31,-75 -38,-190 -7,-139 -20,-180 -81,-270 -33,-49 -187,-213 -200,-213 -14,0 -51,104 -51,146 0,24 8,80 17,123 17,77 17,81 -2,118 -18,35 -26,40 -109,66 -285,90 -441,156 -568,241 -192,128 -267,264 -253,459 6,97 40,203 72,233 13,12 45,30 72,39 26,10 93,37 148,61 118,50 187,69 312,83 180,22 275,48 382,108 127,70 274,239 347,398 25,54 27,71 27,165 0,134 -14,184 -56,211 -42,26 -94,19 -126,-18 -23,-26 -23,-32 -18,-133 l 5,-105 -41,-80 c -31,-59 -64,-102 -127,-166 -119,-120 -179,-145 -417,-179 -156,-21 -239,-45 -366,-102 -48,-22 -100,-40 -114,-41 l -27,-2 -53,235 c -29,129 -55,271 -59,315 -13,166 43,312 197,513 124,162 149,201 149,229 0,36 -35,96 -94,162 -29,34 -70,94 -90,134 -32,65 -36,82 -36,151 0,57 7,98 26,154 31,94 106,230 150,272 17,18 106,69 195,115 99,50 172,93 183,109 31,41 25,139 -14,251 -60,174 -51,300 31,433 47,78 134,163 198,196 59,31 162,58 249,66 l 93,8 56,-34 c 107,-65 159,-133 182,-242 19,-90 12,-189 -29,-425 -21,-125 -44,-284 -51,-352 -14,-147 -7,-561 10,-617 24,-78 107,-103 161,-49 l 29,28 -6,239 c -7,282 2,393 58,713 44,254 51,409 24,516 -26,100 -80,198 -146,265 l -61,61 36,69 c 111,210 135,244 219,304 94,67 146,85 249,85 71,1 106,-5 180,-29 z m 902,-3187 c 9,-26 16,-48 16,-50 0,-2 -18,-3 -41,-3 -29,0 -39,4 -35,13 2,6 10,29 17,50 7,20 16,37 20,37 4,0 14,-21 23,-47 z"/><path d="m 10718,8600 c -132,-17 -289,-77 -327,-127 -31,-38 -27,-88 8,-124 38,-38 71,-37 155,2 105,49 208,62 441,56 213,-6 272,-15 426,-67 231,-77 433,-223 519,-375 77,-137 106,-287 97,-509 -13,-321 -88,-625 -211,-862 -29,-56 -147,-239 -262,-407 -352,-515 -393,-578 -438,-672 -99,-204 -144,-379 -153,-590 -9,-225 17,-298 106,-298 80,0 93,29 96,217 2,169 22,281 75,428 54,149 112,248 333,571 327,478 373,548 431,664 131,265 205,559 225,897 19,312 -29,524 -161,719 -141,208 -445,387 -780,458 -105,22 -462,34 -580,19 z"/><path d="m 10565,6085 c -27,-8 -52,-14 -55,-15 -12,-1 -98,-87 -109,-109 -10,-18 -11,-113 -6,-445 l 8,-421 32,-32 c 21,-21 43,-33 59,-33 61,0 80,22 197,226 124,218 169,316 205,449 52,196 16,318 -113,371 -50,21 -161,26 -218,9 z"/></g></svg><span class="what"><span class="t">Helped build <b>ALICE</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
-      <li><a class="pill" id="credit" href="https://sebdev.be" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#0B0B0C"/><circle cx="10.4" cy="10.4" r="4.9" fill="#FF2BD1"/><path d="M16.8 15.2V5.4A9.8 9.8 0 0 1 26.6 15.2Z" fill="#FF9411"/><path d="M5.5 21.6a4.9 4.9 0 1 0 9.8 0a4.9 4.9 0 1 0 -9.8 0ZM8.44 21.6a1.96 1.96 0 1 0 3.92 0a1.96 1.96 0 1 0 -3.92 0Z" fill="#F3F0E8" fill-rule="evenodd"/><circle cx="21.6" cy="21.6" r="4.9" fill="#14BFF2"/></svg><span class="what"><span class="t">Creator of <b>sebdev.be</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
-      <li><a class="pill" data-home data-open href="https://gbiomed.kuleuven.be" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#00407A"/><path d="M0 16A16 16 0 0 1 16 0v3.4A12.6 12.6 0 0 0 3.4 16Z" fill="#54BCEB"/><path d="M17 22.7h5.1v5.9l4.5-5.9h6.2l-6 6.6 6.9 10.4h-6.3l-4.1-6.6-1.4 1.6v5H17v-17zm32.1 10.4c0 4.7-2.5 7-7.5 7s-7.5-2.3-7.5-7V22.7h5.1V32c0 1.7 0 3.9 2.5 3.9 2.4 0 2.4-2.2 2.4-3.9v-9.3h5.1v10.4z" fill="#fff" transform="translate(16.6 16.4) scale(.5) translate(-33.05 -31.4)"/></svg><span class="what"><span class="t"><span class="wide">Building web apps</span><span class="narrow">Web apps</span> at <b>KU Leuven</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
-    </ul>
-    <div class="reach">
+  <header class="head rise" style="--i:1">
     <div class="actions">
       <a class="cta" id="cta" href="mailto:basteau@proton.me?subject=Hello%20basteau"><span class="say">Say hello</span>
         <svg class="go" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -704,7 +685,7 @@
       <a class="drop" href="https://github.com/basteau" rel="me" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
       <a class="drop x" href="https://x.com/itsbasteau" rel="me" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.6l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg></a>
     </div>
-    <!-- my favourite things: one object per collection, each leading to its own page -->
+    <!-- my favourite things: one object per collection, each leading to its own page, on the far side of the head -->
     <nav class="shelf" aria-label="My favourite things">
       <ul>
         <li><a href="talks.html"><svg viewBox="0 0 40 28" aria-hidden="true">
@@ -717,8 +698,28 @@
         </svg><span class="sr">Talks</span></a></li>
       </ul>
     </nav>
+  </header>
+  <h1 class="name rise" id="name" style="--i:0" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
+  <p class="grad"><svg class="cap" viewBox="0 0 40 30" aria-hidden="true"><path class="top" d="M2.5 11.2 L20 4 L37.5 11 L20.2 18.2 Z"/><path d="M9.6 14.6 L9.8 21 C14 25.2 26 25 30.2 20.8 L30 14.6"/><path class="tassel" d="M20 11 L32.5 13.8 L32.8 22"/><path class="knot" d="M32.8 21.6 V26.4"/></svg><span>computer scientist</span></p>
+  <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited about, good with AI.">
+    <div class="sc">
+      <span class="band b-lo"></span><span class="band b-home"></span><span class="band b-hi"></span>
+      <span class="axis"></span>
+      <svg class="arrowhead" viewBox="0 0 12 18" aria-hidden="true"><path d="M1.5 1.5 L10.5 9 L2 16.5"/></svg>
+      <span class="lv l1">hardware</span><span class="lv l2">systems</span><span class="lv l3">infra</span>
+      <span class="lv h1">backend</span><span class="lv h2">frontend</span><span class="lv h3">dx</span>
+      <span class="lv r1">ui/ux</span><span class="lv r2">design</span>
+      <span class="lv lp">low<br>level</span><span class="lv rp">ui/ux<br>design</span>
+      <span class="note n-home"><b>home turf</b><span><span>good at it,</span> <span>by myself</span></span></span>
+      <span class="note n-lo"><span>curious,</span> <span>a bit afraid</span></span>
+      <span class="note n-hi"><span>excited about</span> <span>good with AI</span></span>
     </div>
-  </div>
+  </figure>
+  <ul class="work rise" id="work" style="--i:2" aria-label="Work">
+    <li><a class="pill" href="https://aliceapp.eu/" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#549890"/><g fill="#fff" transform="translate(16 16) scale(0.03187) translate(-329.5 -316.5) matrix(.1 0 0 -.1 -622.004 923.856)"><path d="m 10700,9234 c -142,-21 -191,-32 -290,-64 -64,-21 -145,-52 -180,-70 -65,-33 -227,-144 -330,-228 -95,-77 -89,-30 -100,-699 -5,-330 -7,-1028 -3,-1590 l 6,-1003 h -50 -50 l -87,243 c -90,250 -105,277 -155,277 -43,0 -60,-20 -91,-105 -16,-44 -56,-154 -88,-245 l -60,-165 -49,-3 -48,-3 -3,1098 c -2,604 -7,1294 -11,1533 -8,396 -11,442 -30,514 -11,44 -33,100 -48,125 -60,102 -167,189 -303,246 -275,116 -503,94 -715,-68 -94,-72 -155,-150 -222,-284 -31,-62 -61,-117 -68,-123 -6,-5 -65,-14 -131,-20 -138,-12 -176,-20 -300,-67 -76,-29 -106,-47 -175,-107 -97,-83 -144,-142 -198,-246 -52,-102 -66,-164 -65,-300 0,-103 3,-126 33,-213 18,-55 31,-100 29,-102 -2,-1 -45,-24 -97,-49 -210,-105 -267,-157 -360,-329 -92,-171 -128,-329 -108,-476 11,-82 67,-203 137,-293 l 51,-66 -64,-84 c -146,-189 -208,-310 -241,-470 -31,-150 -19,-270 55,-558 60,-230 61,-280 8,-445 -30,-92 -32,-111 -33,-240 -1,-118 2,-151 21,-210 65,-205 234,-371 507,-500 103,-49 304,-125 369,-141 23,-5 28,-11 23,-29 -10,-41 -8,-160 4,-205 35,-132 148,-269 284,-345 85,-47 237,-102 324,-116 54,-9 81,-8 142,5 81,17 206,74 285,130 l 49,35 30,-37 c 160,-200 333,-268 549,-213 128,33 189,76 236,169 41,81 46,140 34,479 -7,201 -9,601 -6,1086 l 6,767 h 92 c 103,0 114,6 138,76 l 14,39 95,3 95,3 12,-40 c 19,-65 49,-81 148,-81 h 84 l -3,-702 c -3,-693 -3,-705 20,-828 81,-446 214,-737 395,-860 57,-39 102,-59 197,-87 8,-2 55,-4 105,-4 306,1 599,201 757,516 52,104 80,187 158,477 258,953 321,1107 763,1834 219,361 425,770 503,999 86,250 118,460 112,728 -8,287 -50,474 -157,692 -142,287 -328,501 -596,680 -256,172 -607,299 -967,350 -92,13 -323,18 -388,9 z m 355,-219 c 64,-9 185,-33 269,-54 512,-131 870,-385 1094,-778 187,-326 233,-754 127,-1174 -80,-315 -250,-658 -679,-1367 -289,-478 -396,-755 -636,-1637 -113,-419 -155,-510 -300,-655 -130,-131 -266,-193 -422,-193 -64,0 -87,5 -132,27 -153,75 -269,318 -348,726 -19,102 -20,153 -25,1855 -3,963 -6,1797 -7,1855 0,58 0,322 2,586 l 2,482 138,100 c 154,112 181,127 302,170 194,68 390,86 615,57 z m -2473,-85 c 155,-49 253,-124 288,-218 34,-90 40,-285 40,-1377 V 6305 h -132 c -116,-1 -144,-4 -222,-28 -152,-47 -449,-199 -501,-257 -13,-14 -20,-36 -20,-62 0,-33 6,-45 34,-70 29,-26 40,-29 73,-25 21,3 71,26 113,51 91,57 256,136 350,168 55,18 92,23 170,23 55,0 109,-3 119,-8 18,-7 19,-35 13,-1115 -4,-723 -2,-1216 6,-1422 10,-304 10,-317 -9,-355 -25,-52 -73,-75 -166,-82 -109,-7 -156,20 -277,162 -104,122 -140,149 -186,139 -16,-3 -73,-37 -126,-75 -100,-71 -198,-122 -259,-133 -40,-7 -120,11 -219,51 -36,14 -67,27 -69,28 -1,1 27,33 64,70 186,193 254,336 254,536 0,84 20,138 66,181 52,49 99,62 208,61 115,-2 226,16 287,47 94,49 180,156 214,267 24,79 37,212 30,307 -7,80 -10,93 -35,118 -39,38 -96,39 -134,2 -14,-15 -26,-37 -26,-50 0,-284 -31,-395 -128,-451 -42,-25 -57,-28 -196,-34 -168,-7 -219,-20 -304,-76 -65,-43 -104,-89 -144,-170 -27,-56 -31,-75 -38,-190 -7,-139 -20,-180 -81,-270 -33,-49 -187,-213 -200,-213 -14,0 -51,104 -51,146 0,24 8,80 17,123 17,77 17,81 -2,118 -18,35 -26,40 -109,66 -285,90 -441,156 -568,241 -192,128 -267,264 -253,459 6,97 40,203 72,233 13,12 45,30 72,39 26,10 93,37 148,61 118,50 187,69 312,83 180,22 275,48 382,108 127,70 274,239 347,398 25,54 27,71 27,165 0,134 -14,184 -56,211 -42,26 -94,19 -126,-18 -23,-26 -23,-32 -18,-133 l 5,-105 -41,-80 c -31,-59 -64,-102 -127,-166 -119,-120 -179,-145 -417,-179 -156,-21 -239,-45 -366,-102 -48,-22 -100,-40 -114,-41 l -27,-2 -53,235 c -29,129 -55,271 -59,315 -13,166 43,312 197,513 124,162 149,201 149,229 0,36 -35,96 -94,162 -29,34 -70,94 -90,134 -32,65 -36,82 -36,151 0,57 7,98 26,154 31,94 106,230 150,272 17,18 106,69 195,115 99,50 172,93 183,109 31,41 25,139 -14,251 -60,174 -51,300 31,433 47,78 134,163 198,196 59,31 162,58 249,66 l 93,8 56,-34 c 107,-65 159,-133 182,-242 19,-90 12,-189 -29,-425 -21,-125 -44,-284 -51,-352 -14,-147 -7,-561 10,-617 24,-78 107,-103 161,-49 l 29,28 -6,239 c -7,282 2,393 58,713 44,254 51,409 24,516 -26,100 -80,198 -146,265 l -61,61 36,69 c 111,210 135,244 219,304 94,67 146,85 249,85 71,1 106,-5 180,-29 z m 902,-3187 c 9,-26 16,-48 16,-50 0,-2 -18,-3 -41,-3 -29,0 -39,4 -35,13 2,6 10,29 17,50 7,20 16,37 20,37 4,0 14,-21 23,-47 z"/><path d="m 10718,8600 c -132,-17 -289,-77 -327,-127 -31,-38 -27,-88 8,-124 38,-38 71,-37 155,2 105,49 208,62 441,56 213,-6 272,-15 426,-67 231,-77 433,-223 519,-375 77,-137 106,-287 97,-509 -13,-321 -88,-625 -211,-862 -29,-56 -147,-239 -262,-407 -352,-515 -393,-578 -438,-672 -99,-204 -144,-379 -153,-590 -9,-225 17,-298 106,-298 80,0 93,29 96,217 2,169 22,281 75,428 54,149 112,248 333,571 327,478 373,548 431,664 131,265 205,559 225,897 19,312 -29,524 -161,719 -141,208 -445,387 -780,458 -105,22 -462,34 -580,19 z"/><path d="m 10565,6085 c -27,-8 -52,-14 -55,-15 -12,-1 -98,-87 -109,-109 -10,-18 -11,-113 -6,-445 l 8,-421 32,-32 c 21,-21 43,-33 59,-33 61,0 80,22 197,226 124,218 169,316 205,449 52,196 16,318 -113,371 -50,21 -161,26 -218,9 z"/></g></svg><span class="what"><span class="t">Helped build <b>ALICE</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
+    <li><a class="pill" id="credit" href="https://sebdev.be" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#0B0B0C"/><circle cx="10.4" cy="10.4" r="4.9" fill="#FF2BD1"/><path d="M16.8 15.2V5.4A9.8 9.8 0 0 1 26.6 15.2Z" fill="#FF9411"/><path d="M5.5 21.6a4.9 4.9 0 1 0 9.8 0a4.9 4.9 0 1 0 -9.8 0ZM8.44 21.6a1.96 1.96 0 1 0 3.92 0a1.96 1.96 0 1 0 -3.92 0Z" fill="#F3F0E8" fill-rule="evenodd"/><circle cx="21.6" cy="21.6" r="4.9" fill="#14BFF2"/></svg><span class="what"><span class="t">Creator of <b>sebdev.be</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
+    <li><a class="pill" data-home data-open href="https://gbiomed.kuleuven.be" target="_blank" rel="noopener"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="16" fill="#00407A"/><path d="M0 16A16 16 0 0 1 16 0v3.4A12.6 12.6 0 0 0 3.4 16Z" fill="#54BCEB"/><path d="M17 22.7h5.1v5.9l4.5-5.9h6.2l-6 6.6 6.9 10.4h-6.3l-4.1-6.6-1.4 1.6v5H17v-17zm32.1 10.4c0 4.7-2.5 7-7.5 7s-7.5-2.3-7.5-7V22.7h5.1V32c0 1.7 0 3.9 2.5 3.9 2.4 0 2.4-2.2 2.4-3.9v-9.3h5.1v10.4z" fill="#fff" transform="translate(16.6 16.4) scale(.5) translate(-33.05 -31.4)"/></svg><span class="what"><span class="t"><span class="wide">Building web apps</span><span class="narrow">Web apps</span> at <b>KU Leuven</b></span><svg class="out" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 7.5l5-5M3.5 2.5h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="sr"> (opens in a new tab)</span></a></li>
+  </ul>
   <div class="board-wrap">
     <p class="nudge" aria-hidden="true"><b>let’s play</b><svg viewBox="0 0 64 54"><path d="M3 20 C 28 8, 48 16, 54 46"/><path d="M45.5 38.5 L54.5 47.5 L60 36.5"/></svg></p>
     <div class="fold"><div class="board" id="board" role="group" aria-label="Memory game: match the tech I work with. Arrow keys move between cards."></div></div>
