@@ -75,8 +75,8 @@
     --ground: light-dark(var(--white), var(--black));
     --ink: light-dark(var(--black), var(--white));
     --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
-    --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
-    --toast-bg: light-dark(oklch(15% .0021 286.1 / .92), oklch(100% 0 none / .94));
+    --rule: light-dark(color-mix(in oklch, var(--black) 12%, transparent), color-mix(in oklch, var(--white) 16%, transparent));
+    --toast-bg: light-dark(color-mix(in oklch, var(--black) 92%, transparent), color-mix(in oklch, var(--white) 94%, transparent));
     --toast-fg: var(--ground);
     /* contact drops: Say hello in deep water, GitHub and X in its shallows */
     --cta-bg: light-dark(oklch(54.47% .1557 250.4), oklch(56.33% .1557 249.9)); --cta-fg: var(--white);
@@ -86,7 +86,7 @@
     --lo: light-dark(oklch(54.53% .1259 61.6), var(--orange));
     --mid: light-dark(oklch(57% .25 358.3), var(--magenta));
     --hi: light-dark(oklch(54.47% .1557 250.4), var(--cyan));
-    --hatch: light-dark(oklch(87.8% .0804 346.1), oklch(65.12% .2624 358.3 / .34));
+    --hatch: light-dark(oklch(87.8% .0804 346.1), color-mix(in oklch, var(--magenta) 34%, transparent));
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --spring: cubic-bezier(.34, 1.56, .64, 1);
@@ -100,7 +100,7 @@
        step above the board. "basteau" set in Geist 800 is 3.767 times as wide as its size */
     --name: min(max(200px, 22svh), (min(100vw, var(--page)) - 3 * var(--gutter) - var(--cols) * var(--cell) - 8px) / 3.767);
     /* the page's outer margin, the same on both sides, and the gap between who and the game */
-    --gutter: clamp(48px, 7.5vw, 120px);
+    --gutter: clamp(3rem, 7.5vw, 7.5rem);
     /* the widest the page gets: the layout is drawn for 16:10, and the board and the name grow with the height */
     --page: max(1440px, 160svh);
   }
@@ -110,11 +110,11 @@
   /* ---------- reset ---------- */
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
   :root { text-wrap: pretty; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; scrollbar-gutter: stable; }
   @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
   body { min-block-size: 100svh; background: var(--ground); color: var(--ink); font-family: Geist, system-ui, sans-serif;
          font-synthesis: none; -webkit-tap-highlight-color: transparent; }
-  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; user-select: none; -webkit-user-select: none; }
   a { color: inherit; text-decoration: none; }
   /* no double-tap zoom on anything you press (fast card taps would otherwise zoom on phones) */
   a, button { touch-action: manipulation; }
@@ -166,7 +166,7 @@
                fill: none; stroke: var(--ink); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
   /* each level is a label hanging off its tick */
   .lv { grid-row: label; justify-self: center; position: relative; padding-block-start: 9px; white-space: nowrap; color: var(--muted);
-        font: 500 11px/15px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+        font: 500 11px/1.36 "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
   .lv::before { content: ""; position: absolute; inset-inline-start: calc(50% - 1px); inset-block-start: -22px; inline-size: 2px; block-size: 14px;
                 border-radius: 1px; background: var(--muted); rotate: 4deg; z-index: 1; }
   .lv.h1, .lv.h2, .lv.h3 { color: var(--ink); }
@@ -176,7 +176,7 @@
   .h1 { grid-column: 5; } .h2 { grid-column: 6; } .h3 { grid-column: 7; }
   .r1 { grid-column: 8; } .r2 { grid-column: 9; }
   .lp, .rp { display: none; }
-  .note { font: 500 15px/19px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap; }
+  .note { font: 500 15px/1.27 "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap; }
   .n-lo > span { display: inline-block; } .n-hi > span { display: block; }
   .n-lo { grid-row: note; grid-column: low / home; justify-self: center; align-self: end; margin-block-end: 7px; color: var(--lo); rotate: -1.5deg; }
   /* (two lines, like home turf: on one it would run past the arrow and the end of the name) */
@@ -185,19 +185,19 @@
   /* home turf sits over the middle of the middle: frontend */
   .n-home { grid-row: note; grid-column: home / high; justify-self: center; align-self: end; margin-block-end: 5px; display: flex;
             flex-direction: column; align-items: center; text-align: center; color: var(--mid); rotate: -1.5deg; }
-  .n-home b { font-weight: 600; font-size: 20px; line-height: 24px; }
+  .n-home b { font-weight: 600; font-size: 20px; line-height: 1.2; }
   /* a big name on a big screen: the annotations grow a step with it */
   @container (min-width: 900px) {
     .sc { grid-template-rows: [note] 62px [band] 34px [label] 28px; }
     .lv { font-size: 12px; }
-    .note { font-size: 17px; line-height: 21px; }
-    .n-home b { font-size: 23px; line-height: 27px; }
+    .note { font-size: 17px; }
+    .n-home b { font-size: 23px; }
     .lv::before { inset-block-start: -24px; block-size: 16px; }
   }
   @container (max-width: 680px) {
     .sc { grid-template-rows: [note] 54px [band] 28px [label] 24px; }
     .lv { font-size: 10px; letter-spacing: .05em; }
-    .note { font-size: 14px; line-height: 17px; }
+    .note { font-size: 14px; }
     .n-lo { white-space: normal; text-align: center; }
   }
   /* phones: each side folds into one level, and every note stays over the axis, as on a wide screen, with only the
@@ -211,8 +211,8 @@
     .lp { grid-column: 2; color: var(--lo); } .rp { grid-column: 6; color: var(--hi); }
     .h1 { grid-column: 3; } .h2 { grid-column: 4; } .h3 { grid-column: 5; }
     .lv { font-size: 10px; letter-spacing: .04em; }
-    .n-home b { font-size: 17px; line-height: 21px; }
-    .note { font-size: 13px; line-height: 16px; }
+    .n-home b { font-size: 17px; }
+    .note { font-size: 13px; }
     .n-lo, .n-hi { white-space: normal; inline-size: min-content; }
     .n-lo > span, .n-hi > span, .n-home span span { display: block; white-space: nowrap; }
     .n-lo { grid-column: s / 4; justify-self: start; text-align: start; transform-origin: 0 100%; }
@@ -251,29 +251,28 @@
      fade always runs. The pills run from the shortest open label to the longest, current job last: opening a pill
      folds the one on its left, which slides it left by that much, and a pill at least as wide as the one it replaces
      always stays under the pointer */
-  .work { grid-area: sub; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 30px 0 0 8px; list-style: none; }
+  .work { grid-area: sub; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-block: 30px 0; padding-inline: 8px 0; list-style: none; }
   .pill { position: relative; display: grid; grid-template-columns: 30px 0px 0fr 0px; align-items: center; block-size: 42px;
           padding: 5px; border: 1px solid var(--rule); border-radius: 999px; background: var(--ground); color: var(--muted);
-          font-size: 15px; line-height: 20px; white-space: nowrap; transition: border-color 160ms ease; }
+          font-size: 15px; line-height: 1.33; white-space: nowrap; transition: border-color 160ms var(--ease-out); }
   /* a 44px target round the 40-42px pill, spilling into the gap between pills without reaching the next one */
   .pill::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
   .pill .mark { inline-size: 30px; block-size: 30px; display: block; }
   .pill .what { grid-column: 3; display: flex; align-items: center; gap: 8px; overflow: clip;
                 opacity: 0; transition: opacity 120ms var(--ease-out); }
   .pill b { color: var(--ink); font-weight: 500; }
-  .pill .t { font-weight: 300; }
   .pill .narrow { display: none; }
   .pill .out { flex: none; block-size: 1cap; inline-size: auto; }
   .pill[data-open] { grid-template-columns: 30px 10px 1fr 11px; }
   .pill[data-open] .what { opacity: 1; transition: opacity 240ms var(--ease-out) 60ms; }
   .pill:focus-visible { outline-color: var(--ink); }
-  .pill:active { scale: .97; }
+  .pill:active { scale: .96; }
   @media (hover: hover) and (pointer: fine) {
     .pill:hover { border-color: color-mix(in oklch, var(--ink) 28%, transparent); }
     .pill:hover .out { translate: 1px -1px; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .pill { transition: grid-template-columns 300ms var(--ease-out), border-color 160ms ease, scale 140ms var(--ease-out); }
+    .pill { transition: grid-template-columns 300ms var(--ease-out), border-color 160ms var(--ease-out), scale 150ms var(--ease-out); }
     .pill .out { transition: translate 160ms var(--ease-out); }
     /* the sebdev mark turns a quarter every time its pill opens, always onward, like a tile on the board */
     #credit .mark { rotate: calc(var(--turn, 0) * 90deg); transition: rotate 300ms cubic-bezier(.34, 1.4, .64, 1); }
@@ -281,10 +280,13 @@
 
   /* ---------- the name ---------- */
   .name { grid-area: name; font-size: var(--name); line-height: .85; font-weight: 800; letter-spacing: -.055em;
-          white-space: nowrap; inline-size: fit-content; cursor: pointer; user-select: none; -webkit-user-select: none; }
+          white-space: nowrap; inline-size: fit-content; }
+  /* the name is a button (a tap, a click or Enter makes the water splash), set exactly as the heading's text */
+  .splash { display: block; letter-spacing: inherit; user-select: none; -webkit-user-select: none; }
+  .splash:focus-visible { outline-offset: .04em; border-radius: .06em; }
   .name span { display: inline-block; }
   /* it is pressed for a splash, so it gives a little under the finger, from the top of the b where the cap sits */
-  .name:active { scale: .98; transform-origin: .13em .12em; }
+  .splash:active { scale: .98; transform-origin: .13em .12em; }
   /* eau is water: each of the last three letters holds water at its own level, two waves drifting opposite ways.
      --top (set from the font metrics in app.js) is where the surface sits; it rises a little with every match */
   @property --x1 { syntax: "<length>"; inherits: false; initial-value: 0px; }
@@ -299,7 +301,7 @@
     background-size: .6em 3em, .75em 3em, 100% 100%;
     background-position: var(--x1) var(--top), var(--x2) calc(var(--top) - .028em), 0 0; }
   @media (prefers-reduced-motion: no-preference) {
-    .name { transition: scale 160ms var(--ease-out); }
+    .splash { transition: scale 150ms var(--ease-out); }
     .name .w { animation: wave-a var(--d1) linear infinite, wave-b var(--d2) linear infinite; transition: --top 1100ms var(--ease-in-out); }
     .name .w:nth-child(5) { --d1: 4.6s; --d2: 7.2s; }
     .name .w:nth-child(6) { --d1: 5.3s; --d2: 6.4s; animation-delay: -.21s, -.21s; }
@@ -323,7 +325,7 @@
   .grad .cap .knot { stroke: var(--magenta); stroke-width: 3.6; }
   .grad span { position: absolute; inset-inline-start: calc(var(--name) * .62); inset-block-end: calc(var(--name) * .61 + 4px);
                inline-size: max-content; max-inline-size: calc(var(--name) - 12px);
-               font: 500 clamp(13px, .075em, 17px)/1.2 "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink);
+               font: 500 clamp(.8125rem, .075em, 1.0625rem)/1.2 "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink);
                overflow-wrap: normal; rotate: -3deg; transform-origin: 0 100%; animation: fade 560ms var(--ease-out) 1000ms both; }
   @media (prefers-reduced-motion: no-preference) {
     .grad .cap { animation-name: tip; }
@@ -349,15 +351,15 @@
      whatever it says */
   .nudge { position: absolute; inset-inline-end: calc(100% - 1.5 * var(--cell) + 38px); inset-block-end: calc(100% + 16px);
            rotate: -3deg; transform-origin: 0 100%; pointer-events: none; white-space: nowrap; visibility: hidden;
-           transition: opacity 300ms ease; }
+           transition: opacity 300ms var(--ease-out); }
   .dealt .nudge { visibility: visible; animation: fade 760ms cubic-bezier(.4, .4, .3, 1) 900ms both; }
-  .nudge b { font: 500 16px/20px "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
+  .nudge b { font: 500 16px/1.25 "Shantell Sans", ui-rounded, system-ui, sans-serif; color: var(--ink); }
   .nudge svg { position: absolute; inset-inline-start: calc(100% - 6px); inset-block-start: -12px; inline-size: 52px; block-size: 44px;
                fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
   .played:not(.won) .nudge { opacity: 0; }
   .won .dealt .nudge { animation-delay: 500ms; }
   @media (prefers-reduced-motion: no-preference) {
-    .nudge { transition: opacity 300ms ease, translate 300ms var(--ease-out); }
+    .nudge { transition: opacity 300ms var(--ease-out), translate 300ms var(--ease-out); }
     .dealt .nudge { animation-name: write; }
     .played:not(.won) .nudge { translate: 0 6px; }
   }
@@ -380,7 +382,7 @@
   /* (an icon beside a label is sized by the label's capitals, here and on the pills) */
   .cta .go { flex: none; block-size: 1.5cap; inline-size: auto; }
   .cta .mail { display: none; }
-  .cta:active { scale: .95; }
+  .cta:active { scale: .96; }
   .drop { position: relative; display: grid; place-items: center; inline-size: 48px; block-size: 48px; border-radius: 999px;
           background: var(--drop); color: var(--drop-fg); }
   .drop svg { inline-size: 20px; block-size: 20px; fill: currentColor; }
@@ -395,7 +397,7 @@
   @media (pointer: coarse) { .drop:active { scale: 1.16; } }
   @media (prefers-reduced-motion: no-preference) {
     .cta .go { transition: translate 160ms var(--ease-out); }
-    .cta { transition: scale 120ms var(--ease-out); }
+    .cta { transition: scale 150ms var(--ease-out); }
     /* a spring, so a swelling drop overshoots a hair and its neck wobbles before it settles */
     .drop { transition: scale 300ms var(--spring); animation: bud 820ms cubic-bezier(.34, 1.4, .64, 1) 560ms both; }
     .drop.x { animation-delay: 650ms; --bud: var(--bud-x); }
@@ -421,17 +423,17 @@
   .shelf a:focus-visible, .shelf a:active { color: var(--ink); }
   @media (hover: hover) and (pointer: fine) { .shelf a:hover { color: var(--ink); } }
   @media (prefers-reduced-motion: no-preference) {
-    .shelf a { transition: color 200ms ease; }
-    .shelf svg { view-transition-name: shelf; transition: rotate 420ms var(--spring), scale 120ms var(--ease-out); }
+    .shelf a { transition: color 200ms var(--ease-out); }
+    .shelf svg { view-transition-name: shelf; transition: rotate 300ms var(--spring), scale 150ms var(--ease-out); }
     /* drawn in like the scale, a beat after the drops (pathLength 1, so every line's dash is its own length) */
     .shelf .ink { stroke-dasharray: 1; animation: pencil 900ms var(--ease-in-out) 1100ms backwards; }
     /* the idle turn: one eased turn of both reels every eleven seconds, still in between */
-    .shelf .reel { animation: fade 300ms ease 1700ms backwards, wind 11s var(--ease-in-out) 5s infinite; }
-    .shelf .tape { animation: fade 300ms ease 1700ms backwards; }
+    .shelf .reel { animation: fade 300ms var(--ease-out) 1700ms backwards, wind 11s var(--ease-in-out) 5s infinite; }
+    .shelf .tape { animation: fade 300ms var(--ease-out) 1700ms backwards; }
     .shelf a:is(:focus-visible, :active) svg { rotate: -4deg; }
     .shelf a:is(:focus-visible, :active) .reel { animation: spin 1.1s linear infinite; }
     .shelf a:is(:focus-visible, :active) .tape { animation: run 400ms linear infinite; }
-    .shelf a:active svg { scale: .94; }
+    .shelf a:active svg { scale: .96; }
     @media (hover: hover) and (pointer: fine) {
       .shelf a:hover svg { rotate: -4deg; }
       .shelf a:hover .reel { animation: spin 1.1s linear infinite; }
@@ -444,7 +446,7 @@
   @keyframes run { to { stroke-dashoffset: -4; } }
   /* ---------- the board's controls ---------- */
   .icon { position: relative; inline-size: 44px; block-size: 44px; display: grid; place-items: center; border-radius: 999px;
-          transition: background-color 160ms ease; }
+          transition: background-color 160ms var(--ease-out); }
   .icon:active { scale: .96; }
   .icon:focus-visible { outline-offset: 0; }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } }
@@ -460,7 +462,7 @@
   /* after a win, a ring calls for the next game */
   #shuffle[data-attn]::after { content: ""; position: absolute; inset: 11px; border-radius: 999px; box-shadow: 0 0 0 2px var(--magenta); }
   @media (prefers-reduced-motion: no-preference) {
-    .icon { transition: background-color 160ms ease, scale 160ms var(--ease-out); }
+    .icon { transition: background-color 160ms var(--ease-out), scale 150ms var(--ease-out); }
     .icon .swap { transition-property: opacity, scale, filter; }
     #theme .disc { transition: rotate 300ms var(--ease-in-out); }
     #shuffle svg { transition: rotate 300ms var(--ease-in-out); }
@@ -468,7 +470,7 @@
   }
   @keyframes attn { from { opacity: 1; scale: .8; } to { opacity: 0; scale: 1.6; } }
 
-  .score { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; font-variant-numeric: tabular-nums;
+  .score { font: 500 12px/1.33 "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; font-variant-numeric: tabular-nums;
            padding-inline: 4px 12px; display: inline-flex; white-space: pre; }
   .score .n { display: inline-block; color: var(--ink); }
   .score .of { color: var(--muted); }
@@ -484,7 +486,7 @@
   .card:focus-visible { outline: 2px solid transparent; }
   .card:focus-visible .skin { outline: max(2px, .08em) solid var(--ink); outline-offset: -3px; border-radius: var(--round); }
   .card:not([data-state="down"]):focus-visible .skin { border-radius: calc(var(--cell) * .32); }
-  .card:active { scale: .97; }
+  .card:active { scale: .96; }
   .card[data-state="done"] { cursor: default; }
   .card[data-state="done"]:active { scale: none; }
   /* the skin carries the breathing surface's stretch (a matrix set per frame) and the flip's perspective; its own
@@ -516,12 +518,12 @@
      native or "more space" scaling) it smears into blur, so those screens get the clean mark */
   @media (min-resolution: 2dppx) { .front .glyph path { filter: url(#spray); } }
   @media (prefers-reduced-motion: no-preference) {
-    .card { transition: scale 160ms var(--ease-out); }
+    .card { transition: scale 150ms var(--ease-out); }
     .inner { transition: transform 300ms var(--ease-in-out); }
     /* the far face is switched off exactly at mid-flip (edge-on, 150ms into the 300ms turn), instead of trusting
        backface-visibility alone: on a clip-pathed face some browsers draw it anyway, and the cut shows behind the plate */
     .back { transition: scale 160ms var(--ease-out), opacity 0s linear 150ms; }
-    .front { transition: color 300ms ease 220ms, opacity 0s linear 150ms; }
+    .front { transition: color 300ms var(--ease-out) 220ms, opacity 0s linear 150ms; }
   }
   .card.instant .inner, .card.instant .face { transition: none !important; }
 
@@ -634,7 +636,8 @@
      that grows to its content instead of clipping it ---------- */
   @media (min-width: 760px) and (max-height: 499px) and (orientation: landscape) {
     :root { --cols: 5; --rows: 4; --gutter: 40px; --cell: round(down, max(44px, min((100svh - 92px) / 4, 100vw * .084)), 1px); }
-    .page { block-size: auto; min-block-size: 100svh; padding-block: 20px; }
+    .page { block-size: auto; min-block-size: 100svh; padding-block: 20px;
+            padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)); }
     .head { margin-block-end: 24px; }
     /* the current job says it shorter, as on phones, so the three pills share a line */
     .pill .wide { display: none; } .pill .narrow { display: inline; }
@@ -682,8 +685,8 @@
       <a class="cta" id="cta" href="mailto:basteau@proton.me?subject=Hello%20basteau"><span class="say">Say hello</span>
         <svg class="go" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <svg class="mail" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 6l6.5 5 6.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      <a class="drop" href="https://github.com/basteau" rel="me" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
-      <a class="drop x" href="https://x.com/itsbasteau" rel="me" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.6l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg></a>
+      <a class="drop" href="https://github.com/basteau" rel="me" aria-label="basteau on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3"/></svg></a>
+      <a class="drop x" href="https://x.com/itsbasteau" rel="me" aria-label="basteau on X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.6l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg></a>
     </div>
     <!-- my favourite things: one object per collection, each leading to its own page, on the far side of the head -->
     <nav class="shelf" aria-label="My favourite things">
@@ -699,7 +702,7 @@
       </ul>
     </nav>
   </header>
-  <h1 class="name rise" id="name" style="--i:0" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></h1>
+  <h1 class="name rise" id="name" style="--i:0"><button class="splash" type="button" aria-label="basteau"><span aria-hidden="true">b</span><span aria-hidden="true">a</span><span aria-hidden="true">s</span><span aria-hidden="true">t</span><span class="w" aria-hidden="true">e</span><span class="w" aria-hidden="true">a</span><span class="w" aria-hidden="true">u</span></button></h1>
   <p class="grad"><svg class="cap" viewBox="0 0 40 30" aria-hidden="true"><path class="top" d="M2.5 11.2 L20 4 L37.5 11 L20.2 18.2 Z"/><path d="M9.6 14.6 L9.8 21 C14 25.2 26 25 30.2 20.8 L30 14.6"/><path class="tassel" d="M20 11 L32.5 13.8 L32.8 22"/><path class="knot" d="M32.8 21.6 V26.4"/></svg><span>computer scientist</span></p>
   <figure class="scale" role="img" aria-label="Where I sit on the stack, from low level to high level. Hardware, systems and infra: curious, a bit afraid. Backend, frontend and developer experience: home turf, good at it by myself, with frontend at the centre. UI/UX and design: excited about, good with AI.">
     <div class="sc">
@@ -728,7 +731,7 @@
       <button class="icon" id="shuffle" type="button" aria-label="Shuffle the board">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M14.6 6.2A6.2 6.2 0 1 0 15.2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M15.4 2.6v3.9h-3.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button class="icon" id="sound" type="button" aria-label="Mute sound" aria-pressed="true">
+      <button class="icon" id="sound" type="button" aria-label="Sound" aria-pressed="true">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M2.8 6.8h2.4l3.4-2.9v10.2L5.2 11.2H2.8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <g class="swap waves"><path d="M11.6 6.4a3.6 3.6 0 0 1 0 5.2M13.8 4.3a6.6 6.6 0 0 1 0 9.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></g>
@@ -744,7 +747,7 @@
 
 <p class="sr" id="live" aria-live="polite"></p>
 <p class="sr" id="fold-hint"></p>
-<div class="toast" id="toast" role="status" aria-live="polite"><i aria-hidden="true"></i><span>basteau@proton.me copied</span></div>
+<div class="toast" id="toast" role="status"><i aria-hidden="true"></i><span></span></div>
 
 <script type="module" src="app.js"></script>
 </body>

@@ -1,21 +1,23 @@
 // The board model, shared by the page (app.js) and the Paper exporter (tools/paper.mjs): pure, no DOM.
 
-// the stack. Order is priority: the 10-pair board (5 x 4 on phones) drops the last two
+// the stack: each as it is written (what a screen reader says for a turned card) and its icon. Order is priority:
+// the 10-pair board (5 x 4 on phones) drops the last two
 export const TECH = [
-  ['vue', 'vuedotjs'], ['typescript', 'typescript'], ['php', 'php'], ['laravel', 'laravel'], ['symfony', 'symfony'],
-  ['docker', 'docker'], ['go', 'go'], ['rust', 'rust'], ['react', 'react'], ['tailwind', 'tailwindcss'],
-  ['svelte', 'svelte'], ['vite', 'vite'],
+  ['Vue', 'vuedotjs'], ['TypeScript', 'typescript'], ['PHP', 'php'], ['Laravel', 'laravel'], ['Symfony', 'symfony'],
+  ['Docker', 'docker'], ['Go', 'go'], ['Rust', 'rust'], ['React', 'react'], ['Tailwind CSS', 'tailwindcss'],
+  ['Svelte', 'svelte'], ['Vite', 'vite'],
 ];
 // logo palette (see the Lab pages in Paper). A turned card becomes an even squircle plate and its mark keeps
 // the tile's hue: `up` is the glyph while the card is being compared (lightness moved to a 4.5:1 contrast),
 // `tone` once matched (3:1, so it sinks back into the mosaic). The shades keep the tile's OKLCH hue at the most
 // chroma sRGB allows, so a mark reads as a deeper ink of its tile, not a brown or a near-black. Violet is dark, so
-// its marks are tints (lavender: the strict OKLCH hue drifts to periwinkle up there and looks off). `ghost` is the partner colour of the riso misregistration that snaps in on a match.
+// its marks are tints (lavender: the strict OKLCH hue drifts to periwinkle up there and looks off). `ghost` is the
+// partner colour of the riso misregistration that snaps in on a match. `hex` is for the canvas, which takes no oklch
 export const PALETTE = {
-  magenta: { css: 'var(--magenta)', hex: '#FF0A8E', up: '#420121', tone: '#780540', ghost: '#009FFD' },
-  cyan:    { css: 'var(--cyan)',    hex: '#009FFD', up: '#023458', tone: '#064F81', ghost: '#FF0A8E' },
-  orange:  { css: 'var(--orange)',  hex: '#FDA506', up: '#674105', tone: '#8A5909', ghost: '#4803FE' },
-  violet:  { css: 'var(--violet)',  hex: '#4803FE', up: '#CFBCFF', tone: '#AE8FFF', ghost: '#FDA506' },
+  magenta: { css: 'var(--magenta)', hex: '#FF0A8E', up: 'oklch(24.76% .0991 357.8)', tone: 'oklch(37.46% .1484 358.4)', ghost: 'var(--cyan)' },
+  cyan:    { css: 'var(--cyan)',    hex: '#009FFD', up: 'oklch(31.58% .0807 246.8)', tone: 'oklch(41.52% .105 246.7)',  ghost: 'var(--magenta)' },
+  orange:  { css: 'var(--orange)',  hex: '#FDA506', up: 'oklch(41% .0856 70.8)',     tone: 'oklch(50.61% .1056 71.2)', ghost: 'var(--violet)' },
+  violet:  { css: 'var(--violet)',  hex: '#4803FE', up: 'oklch(83.41% .0944 297.3)', tone: 'oklch(72.47% .1602 294.8)', ghost: 'var(--orange)' },
 };
 export const COLORS = Object.keys(PALETTE);
 

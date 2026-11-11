@@ -87,7 +87,8 @@ const play = player({
 });
 
 export function wireSound(btn) {
-  const paint = () => { btn.setAttribute('aria-pressed', String(soundOn)); btn.setAttribute('aria-label', soundOn ? 'Mute sound' : 'Turn sound on'); };
+  // (a fixed name, "Sound", with the state in aria-pressed: a label that flips with the state reads backwards)
+  const paint = () => btn.setAttribute('aria-pressed', String(soundOn));
   btn.addEventListener('click', () => {
     if (soundOn) { play('toggleOff'); soundOn = false; } else { soundOn = true; play('toggleOn'); }
     store.set('basteau:sound', soundOn ? 'on' : 'off'); paint();
@@ -101,13 +102,18 @@ export function wireSound(btn) {
 export function wireTheme(btn, onChange = () => {}) {
   const systemDark = matchMedia('(prefers-color-scheme: dark)');
   const systemTheme = () => systemDark.matches ? 'dark' : 'light';
-  const paint = () => {
-    const dark = root.dataset.theme === 'dark';
-    btn.setAttribute('aria-pressed', String(dark)); btn.setAttribute('aria-label', dark ? 'Light mode' : 'Dark mode');
-  };
+  // (named "Dark mode" for good, pressed while it's dark)
+  const paint = () => btn.setAttribute('aria-pressed', String(root.dataset.theme === 'dark'));
+  // the theme swaps at once: every colour transition is held for the swap, so nothing fades on its own beat (the
+  // reveal, where there is one, is the view transition's)
   const setTheme = t => {
+    const hush = document.createElement('style');
+    hush.textContent = '*, ::before, ::after { transition: none !important; }';
+    document.head.append(hush);
     root.dataset.theme = t; paint(); onChange(t);
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = t === 'dark' ? '#0B0B0C' : '#FFFFFF'; });
+    root.offsetHeight;   // (flush the new colours with transitions off, then give transitions back after a frame)
+    requestAnimationFrame(() => requestAnimationFrame(() => hush.remove()));
   };
   systemDark.addEventListener('change', () => { if (!store.get('basteau:theme', null)) setTheme(systemTheme()); });
   btn.addEventListener('click', () => {

@@ -51,16 +51,19 @@
     --ground: light-dark(var(--white), var(--black));
     --ink: light-dark(var(--black), var(--white));
     --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
-    --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
-    --dot: light-dark(oklch(15% .0021 286.1 / .16), oklch(100% 0 none / .16));
+    --rule: light-dark(color-mix(in oklch, var(--black) 12%, transparent), color-mix(in oklch, var(--white) 16%, transparent));
+    --dot: color-mix(in oklch, var(--ink) 16%, transparent);
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --ease-in-out: cubic-bezier(.77, 0, .175, 1);
     --snap: cubic-bezier(.2, 0, 0, 1);
+    /* the title and the page's side margin, growing with the screen */
+    --text-title: clamp(5.5rem, min(9.2vw, 16svh), 8.25rem);
+    --side: clamp(2rem, 6.6vw, 6rem);
     /* a tape sliding out or back: eased in, so it never jerks off the mark, and a long soft landing */
     --glide: cubic-bezier(.32, .72, 0, 1);
     /* the shelf: how much wider a pulled-out tape gets, the small and large corner of a tape's cut, and a pulled tape's
        big corner, which grows with the tape */
-    --extra: clamp(260px, 27vw, 380px); --r: 14px; --R: 60px; --corner: calc(var(--extra) * .25);
+    --extra: clamp(16.25rem, 27vw, 23.75rem); --r: 14px; --R: 60px; --corner: calc(var(--extra) * .25);
   }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"] { color-scheme: dark; }
@@ -68,12 +71,12 @@
   /* ---------- reset ---------- */
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
   :root { text-wrap: pretty; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; scrollbar-gutter: stable; }
   @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
   /* the home page's dotted paper, at rest: here the tapes are the only thing that moves */
   body { min-block-size: 100svh; background: var(--ground) radial-gradient(circle at center, var(--dot) 0, var(--dot) 1px, transparent 1.5px) 0 0 / 24px 24px; color: var(--ink); font-family: Geist, system-ui, sans-serif;
          font-synthesis: none; -webkit-tap-highlight-color: transparent; }
-  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: start; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: start; user-select: none; -webkit-user-select: none; }
   a { color: inherit; text-decoration: none; }
   a, button { touch-action: manipulation; }
   :focus-visible { outline: max(2px, .08em) solid currentColor; outline-offset: .25em; }
@@ -98,7 +101,7 @@
   /* ---------- the page: a bar, the title, and a shelf that takes the rest of the screen ---------- */
   .page { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; block-size: 100svh; min-block-size: 620px;
           max-inline-size: 1760px; margin-inline: auto;
-          padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(clamp(24px, 4.4svh, 40px) + env(safe-area-inset-bottom, 0px)); padding-inline: clamp(32px, 6.6vw, 96px); }
+          padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(clamp(1.5rem, 4.4svh, 2.5rem) + env(safe-area-inset-bottom, 0px)); padding-inline: max(var(--side), env(safe-area-inset-left, 0px)) max(var(--side), env(safe-area-inset-right, 0px)); }
   .bar { display: flex; align-items: center; justify-content: space-between; margin-inline: -8px -11px; }
   .home { display: inline-flex; align-items: center; gap: 10px; block-size: 44px; padding-inline: 8px; border-radius: 999px;
           font-size: 26px; line-height: 1; font-weight: 800; letter-spacing: -.05em; }
@@ -109,10 +112,11 @@
 
   /* the sound and theme switches, as on the home page */
   .icon { position: relative; inline-size: 40px; block-size: 40px; display: grid; place-items: center; border-radius: 999px;
-          transition: background-color 160ms ease; }
+          transition: background-color 160ms var(--ease-out); }
   .icon:active { scale: .96; }
   .icon:focus-visible { outline-offset: 0; }
-  @media (pointer: coarse) { .icon { inline-size: 44px; block-size: 44px; } }
+  /* a 44px target round the 40px button, whatever the pointer */
+  .icon::after { content: ""; position: absolute; inset: min(0px, (100% - 44px) / 2); }
   @media (hover: hover) and (pointer: fine) { .icon:hover { background: var(--rule); } .home:hover .back { translate: -3px 0; } }
   .icon svg { grid-area: 1 / 1; overflow: visible; }
   .icon .swap { transition: opacity 250ms cubic-bezier(.2, 0, 0, 1); transform-origin: 12px 9px; }
@@ -120,18 +124,18 @@
   #theme .disc { transform-origin: 9px 9px; }
   :root[data-theme="dark"] #theme .disc { rotate: 180deg; }
   @media (prefers-reduced-motion: no-preference) {
-    .home { transition: scale 140ms var(--ease-out); } .home .back { transition: translate 160ms var(--ease-out); }
-    .icon { transition: background-color 160ms ease, scale 160ms var(--ease-out); }
+    .home { transition: scale 150ms var(--ease-out); } .home .back { transition: translate 160ms var(--ease-out); }
+    .icon { transition: background-color 160ms var(--ease-out), scale 150ms var(--ease-out); }
     .icon .swap { transition-property: opacity, scale, filter; }
     #theme .disc { transition: rotate 300ms var(--ease-in-out); }
   }
 
   /* ---------- the title, with a pencil note in the home page's hand pointing down at the shelf ---------- */
-  .head { display: flex; align-items: flex-end; gap: 36px; padding-block: 16px clamp(20px, 4svh, 36px); }
-  h1 { font-size: clamp(88px, min(9.2vw, 16svh), 132px); line-height: .85; font-weight: 800; letter-spacing: -.055em; white-space: nowrap; }
+  .head { display: flex; align-items: end; gap: 36px; padding-block: 16px clamp(1.25rem, 4svh, 2.25rem); }
+  h1 { font-size: var(--text-title); line-height: .85; font-weight: 800; letter-spacing: -.055em; white-space: nowrap; }
   h1 span { display: inline-block; animation: fade 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 55ms); }
-  .note { display: flex; align-items: flex-end; gap: 12px; padding-block-end: 8px; rotate: -3deg; transform-origin: 0 100%;
-          font: 500 22px/28px "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
+  .note { display: flex; align-items: end; gap: 12px; padding-block-end: 8px; rotate: -3deg; transform-origin: 0 100%;
+          font: 500 22px/1.27 "Shantell Sans", ui-rounded, system-ui, sans-serif; white-space: nowrap;
           animation: fade 560ms var(--ease-out) 520ms both; }
   .note svg { inline-size: 56px; block-size: 48px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;
               stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
@@ -181,7 +185,7 @@
   .st { writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; font-weight: 800; letter-spacing: -.03em;
         font-size: min(26px, (100cqh - 76px) / 19.6, (100cqw - (var(--tapes) - 1) * 6px - var(--extra)) * .05); line-height: 28px; }
   @supports (writing-mode: sideways-lr) { .st { writing-mode: sideways-lr; rotate: none; } }
-  .mins { flex: none; font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .mins { flex: none; font: 500 12px/1.33 "Geist Mono", ui-monospace, monospace; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
   .st, .mins { transition: opacity 240ms var(--ease-out) 140ms; }
   .tape[data-open] :is(.st, .mins) { opacity: 0; transition: opacity 120ms var(--ease-out); }
 
@@ -190,7 +194,7 @@
   .sleeve { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: calc(var(--base) + var(--extra)); visibility: hidden;
             transition: visibility 0s 120ms; }
   .tape[data-open] .sleeve { visibility: visible; transition: visibility 0s; }
-  .in { block-size: 100%; display: flex; flex-direction: column; padding-block: min(34px, 6cqh) min(32px, 5.5cqh); padding-inline: clamp(24px, var(--extra) * .095, 36px); }
+  .in { block-size: 100%; display: flex; flex-direction: column; padding-block: min(34px, 6cqh) min(32px, 5.5cqh); padding-inline: clamp(1.5rem, var(--extra) * .095, 2.25rem); }
   .in > * { opacity: 0; transition: opacity 120ms var(--ease-out); }
   .tape[data-open] .in > * { opacity: 1; transition: opacity 320ms var(--ease-out) calc(var(--step, 0) * 40ms + 80ms); }
   .in > .about { --step: 1; } .in > .foot { --step: 2; }
@@ -199,11 +203,11 @@
      A word a little wider than the line runs into that room; it is never broken */
   .big { padding-inline-end: calc(var(--corner) * .56); font-size: min(var(--extra) * .135, 10.4cqh); line-height: .93; font-weight: 800; letter-spacing: -.045em;
          text-wrap: balance; overflow-wrap: normal; }
-  .about { max-inline-size: 34ch; padding-block-start: min(24px, 3.8cqh); font-size: clamp(16px, 3.4cqh, 19px); line-height: 1.42; font-weight: 500; }
+  .about { max-inline-size: 34ch; padding-block-start: min(24px, 3.8cqh); font-size: clamp(1rem, 3.4cqh, 1.1875rem); line-height: 1.42; font-weight: 500; }
   /* the sleeve's foot: who, where and how long on three short lines, and where the tape leads at the end of the last
      one. Both share one cell, so the lines keep the sleeve's full width and never wrap round the way out */
   .foot { margin-block-start: auto; padding-block-start: 16px; display: grid; align-items: end;
-          font: 500 12px/19px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+          font: 500 12px/1.58 "Geist Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
           font-variant-numeric: tabular-nums; }
   .foot > * { grid-area: 1 / 1; }
   .where { justify-self: end; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
@@ -229,13 +233,14 @@
      grid-template-rows transition and each tape grows to its own text ---------- */
   @media (max-width: 899px), (max-width: 1099px) and (orientation: portrait), (max-height: 499px) {
     :root { --r: 12px; --R: 30px; --corner: calc(var(--R) * 2.1); }
-    .page { block-size: auto; min-block-size: 100svh; padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)); padding-inline: 20px; }
+    .page { block-size: auto; min-block-size: 100svh; padding-block: calc(12px + env(safe-area-inset-top, 0px)) calc(28px + env(safe-area-inset-bottom, 0px));
+            padding-inline: max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-right, 0px)); }
     .home { font-size: 24px; gap: 8px; }
     .head { flex-wrap: wrap; gap: 0 16px; padding-block: 10px 22px; }
-    h1 { font-size: 96px; }
-    .note { order: 3; flex-basis: 100%; padding-block: 16px 0; padding-inline-start: 4px; rotate: -2deg; font-size: 18px; line-height: 24px; }
+    h1 { font-size: 6rem; }
+    .note { order: 3; flex-basis: 100%; padding-block: 16px 0; padding-inline-start: 4px; rotate: -2deg; font-size: 18px; line-height: 1.33; }
     .note svg { display: none; }
-    .page { justify-content: flex-start; }
+    .page { justify-content: start; }
     .shelf { flex: none; max-block-size: none; flex-direction: column; gap: 5px; container-type: normal; }
     .tape { inline-size: auto; display: grid; grid-template-rows: 1fr 0fr; }
     .tape[data-open] { inline-size: auto; grid-template-rows: 0fr 1fr; }
@@ -243,11 +248,11 @@
     .spine { position: static; flex-direction: row; gap: 16px; min-block-size: 0; overflow: clip; padding-block: 0; padding-inline: 20px 18px; }
     .tape:has(.spine:focus-visible) { outline-offset: 2px; }
     .st { writing-mode: horizontal-tb; rotate: none; white-space: normal; display: flex; align-items: center;
-          min-block-size: calc(18px + var(--min) * 1.2px); padding-block: 10px; font-size: 19px; line-height: 21px; }
+          min-block-size: calc(18px + var(--min) * 1.2px); padding-block: 10px; font-size: 19px; line-height: 1.1; }
     .sleeve { position: static; inline-size: auto; min-block-size: 0; overflow: clip; }
     .in { block-size: auto; padding-block: 24px 22px; padding-inline: 22px; }
     .big { font-size: min(46px, 11.8vw); max-inline-size: 7.5em; }
-    .about { padding-block-start: 14px; font-size: 16px; line-height: 23px; }
+    .about { padding-block-start: 14px; font-size: 16px; line-height: 1.44; }
     .foot { padding-block-start: 22px; }
     @media (prefers-reduced-motion: no-preference) {
       .tape { transition: grid-template-rows 460ms var(--glide), border-radius 460ms var(--glide), scale 150ms var(--ease-out); }
@@ -281,7 +286,7 @@
       <svg class="back" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M15 9H4M8 4.5L3.5 9 8 13.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span aria-hidden="true">bast<i>eau</i></span></a>
     <div class="tools">
-      <button class="icon" id="sound" type="button" aria-label="Mute sound" aria-pressed="true">
+      <button class="icon" id="sound" type="button" aria-label="Sound" aria-pressed="true">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M2.8 6.8h2.4l3.4-2.9v10.2L5.2 11.2H2.8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <g class="swap waves"><path d="M11.6 6.4a3.6 3.6 0 0 1 0 5.2M13.8 4.3a6.6 6.6 0 0 1 0 9.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></g>

@@ -86,7 +86,7 @@ function newGame({ animate = true } = {}) {
     const { x, y } = m;
     const el = document.createElement('button');
     el.className = 'card'; el.type = 'button'; el.tabIndex = -1; el.dataset.state = 'down';
-    el.setAttribute('aria-label', 'Hidden card');
+    el.setAttribute('aria-label', `Hidden card, row ${y + 1}, column ${x + 1}`);
     const { vb } = glyph(m.slug, 1), mark = `viewBox="${vb}" aria-hidden="true"><path d="${ICONS[m.slug]}"/></svg>`;
     el.innerHTML = `<span class="skin"><span class="inner"><span class="face back"></span><span class="face front">` +
       `<svg class="ghost" ${mark}<svg class="glyph" ${mark}</span></span></span>`;
@@ -329,9 +329,11 @@ function rove(to) {
   for (const c of cards) c.el.tabIndex = c === to ? 0 : -1;
 }
 
+// a card says what it shows and where it is, so a turned card can be found again by its place
 function setState(c, state, instant) {
   c.state = state; c.el.dataset.state = state;
-  c.el.setAttribute('aria-label', state === 'down' ? 'Hidden card' : state === 'up' ? c.name : `${c.name}, matched`);
+  const at = `row ${c.y + 1}, column ${c.x + 1}`;
+  c.el.setAttribute('aria-label', state === 'down' ? `Hidden card, ${at}` : state === 'up' ? `${c.name}, ${at}` : `${c.name}, matched, ${at}`);
   if (instant) { c.el.classList.add('instant'); requestAnimationFrame(() => requestAnimationFrame(() => c.el.classList.remove('instant'))); }
 }
 
@@ -345,7 +347,10 @@ function onCard(c, keyboard) {
     moves++;
     const [a, b] = open;
     if (a.name === b.name) { open = []; setTimeout(() => onMatch(a, b), keyboard || reduce.matches ? 0 : 300); }
-    else missTimer = setTimeout(() => { play('miss'); settleMiss(false); }, 760);
+    else missTimer = setTimeout(() => {
+      play('miss'); settleMiss(false);
+      live.textContent = `${a.name} and ${b.name} don't match. Both turned back.`;
+    }, 760);
   }
 }
 
@@ -392,7 +397,7 @@ function onWin(last) {
     const d = Math.hypot(c.x - last.x, c.y - last.y);
     c.el.animate([{ scale: 1 }, { scale: .94 }, { scale: 1 }], { duration: 520, delay: d * 55, easing: 'cubic-bezier(.23, 1, .32, 1)' });
   }
-  [...$('#name').children].forEach((s, i) => s.animate(
+  [...$('#name .splash').children].forEach((s, i) => s.animate(
     [{ transform: 'none' }, { transform: 'translateY(-.07em)' }, { transform: 'none' }],
     { duration: 560, delay: i * 45, easing: 'cubic-bezier(.77, 0, .175, 1)' }));
   const r = last.el.getBoundingClientRect();
@@ -422,10 +427,10 @@ function shuffle() {
   newGame();
   if (!leaving) return;
   const at = board.getBoundingClientRect(), box = board.parentElement.getBoundingClientRect();   // to the subpixel
-  leaving.style.cssText += `position: absolute; margin: 0; pointer-events: none; left: ${at.left - box.left}px; top: ${at.top - box.top}px;`;
+  leaving.style.cssText += `position: absolute; margin: 0; pointer-events: none; inset-inline-start: ${at.left - box.left}px; inset-block-start: ${at.top - box.top}px;`;
   board.after(leaving);
   const out = was.map((c, i) => leaving.children[i].animate([{ opacity: 0, scale: .6 }],
-    { duration: 180, delay: (c.x + c.y) * 34, easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards' }));
+    { duration: 180, delay: (c.x + c.y) * 34, easing: 'cubic-bezier(.23, 1, .32, 1)', fill: 'forwards' }));
   out.at(-1).onfinish = () => { leaving.remove(); leaving = null; };   // the bottom-right tile leaves last
 }
 
@@ -502,14 +507,18 @@ pills.forEach(p => {
 work.addEventListener('pointerleave', e => e.pointerType === 'mouse' && !work.querySelector(':focus-visible') && rest());
 work.addEventListener('focusout', e => !work.contains(e.relatedTarget) && rest());
 
-// Say hello: open the mail app as usual, and also copy the address for visitors without one
-const toast = $('#toast');
+// Say hello: open the mail app as usual, and also copy the address for visitors without one. The toast is a status
+// region that stays in the page empty, so its words are read out each time they arrive; it gives them 5 seconds
+const toast = $('#toast'), said = toast.querySelector('span');
 let toastTimer = 0;
 $('#cta').addEventListener('click', () => {
   navigator.clipboard?.writeText('basteau@proton.me').then(() => {
-    toast.querySelector('span').textContent = 'basteau@proton.me copied';
-    toast.setAttribute('data-show', ''); clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.removeAttribute('data-show'), 2600);
+    said.textContent = ''; clearTimeout(toastTimer);
+    requestAnimationFrame(() => { said.textContent = 'basteau@proton.me copied'; toast.setAttribute('data-show', ''); });
+    toastTimer = setTimeout(() => {
+      toast.removeAttribute('data-show');
+      toastTimer = setTimeout(() => { said.textContent = ''; }, 300);   // (once it has faded)
+    }, 5000);
   }, () => {});
 });
 
@@ -547,6 +556,6 @@ function slosh() {
   splash = .2; water(); play('bloop');
   setTimeout(() => { splash = 0; water(); }, 650);
 }
-$('#name').addEventListener('click', slosh);
+$('#name .splash').addEventListener('click', slosh);
 
 document.fonts.ready.then(() => newGame());

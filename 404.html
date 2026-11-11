@@ -10,7 +10,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;600;800&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@600;800&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
 <script>
   (() => {
     // same rule as the home page: the system preference, unless the visitor picked the other one
@@ -29,7 +29,7 @@
     --ground: light-dark(var(--white), var(--black));
     --ink: light-dark(var(--black), var(--white));
     --muted: light-dark(oklch(52.95% .0077 286.1), oklch(64.86% .0088 286.2));
-    --rule: light-dark(oklch(15% .0021 286.1 / .12), oklch(100% 0 none / .16));
+    --rule: light-dark(color-mix(in oklch, var(--black) 12%, transparent), color-mix(in oklch, var(--white) 16%, transparent));
     --cta-bg: light-dark(oklch(54.47% .1557 250.4), oklch(56.33% .1557 249.9)); --cta-fg: var(--white);
     --ease-out: cubic-bezier(.23, 1, .32, 1);
   }
@@ -39,16 +39,16 @@
 
   *, ::before, ::after { box-sizing: border-box; min-width: 0; margin: 0; }
   :root { text-wrap: pretty; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; }
+          -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overscroll-behavior-y: none; scrollbar-gutter: stable; }
   @media (any-pointer: coarse) { :root { overscroll-behavior-y: auto; } }
   body { min-block-size: 100svh; display: grid; place-content: safe center; justify-items: start; gap: 28px; padding: 24px;
          background: var(--ground) radial-gradient(circle at center, var(--rule) 0, var(--rule) 1px, transparent 1.5px) 0 0 / 24px 24px;
          color: var(--ink); font-family: Geist, system-ui, sans-serif; font-synthesis: none; }
-  p { font: 500 12px/16px "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  p { font: 500 12px/1.33 "Geist Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
       padding-inline-start: .6em; }
   /* the page ran dry: the same water as the name, drained to a puddle */
   @property --x1 { syntax: "<length>"; inherits: false; initial-value: 0px; }
-  h1 { font-size: clamp(120px, 26vw, 280px); line-height: .85; font-weight: 800; letter-spacing: -.055em; color: transparent;
+  h1 { font-size: clamp(7.5rem, 1.786rem + 22.86vw, 17.5rem); line-height: .85; font-weight: 800; letter-spacing: -.055em; color: transparent;
        -webkit-background-clip: text; background-clip: text;
        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='600' viewBox='0 0 120 600' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C20 3 40 3 60 12 S100 21 120 12 V600 H0Z' fill='%23009FFD'/%3E%3C/svg%3E"), linear-gradient(var(--ink), var(--ink));
        background-repeat: repeat-x, no-repeat; background-size: .6em 3em, 100% 100%; background-position: var(--x1) .66em, 0 0; }
@@ -56,11 +56,11 @@
   a { display: inline-flex; align-items: center; gap: 12px; block-size: 54px; padding-inline: 28px 26px; border-radius: 999px;
       background: var(--cta-bg); color: var(--cta-fg); font-size: 17px; font-weight: 600; text-decoration: none; touch-action: manipulation; }
   a svg { flex: none; block-size: 1.5cap; inline-size: auto; }
-  a:active { scale: .97; }
+  a:active { scale: .96; }
   a:focus-visible { outline: max(2px, .08em) solid var(--ink); outline-offset: .25em; }
   @media (prefers-reduced-motion: no-preference) {
     h1 { animation: wave 5s linear infinite; }
-    a { transition: scale 160ms var(--ease-out); }
+    a { transition: scale 150ms var(--ease-out); }
   }
 </style>
 </head>
