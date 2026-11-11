@@ -402,47 +402,46 @@
   }
   @keyframes bud { from { translate: var(--bud) 0; scale: .45; } }
 
-  /* ---------- my favourite things: a little shelf of the collections I keep, told by objects alone. Today it holds
-     the talks, four tapes on a pencil line, each with its label strip, the last one leaning on its neighbour; films
-     and series (a VHS) and books (a few spines) will stand further along the same line, each a link to its own page
-     (named for screen readers). They are printed like the tiles, in the logo colours with the grain. Now and then a
-     tape peeks up out of the row, asking to be pulled; under the pointer or keyboard focus it is pulled out and the
-     leaning one rights itself, and on the way over the tapes grow into the talks page's shelf (a view transition,
-     talks.html) ---------- */
-  .shelf ul { position: relative; display: flex; align-items: flex-end; gap: 24px; padding-inline: 8px 16px; list-style: none; }
-  /* the shelf: a pencil line under the objects, run through the stack scale's wobble */
-  .shelf ul::before { content: ""; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: 2.5px; border-radius: 2px;
-                      background: var(--ink); rotate: -.5deg; filter: url(#rough); }
-  /* (the room above the tapes is what the pulled one rises into, inside the focus ring) */
-  .shelf a { display: block; padding-block-start: 16px; }
-  .shelf a:focus-visible { outline-offset: 4px; border-radius: 6px; }
-  .shelf .obj { display: flex; align-items: flex-end; gap: 2px; }
-  .shelf .obj i { position: relative; inline-size: var(--w); block-size: var(--h); border-radius: 2px;
-                  background: var(--c) var(--grain) 0 0 / 180px; background-blend-mode: soft-light; transform-origin: 0 100%; }
-  /* each tape's label strip, a little way down its spine */
-  .shelf .obj i::after { content: ""; position: absolute; inset-inline: 2px; inset-block-start: 24%; block-size: 3px; border-radius: 1px;
-                         background: oklch(100% 0 none / .6); }
-  .tapes i:nth-child(1) { --w: 11px; --h: 43px; --c: var(--magenta); border-start-start-radius: 7px; }
-  .tapes i:nth-child(2) { --w: 14px; --h: 50px; --c: var(--cyan); }
-  .tapes i:nth-child(3) { --w: 9px; --h: 40px; --c: var(--orange); border-start-start-radius: 5px; border-start-end-radius: 5px; }
-  /* (it leans back onto its shorter neighbour, pivoting on the corner that stays on the shelf) */
-  .tapes i:nth-child(4) { --w: 14px; --h: 47px; --c: var(--violet); border-start-end-radius: 8px; rotate: -6deg; }
-  .shelf a:active .obj { scale: .96; transform-origin: 50% 100%; }
-  .shelf a:focus-visible .tapes i:nth-child(2) { translate: 0 -12px; animation: none; }
-  .shelf a:focus-visible .tapes i:nth-child(4) { rotate: 0deg; }
-  @media (hover: hover) and (pointer: fine) {
-    .shelf a:hover .tapes i:nth-child(2) { translate: 0 -12px; animation: none; }
-    .shelf a:hover .tapes i:nth-child(4) { rotate: 0deg; }
-  }
+  /* ---------- my favourite things: a shelf of the collections I keep, told by objects drawn in the stack scale's
+     pencil, in its quiet grey, so they sit in the page instead of on it. Today it holds the talks, a cassette; films
+     and series (a VHS) and books (a few spines) will stand along the same row, each a link to its own page (named for
+     screen readers). The cassette is drawn in after the drops have budded; now and then its reels give a turn, as if
+     the tape played a second, and under the pointer, a finger or keyboard focus it plays: the pencil darkens, the
+     reels spin and the tape runs between them. On the way over it grows into the talks page's shelf (a view
+     transition, talks.html) ---------- */
+  .shelf ul { display: flex; align-items: center; gap: 16px; padding: 0; list-style: none; }
+  /* (44px tall, so it shares the drops' line and is as easy to hit) */
+  .shelf a { display: grid; place-items: center; block-size: 44px; padding-inline: 6px; border-radius: 8px; color: var(--muted); }
+  .shelf a:focus-visible { outline-offset: 2px; }
+  .shelf svg { inline-size: 40px; block-size: 28px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.7;
+               stroke-linecap: round; stroke-linejoin: round; filter: url(#rough); }
+  /* the reels turn about their own hubs; the tape between them is a dashed line that runs while it plays */
+  .shelf .reel { transform-box: fill-box; transform-origin: center; }
+  .shelf .tape { stroke-width: 1.2; stroke-dasharray: 1.6 2.4; }
+  .shelf a:focus-visible, .shelf a:active { color: var(--ink); }
+  @media (hover: hover) and (pointer: fine) { .shelf a:hover { color: var(--ink); } }
   @media (prefers-reduced-motion: no-preference) {
-    .tapes { view-transition-name: shelf; }
-    .shelf .obj { transition: scale 120ms var(--ease-out); }
-    /* pulled out on a soft ease, and the leaning tape rights itself with a little sway */
-    .shelf .obj i { transition: translate 280ms var(--ease-out), rotate 420ms var(--spring); }
-    /* the peek: once every nine seconds, a short rise and settle, still the rest of the time */
-    .tapes i:nth-child(2) { animation: peek 9s var(--ease-in-out) 4s infinite; }
+    .shelf a { transition: color 200ms ease; }
+    .shelf svg { view-transition-name: shelf; transition: rotate 420ms var(--spring), scale 120ms var(--ease-out); }
+    /* drawn in like the scale, a beat after the drops (pathLength 1, so every line's dash is its own length) */
+    .shelf .ink { stroke-dasharray: 1; animation: pencil 900ms var(--ease-in-out) 1100ms backwards; }
+    /* the idle turn: one eased turn of both reels every eleven seconds, still in between */
+    .shelf .reel { animation: fade 300ms ease 1700ms backwards, wind 11s var(--ease-in-out) 5s infinite; }
+    .shelf .tape { animation: fade 300ms ease 1700ms backwards; }
+    .shelf a:is(:focus-visible, :active) svg { rotate: -4deg; }
+    .shelf a:is(:focus-visible, :active) .reel { animation: spin 1.1s linear infinite; }
+    .shelf a:is(:focus-visible, :active) .tape { animation: run 400ms linear infinite; }
+    .shelf a:active svg { scale: .94; }
+    @media (hover: hover) and (pointer: fine) {
+      .shelf a:hover svg { rotate: -4deg; }
+      .shelf a:hover .reel { animation: spin 1.1s linear infinite; }
+      .shelf a:hover .tape { animation: run 400ms linear infinite; }
+    }
   }
-  @keyframes peek { 0%, 88%, 100% { translate: 0 0; } 92% { translate: 0 -8px; } 96% { translate: 0 1px; } }
+  @keyframes pencil { from { stroke-dashoffset: 1; } }
+  @keyframes wind { 0%, 86% { rotate: 0deg; } 96%, 100% { rotate: 360deg; } }
+  @keyframes spin { to { rotate: 360deg; } }
+  @keyframes run { to { stroke-dashoffset: -4; } }
   /* ---------- the board's controls ---------- */
   .icon { position: relative; inline-size: 44px; block-size: 44px; display: grid; place-items: center; border-radius: 999px;
           transition: background-color 160ms ease; }
@@ -526,8 +525,8 @@
   }
   .card.instant .inner, .card.instant .face { transition: none !important; }
 
-  /* ---------- the fold: where room is short (phones), the board rests as its first row with the top of the next one
-     showing under it, fading out, so it reads as more to come. The first play opens it to the full grid (app.js sets
+  /* ---------- the fold: where room is short (phones), the board rests as the rows that fit the rest of the screen,
+     with the top of the next one showing under it, fading out, so it reads as more to come. The first play opens it to the full grid (app.js sets
      data-open on .board-wrap, makes the hidden rows inert, and data-opening while it grows): the fold eases down to
      the board's full height while the fade lets go and the new rows deal in. Phones paint folded until app.js says
      open, so the first paint never jumps. The heights are the board's own footprint (its rows, less the outer gap it
@@ -538,7 +537,17 @@
           block-size: calc(var(--rows) * var(--cell) - 2 * var(--g) + 16px); }
   @media (max-width: 759px) {
     .fold { -webkit-mask: linear-gradient(#000 calc(100% - var(--fade)), transparent); mask: linear-gradient(#000 calc(100% - var(--fade)), transparent); }
-    .board-wrap:not([data-open]) .fold { block-size: calc(var(--cell) - var(--g) + 36px); --fade: 30px; }
+    /* folded, the board fills what the intro leaves of the first screen: its area takes the page's spare row (a
+       size container, so the fold can ask how tall that is), the fold as many whole rows as fit over the bar (at
+       least one, and never all of them), and the next row's peek the rest, so the bar always lands at the bottom of
+       the screen and the page is full on any phone. --h is the fold's height (its room is the area less the bar's
+       48px, plus the 16px its negative margins give back); a row counts as shown whole with 12px of the next one under
+       it, and the fade runs over that peek and 10px into the last whole row */
+    .board-wrap:not([data-open]) { container-type: size; align-self: stretch; justify-self: stretch; min-block-size: calc(var(--cell) + 72px); }
+    .board-wrap:not([data-open]) .fold {
+      --h: clamp(var(--cell) - var(--g) + 36px, 100cqh - 32px, (var(--rows) - .3) * var(--cell));
+      --fade: calc(var(--h) + var(--g) - 6px - round(down, var(--h) - 28px + var(--g), var(--cell)));
+      block-size: var(--h); }
   }
   @media (prefers-reduced-motion: no-preference) {
     .board-wrap[data-opening] .fold { transition: block-size 380ms var(--ease-out), --fade 380ms var(--ease-out); }
@@ -575,7 +584,7 @@
        never moves the card that was just tapped */
     @media (max-width: 759px) {
       :root { --name: min(104px, (100vw - 48px) / 3.767); }
-      .page { grid-template-rows: auto auto auto auto 1fr; grid-template-areas: "scale" "name" "sub" "board" ".";
+      .page { grid-template-rows: auto auto auto 1fr; grid-template-areas: "scale" "name" "sub" "board";
               padding-block-start: calc(48px + env(safe-area-inset-top, 0px)); }
     }
     /* on a portrait tablet the board is sized by the height and comes out narrower than the screen: there the column
@@ -607,7 +616,7 @@
     }
     /* the board and its bar share the intro's left edge, with the bar in the flow under the board */
     /* (clear of the board's own nudge, which stands above it) */
-    .board-wrap { margin-block-start: 44px; justify-self: start; grid-template-columns: minmax(0, 1fr); }
+    .board-wrap { margin-block-start: 44px; justify-self: start; align-self: start; align-content: start; grid-template-columns: minmax(0, 1fr); }
     .controls { position: static; justify-self: stretch; margin-block-start: 4px; margin-inline: 0 -13px; }
     /* the nudge sits close over the board's right end, with its arrow's tip on the last card's centre */
     .nudge { inset-inline-end: calc(.5 * var(--cell) + 38px); inset-block-end: calc(100% + 10px); }
@@ -698,7 +707,14 @@
     <!-- my favourite things: one object per collection, each leading to its own page -->
     <nav class="shelf" aria-label="My favourite things">
       <ul>
-        <li><a href="talks.html"><span class="obj tapes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="sr">Talks</span></a></li>
+        <li><a href="talks.html"><svg viewBox="0 0 40 28" aria-hidden="true">
+          <rect class="ink" pathLength="1" x="1" y="1" width="38" height="26" rx="3.5"/>
+          <rect class="ink" pathLength="1" x="8" y="7" width="24" height="10" rx="5"/>
+          <path class="ink" pathLength="1" d="M10 27l2.4-5h15.2l2.4 5"/>
+          <path class="tape" d="M13.5 15h13"/>
+          <g class="reel"><circle cx="13.5" cy="12" r="2.6"/><path d="M13.5 9.4v5.2M11.25 10.7l4.5 2.6M11.25 13.3l4.5-2.6" stroke-width="1"/></g>
+          <g class="reel"><circle cx="26.5" cy="12" r="2.6"/><path d="M26.5 9.4v5.2M24.25 10.7l4.5 2.6M24.25 13.3l4.5-2.6" stroke-width="1"/></g>
+        </svg><span class="sr">Talks</span></a></li>
       </ul>
     </nav>
     </div>

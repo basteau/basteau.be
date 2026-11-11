@@ -48,8 +48,8 @@ const play = player(SFX);
 /* =====================================================================
    layout: a 4 x 6 column beside the name on desktop, a wide 5 x 4 board
    under the intro on phones and portrait tablets. Cells stay square;
-   everything else follows them. Phones fold the board to its first row
-   until it's played (the fold, below)
+   everything else follows them. Phones fold the board to the rows that
+   fit the first screen until it's played (the fold, below)
    ===================================================================== */
 const page = $('.page'), wrap = $('.board-wrap');
 // the CSS's own breakpoints, asked the same way (a window's width here includes a classic scrollbar, as in the CSS)
@@ -139,8 +139,8 @@ function cutCard(c) {
   c.el.style.setProperty('--round', c.radius.map(k => (k * S.cell).toFixed(2) + 'px').join(' '));   // for the focus ring
 }
 
-// a card nobody is playing with, still, and in view (the fold hides all but the first row)
-const idle = c => c.state === 'down' && !c.turning && (!folded || c.y === 0);
+// a card nobody is playing with, still, and in view (the fold hides the rows past `shown`)
+const idle = c => c.state === 'down' && !c.turning && c.y < shown;
 let lastInput = 0;
 addEventListener('pointerdown', () => { lastInput = performance.now(); }, { passive: true });
 addEventListener('keydown', () => { lastInput = performance.now(); });
@@ -242,7 +242,7 @@ function surface(now) {
   depth += ((busy ? .4 : 1) - depth) * (1 - Math.exp(-dt / .6));
   // where the swell wants to be: its own path, pulled up to 85% of the way to the visitor, fading out over 2.5
   // cells beyond the board's edge; a tap holds it for 1.2s (long enough for the spring to arrive), then lets go
-  const rows = folded ? 1 : S.rows;   // folded, it breathes in the one row on show
+  const rows = shown;   // folded, it breathes in the rows on show
   const want = drift(surfT, S.cols, rows, PH);
   if (pointer) {
     const r = board.getBoundingClientRect(), px = (pointer.x - r.left) / S.cell, py = (pointer.y - r.top) / S.cell;
@@ -276,22 +276,35 @@ function dealIn(from = 0, delay = 120) {
   }
 }
 
-/* the fold: on a phone the board rests as its first row and opens on the first play, a tap or Enter on a card (which
-   flips it as well) or the arrow down into the rows below. The rows it hides are inert, so neither the keyboard nor
-   a screen reader lands on them, and the board says what is hidden. Once played it stays open for the visit, through
+/* the fold: on a phone the board rests as the rows that fit the rest of the first screen (the CSS sizes it; this
+   reads back how many whole rows that is) and opens on the first play, a tap or Enter on a card (which flips it as
+   well) or the arrow down into the rows below. The rows it hides are inert, so neither the keyboard nor a screen
+   reader lands on them, and the board says what is hidden. Once played it stays open for the visit, through
    shuffles, turns of the phone and reloads (the CSS shows phones folded until this says open, so a first paint never
    jumps) */
-const OPENED = 'basteau:board', hint = $('#fold-hint');
+const OPENED = 'basteau:board', hint = $('#fold-hint'), foldBox = $('.fold');
 let opened = (() => { try { return sessionStorage.getItem(OPENED) === 'open'; } catch { return false; } })();
-let folded = false;
+let folded = false, shown = 6;
 function fold() {
   folded = S.fold && !opened;
   wrap.toggleAttribute('data-open', !folded);
-  for (const c of cards) c.el.inert = folded && c.y > 0;
-  hint.textContent = `Showing the first row of ${S.cols * S.rows} cards. Play a card or press Down to open the rest.`;
-  if (folded) { board.setAttribute('aria-describedby', 'fold-hint'); rove(cards.find(c => c.el.tabIndex === 0)?.y > 0 ? cards[0] : null); }
+  // a tall phone has the room for the whole board under the intro (its area, folded, less the bar's 48px): no fold
+  if (folded && wrap.getBoundingClientRect().height - 48 >= S.rows * S.cell - 2 * Math.max(2, S.cell * .028)) {
+    folded = false; wrap.setAttribute('data-open', '');
+  }
+  cover();
+  if (folded) { board.setAttribute('aria-describedby', 'fold-hint'); rove(cards.find(c => c.el.tabIndex === 0)?.y >= shown ? cards[0] : null); }
   else board.removeAttribute('aria-describedby');
 }
+// how many rows the fold shows whole (its height less 16px of air and at least 12px of peek, as the CSS works it
+// out), with the rest made inert; again whenever the fold's room changes (a font arriving, the screen turning)
+function cover() {
+  const g = Math.max(2, S.cell * .028);
+  shown = folded ? Math.min(S.rows - 1, Math.max(1, Math.floor((foldBox.getBoundingClientRect().height - 28 + g) / S.cell + .001))) : S.rows;
+  for (const c of cards) c.el.inert = c.y >= shown;
+  hint.textContent = `Showing the first ${shown === 1 ? 'row' : `${shown} rows`} of ${S.cols * S.rows} cards. Play a card or press Down to open the rest.`;
+}
+new ResizeObserver(() => { if (folded) cover(); }).observe(foldBox);
 // played on any layout counts: a board played sideways doesn't fold up again when the phone is turned upright
 function unfold() {
   if (!opened) { opened = true; try { sessionStorage.setItem(OPENED, 'open'); } catch {} }
@@ -299,8 +312,9 @@ function unfold() {
   folded = false;
   wrap.toggleAttribute('data-opening', !reduce.matches); wrap.setAttribute('data-open', '');
   board.removeAttribute('aria-describedby');
-  for (const c of cards) c.el.inert = false;
-  dealIn(2, 60);   // (the second row is already showing under the first: the fold just uncovers it)
+  const from = shown + 1;   // (the row after the last whole one is already peeking: the fold just uncovers it)
+  cover();
+  dealIn(from, 60);
   live.textContent = `The board opened: ${pairs} pairs to find.`;
   // once the fold has grown (index.html), bring the whole board and its bar into view if it now runs past the screen
   setTimeout(() => {
@@ -415,13 +429,13 @@ function shuffle() {
 }
 
 // arrows walk the grid (roving tabindex); Enter / Space flip through the button's own click. Down from a folded
-// board's only row opens it
+// board's last row on show opens it
 board.addEventListener('keydown', e => {
   const step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
   if (!step) return;
   const cur = cards.find(c => c.el === document.activeElement); if (!cur) return;
   e.preventDefault();
-  if (e.key === 'ArrowDown') unfold();
+  if (e.key === 'ArrowDown' && cur.y + 1 >= shown) unfold();
   const next = grid[cur.y + step[0]]?.[cur.x + step[1]]; if (!next) return;
   rove(next); next.el.focus();
 });
